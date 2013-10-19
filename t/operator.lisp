@@ -1,0 +1,213 @@
+(in-package :cl-user)
+(defpackage t.sxql.operator
+  (:use :cl
+        :sxql
+        :sxql.sql-type
+        :sxql.operator
+        :cl-test-more))
+(in-package :t.sxql.operator)
+
+(plan nil)
+
+(ok (make-unary-op "NOT" (make-sql-variable 1)))
+(ok (make-unary-op "NOT" (make-unary-op "NOT" (make-sql-variable 1))))
+(is-error (make-unary-op "NOT" 1) type-error)
+
+(ok (make-infix-op "=" (make-sql-variable 1) (make-sql-variable 1)))
+(ok (make-infix-op "="
+                   (make-unary-op "NOT" (make-sql-variable 1))
+                   (make-sql-variable 1)))
+(is-error (make-infix-op "=" 1 (make-sql-variable 1)) type-error)
+
+(is-error (make-conjunctive-op "+" 1) type-error)
+(ok (make-conjunctive-op "+" (make-sql-variable 1)))
+(ok (make-conjunctive-op "+"
+                         (make-sql-variable 1)
+                         (make-sql-variable 3)
+                         (make-sql-atom-list (list (make-sql-symbol "a")
+                                                   (make-sql-symbol "b")))
+                         (make-sql-keyword "NULL")))
+
+(diag "unary-op")
+
+(is (multiple-value-list
+     (stringify (make-op :not (make-sql-variable 1))))
+    (list "(NOT ?)" '(1)))
+(is (multiple-value-list
+     (stringify (make-op :is-null (make-sql-symbol "a"))))
+    (list "(`a` IS NULL)" nil))
+(is (multiple-value-list
+     (stringify (make-op :not-null (make-sql-symbol "a"))))
+    (list "(`a` IS NOT NULL)" nil))
+
+(ok (sxql.operator::make-raw-op (make-sql-variable "SELECT * FROM table")))
+(ok (sxql.operator::make-raw-op "SELECT * FROM table"))
+(is (multiple-value-list
+     (stringify (make-op :raw "SELECT * FROM table")))
+    (list "(SELECT * FROM table)" nil))
+
+(is-error (make-op :not
+                   (make-sql-symbol "a")
+                   (make-sql-variable 1))
+          program-error)
+
+(diag "infix-op")
+
+(is (multiple-value-list
+     (stringify (make-op :=
+                         (make-sql-variable 1)
+                         (make-sql-variable 1))))
+    (list "(? = ?)" '(1 1))
+    "=")
+
+(is (multiple-value-list
+     (stringify (make-op :!=
+                         (make-sql-variable 1)
+                         (make-sql-variable 1))))
+    (list "(? != ?)" '(1 1))
+    "!=")
+
+(is (multiple-value-list
+     (stringify (make-op :<
+                         (make-sql-variable 1)
+                         (make-sql-variable 1))))
+    (list "(? < ?)" '(1 1))
+    "<")
+
+(is (multiple-value-list
+     (stringify (make-op :>
+                         (make-sql-variable 1)
+                         (make-sql-variable 1))))
+    (list "(? > ?)" '(1 1))
+    ">")
+
+(is (multiple-value-list
+     (stringify (make-op :>=
+                         (make-sql-variable 1)
+                         (make-sql-variable 1))))
+    (list "(? >= ?)" '(1 1))
+    ">=")
+
+(is (multiple-value-list
+     (stringify (make-op :<=
+                         (make-sql-variable 1)
+                         (make-sql-variable 1))))
+    (list "(? <= ?)" '(1 1))
+    "<=")
+
+(is (multiple-value-list
+     (stringify (make-op :as
+                         (make-sql-symbol "table-name")
+                         (make-sql-symbol "a"))))
+    (list "(`table-name` AS `a`)" nil)
+    "AS")
+
+(is (multiple-value-list
+     (stringify (make-op :in
+                         (make-sql-symbol "a")
+                         (make-sql-list
+                          (make-sql-variable 1)
+                          (make-sql-variable 10)
+                          (make-sql-variable 100)))))
+    (list "(`a` IN (?, ?, ?))" '(1 10 100))
+    "IN")
+(is (multiple-value-list
+     (stringify (make-op :in
+                         (make-sql-symbol "a")
+                         (make-sql-list
+                          (make-sql-variable 1)
+                          (make-sql-variable 10)
+                          (make-op :*
+                                   (make-sql-variable 10)
+                                   (make-sql-variable 10))))))
+    (list "(`a` IN (?, ?, (? * ?)))" '(1 10 10 10))
+    "IN")
+(is (multiple-value-list
+     (stringify (make-op :not-in
+                         (make-sql-symbol "a")
+                         (list (make-sql-variable 1)
+                               (make-sql-variable 10)
+                               (make-sql-variable 100)))))
+    (list "(`a` NOT IN (?, ?, ?))" '(1 10 100))
+    "NOT IN")
+(is-error (make-op :in
+                   (make-sql-symbol "a")
+                   (make-sql-variable 1))
+          type-error)
+(is-error (make-op :not-in
+                   (make-sql-symbol "a")
+                   (make-sql-variable 1))
+          type-error)
+
+(is (multiple-value-list
+     (stringify (make-op :like
+                         (make-sql-symbol "name")
+                         (make-sql-variable "John %"))))
+    (list "(`name` LIKE ?)" '("John %"))
+    "LIKE")
+
+(is-error (make-op :in
+                   (make-sql-symbol "a")
+                   (make-sql-variable 1)
+                   (make-sql-variable "extra argument"))
+          'program-error)
+
+(diag "conjunctive-op")
+
+(is (multiple-value-list
+     (stringify (make-op :or
+                         (make-sql-variable 1)
+                         (make-sql-variable 2)
+                         (make-sql-variable 3))))
+    (list "(? OR ? OR ?)" '(1 2 3)))
+(is (multiple-value-list
+     (stringify (make-op :or
+                         (make-op :>
+                                  (make-sql-symbol "age")
+                                  (make-sql-variable 65))
+                         (make-op :<=
+                                  (make-sql-symbol "age")
+                                  (make-sql-variable 18)))))
+    (list "((`age` > ?) OR (`age` <= ?))" '(65 18)))
+(is (multiple-value-list
+     (stringify (make-op :and
+                         (make-op :>
+                                  (make-sql-symbol "age")
+                                  (make-sql-variable 15))
+                         (make-op :>
+                                  (make-sql-variable 21)
+                                  (make-sql-symbol "age"))
+                         (make-op :like
+                                  (make-sql-symbol "name")
+                                  (make-sql-variable "John %")))))
+    (list "((`age` > ?) AND (? > `age`) AND (`name` LIKE ?))"
+          '(15 21 "John %")))
+(is (multiple-value-list
+     (stringify (make-op :+
+                         (make-sql-variable 1)
+                         (make-sql-variable 3)
+                         (make-op :*
+                                  (make-sql-variable 100)
+                                  (make-op :-
+                                           (make-sql-variable 0.8)
+                                           (make-sql-variable 0.3)))
+                         (make-op :/
+                                  (make-sql-symbol "a")
+                                  (make-sql-variable 10))
+                         (make-op :%
+                                  (make-sql-variable 100)
+                                  (make-sql-variable 3)
+                                  (make-sql-variable 3)))))
+    (list "(? + ? + (? * (? - ?)) + (`a` / ?) + (? % ? % ?))"
+          '(1 3 100 0.8 0.3 10 100 3 3)))
+
+(diag "function-op")
+
+(ok (make-op :count :*))
+(is (slot-value (make-op :count :*) 'name) "COUNT")
+(is-type (make-op :count :*) 'function-op)
+(is (stringify (make-op :count :*)) "COUNT(*)")
+(is (stringify (make-op :count '*)) "COUNT(*)")
+(is (stringify (make-op :count 'column)) "COUNT(`column`)")
+
+(finalize)
