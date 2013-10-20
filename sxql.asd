@@ -13,9 +13,9 @@
 (in-package :sxql-asd)
 
 (defsystem sxql
-  :version "0.1"
+  :version "0.0.1"
   :author "Eitarow Fukamachi"
-  :license "BSD 2-Clause"
+  :license "BSD 3-Clause"
   :depends-on (:optima
                :cl-syntax-annot
                :trivial-types
@@ -27,7 +27,7 @@
                  (:file "operator" :depends-on ("sql-type"))
                  (:file "clause" :depends-on ("operator"))
                  (:file "statement" :depends-on ("operator" "clause")))))
-  :description ""
+  :description "A SQL generator"
   :long-description
   #.(with-open-file (stream (merge-pathnames
                              #p"README.markdown"

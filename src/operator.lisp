@@ -27,7 +27,8 @@
                                        unary-suffix-op) '(var))
                                      ((infix-op
                                        infix-list-op) '(left right))
-                                     (conjunctive-op '(&rest expressions)))))
+                                     (conjunctive-op '(&rest expressions
+                                                       &aux (expressions (apply #'make-sql-expression-list expressions)))))))
        ,@body)))
 
 (define-op (:not unary-op))
@@ -35,6 +36,10 @@
 (define-op (:not-null unary-op))
 (define-op (:desc unary-suffix-op))
 (define-op (:asc unary-suffix-op))
+(define-op (:distinct unary-op))
+(defstruct (on-op (:include sql-op (name "ON"))
+                  (:constructor make-on-op (var)))
+  (var nil :type =-op))
 
 (define-op (:= infix-op))
 (define-op (:!= infix-op))
@@ -102,22 +107,24 @@
                 (mapcar #'detect-and-convert object))))
     (structure-object object)))
 
-(defmethod stringify ((op is-null-op))
-  (stringify
+(defmethod yield ((op is-null-op))
+  (yield
    (make-infix-op "IS"
                   (is-null-op-var op)
                   (make-sql-keyword "NULL"))))
 
-(defmethod stringify ((op not-null-op))
-  (stringify
+(defmethod yield ((op not-null-op))
+  (yield
    (make-infix-op "IS NOT"
                   (not-null-op-var op)
                   (make-sql-keyword "NULL"))))
 
-(defmethod stringify ((raw raw-op))
+(defmethod yield ((raw raw-op))
   (values
    (format nil "(~A)"
            (etypecase (raw-op-var raw)
              (string (raw-op-var raw))
-             (sql-variable (let ((*use-placeholder* nil)) (stringify (raw-op-var raw))))))
+             (sql-variable (let ((*use-placeholder* nil)
+                                 (*use-prin1-for-print-object* nil))
+                             (yield (raw-op-var raw))))))
    nil))

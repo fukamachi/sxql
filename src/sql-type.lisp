@@ -11,6 +11,9 @@
 @export
 (defparameter *use-placeholder* t)
 
+@export
+(defparameter *use-prin1-for-print-object* nil)
+
 ;;
 ;; Atom
 
@@ -40,13 +43,14 @@
 
 @export
 @export-constructors
-;; XXX: まだ使うことある？？
-(defstruct (sql-atom-list (:constructor make-sql-atom-list (atoms))
+(defstruct (sql-atom-list (:constructor make-sql-atom-list (&rest atoms))
                           (:predicate nil))
   (atoms nil :type (and proper-list
                       (satisfies sql-atom-list-p))))
 
+@export 'elements
 @export
+@export-accessors
 @export-constructors
 (defstruct (sql-list (:constructor make-sql-list (&rest elements)))
   (elements nil :type proper-list))
@@ -60,7 +64,7 @@
   (name nil :type string))
 
 @export
-(deftype sql-expression () '(or sql-atom sql-atom-list sql-op))
+(deftype sql-expression () '(or sql-atom sql-list sql-op))
 
 (defun sql-expression-p (object)
   (typep object 'sql-expression))
@@ -69,7 +73,11 @@
   (every #'sql-expression-p object))
 
 @export
-(deftype sql-expression-list () '(and proper-list (satisfies sql-expression-list-p)))
+@export-constructors
+(defstruct (sql-expression-list (:constructor make-sql-expression-list (&rest elements))
+                                (:predicate nil))
+  (elements nil :type (and proper-list
+                         (satisfies sql-expression-list-p))))
 
 @export 'var
 @export
@@ -89,6 +97,7 @@
   (left nil :type (or sql-expression
                     sql-expression-list))
   (right nil :type (or sql-expression
+                     sql-expression-list
                      sql-list)))
 
 @export
@@ -101,13 +110,15 @@
 @export
 @export-constructors
 (defstruct (conjunctive-op (:include sql-op)
-                           (:constructor make-conjunctive-op (name &rest expressions)))
+                           (:constructor make-conjunctive-op (name &rest expressions
+                                                              &aux (expressions (apply #'make-sql-expression-list expressions)))))
   (expressions nil :type sql-expression-list))
 
 @export
 @export-constructors
 (defstruct (function-op (:include conjunctive-op)
-                        (:constructor make-function-op (name &rest expressions))))
+                        (:constructor make-function-op (name &rest expressions
+                                                        &aux (expressions (apply #'make-sql-expression-list expressions))))))
 
 ;;
 ;; Clause
@@ -116,16 +127,33 @@
 (defstruct sql-clause
   (name nil :type string))
 
+(defun sql-clause-list-p (object)
+  (every #'sql-clause-p object))
+
+@export
+(deftype sql-clause-list ()
+  '(and proper-list
+        (satisfies sql-clause-list-p)))
+
 @export 'expression
 @export
 (defstruct (expression-clause (:include sql-clause))
   (expression nil :type (or sql-expression
-                          sql-list)))
+                           sql-expression-list
+                           sql-list)))
 
 @export 'statement
 @export
 (defstruct (statement-clause (:include sql-clause))
-  (statement nil :type (or sql-expression sql-statement)))
+  (statement nil :type (or sql-expression
+                         sql-expression-list
+                         sql-statement)))
+
+(defmethod print-object ((clause sql-clause) stream)
+  (format stream "#<SXQL-CLAUSE: ~A>"
+          (let ((*use-placeholder* nil)
+                (*use-prin1-for-print-object* t))
+            (yield clause))))
 
 ;;
 ;; Statement
@@ -134,109 +162,139 @@
 (defstruct sql-statement
   (name nil :type string))
 
+@export 'clauses
+@export
+(defstruct (sql-composed-statement (:include sql-statement))
+  (clauses nil :type sql-clause-list))
+
+(defmethod print-object ((clause sql-statement) stream)
+  (format stream "#<SXQL-STATEMENT: ~A>"
+          (let ((*use-placeholder* nil)
+                (*use-prin1-for-print-object* t))
+            (yield clause))))
+
 ;;
-;; Stringify
+;; Yield
 
 @export
-(defgeneric stringify (op))
+(defgeneric yield (object))
 
-(defmethod stringify ((s sql-symbol))
+(defmethod yield ((symbol sql-symbol))
   (values
-   (format nil "~{`~A`~^.~}" (split-sequence #\. (sql-symbol-name s)))
+   (format nil "~{`~A`~^.~}" (split-sequence #\. (sql-symbol-name symbol)))
    nil))
 
-(defmethod stringify ((s sql-keyword))
+(defmethod yield ((keyword sql-keyword))
   (values
-   (sql-symbol-name s)
+   (sql-keyword-name keyword)
    nil))
 
-(defmethod stringify ((var sql-variable))
+(defmethod yield ((var sql-variable))
   (if *use-placeholder*
       (values "?" (list (sql-variable-value var)))
-      (values (princ-to-string (sql-variable-value var))
-              nil)))
+      (values
+       (funcall (if *use-prin1-for-print-object*
+                    #'prin1-to-string
+                    #'princ-to-string)
+                (sql-variable-value var))
+       nil)))
 
-(defmethod stringify ((atom-list sql-atom-list))
-  (stringify
-   (apply #'make-sql-list
-          (sql-atom-list-atoms atom-list))))
+(defmethod yield ((atom-list sql-atom-list))
+  (with-yield-binds
+    (format nil "(~{~A~^, ~})"
+            (mapcar #'yield
+                    (sql-atom-list-atoms atom-list)))))
 
-(defmethod stringify ((list sql-list))
+(defmethod yield ((list sql-list))
+  (with-yield-binds
+    (format nil "(~{~A~^, ~})"
+            (mapcar #'yield
+                    (sql-list-elements list)))))
+
+(defmethod yield ((list sql-expression-list))
+  (with-yield-binds
+    (format nil "(~{~A~^ ~})"
+            (mapcar #'yield (sql-expression-list-elements list)))))
+
+(defmethod yield ((op unary-op))
   (multiple-value-bind (var binds)
-      (merged-multiple-values #'stringify (sql-list-elements list))
-    (values
-     (format nil "(~{~A~^, ~})"
-             var)
-     binds)))
-
-(defmethod stringify ((op unary-op))
-  (multiple-value-bind (var binds)
-      (stringify (unary-op-var op))
+      (yield (unary-op-var op))
     (values (format nil "(~A ~A)"
                     (sql-op-name op)
                     var)
             binds)))
 
-(defmethod stringify ((op unary-suffix-op))
+(defmethod yield ((op unary-suffix-op))
   (multiple-value-bind (var binds)
-      (stringify (unary-op-var op))
+      (yield (unary-op-var op))
     (values (format nil "~A ~A"
                     var
                     (sql-op-name op))
             binds)))
 
-(defmethod stringify ((op infix-op))
-  (multiple-value-bind (var1 binds1)
-      (stringify (infix-op-left op))
-    (multiple-value-bind (var2 binds2) (stringify (infix-op-right op))
-      (values
-       (format nil "(~A ~A ~A)"
-               var1
-               (sql-op-name op)
-               var2)
-       (append binds1 binds2)))))
+(defmethod yield ((op infix-op))
+  (with-yield-binds
+    (format nil "(~A ~A ~A)"
+            (yield (infix-op-left op))
+            (sql-op-name op)
+            (yield (infix-op-right op)))))
 
-(defmethod stringify ((op infix-list-op))
-  (stringify
+(defmethod yield ((op infix-list-op))
+  (yield
    (make-infix-op (sql-op-name op)
                   (infix-list-op-left op)
                   (infix-list-op-right op))))
 
-(defmethod stringify ((op conjunctive-op))
-  (multiple-value-bind (vars bind)
-      (merged-multiple-values #'stringify (conjunctive-op-expressions op))
-    (values
-     (format nil (format nil "(~~{~~A~~^ ~A ~~})" (sql-op-name op))
-             vars)
-     bind)))
+(defmethod yield ((op conjunctive-op))
+  (with-yield-binds
+    (format nil (format nil "(~~{~~A~~^ ~A ~~})" (sql-op-name op))
+            (mapcar #'yield (sql-expression-list-elements (conjunctive-op-expressions op))))))
 
-(defmethod stringify ((op function-op))
-  (multiple-value-bind (vars bind)
-      (merged-multiple-values #'stringify (function-op-expressions op))
-    (values
-     (format nil "~A(~{~A~^, ~})"
-             (sql-op-name op)
-             vars)
-     bind)))
+(defmethod yield ((op function-op))
+  (with-yield-binds
+    (format nil "~A(~{~A~^, ~})"
+            (sql-op-name op)
+            (mapcar #'yield (sql-expression-list-elements (function-op-expressions op))))))
 
-(defmethod stringify ((clause expression-clause))
+(defmethod yield ((clause expression-clause))
   (multiple-value-bind (sql bind)
-      (stringify (expression-clause-expression clause))
+      (yield (expression-clause-expression clause))
     (values
      (format nil "~A ~A"
              (sql-clause-name clause)
              sql)
      bind)))
 
-(defmethod stringify ((clause statement-clause))
-  (stringify
-   (make-expression-clause
-    :name (sql-clause-name clause)
-    :expression (statement-clause-statement clause))))
+(defmethod yield ((clause statement-clause))
+  (with-yield-binds
+    (format nil (if (sql-statement-p (statement-clause-statement clause))
+                  "~A (~A)"
+                  "~A ~A")
+            (sql-clause-name clause)
+            (yield (statement-clause-statement clause)))))
 
-(defun merged-multiple-values (func list-of-forms)
-  (loop for form in list-of-forms
-        for (sql binds) = (multiple-value-list (funcall func form))
-        collect sql into sqls
-        append binds into binds-list
-        finally (return (values sqls binds-list))))
+(defmethod yield ((statement sql-composed-statement))
+  (with-yield-binds
+    (format nil "~A ~{~A~^ ~}"
+            (sql-statement-name statement)
+            (mapcar #'yield (sql-composed-statement-clauses statement)))))
+
+(defparameter *bind-values* nil)
+(defparameter *use-global-bind-values* nil)
+
+(defmethod yield :around ((object t))
+  (if *use-global-bind-values*
+      (progn
+        (multiple-value-bind (var bind) (call-next-method)
+          (when bind (push bind *bind-values*))
+          (values var nil)))
+      (call-next-method)))
+
+@export
+(defmacro with-yield-binds (&body body)
+  `(let ((*bind-values* nil)
+         (*use-global-bind-values* t))
+     (values
+      (progn ,@body)
+      (loop for bind in (reverse *bind-values*)
+            append bind))))

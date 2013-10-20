@@ -10,7 +10,7 @@
 
 (defsystem sxql-test
   :author "Eitarow Fukamachi"
-  :license "BSD 2-Clause"
+  :license "BSD 3-Clause"
   :depends-on (:sxql
                :cl-test-more)
   :components ((:module "t"

@@ -9,32 +9,53 @@
         :sxql.statement
         :sxql.clause)
   (:import-from :sxql.sql-type
-                :stringify))
+                :sql-clause-list
+                :yield
+                :*use-placeholder*)
+  (:import-from :sxql.operator
+                :detect-and-convert)
+  (:export :yield
+           :*use-placeholder*))
 (in-package :sxql)
 
 (cl-syntax:use-syntax :annot)
 
 @export
-(defun select (&key field from where order-by group-by limit offset)
-  (stringify
-   (make-statement :select
-                   :field (and field
-                               (make-clause :field field))
-                   :from (and from
-                              (make-clause :from from))
-                   :where (and where
-                               (make-clause :where where))
-                   :order-by (and order-by
-                                  (make-clause :order-by order-by))
-                   :group-by (and group-by
-                                  (make-clause :group-by group-by))
-                   :limit (and limit
-                               (apply #'make-clause :limit (if (listp limit)
-                                                               limit
-                                                               (list limit))))
-                   :offset (and offset
-                                (make-clause :offset offset)))))
+(defun select (field &rest args)
+  (check-type args sql-clause-list)
+  (apply #'make-statement :select
+         (make-clause :field field)
+         args))
+
+;;
+;; Clauses
+
+@export
+(defun from (statement)
+  (make-clause :from statement))
+
+@export
+(defun where (expression)
+  (make-clause :where expression))
+
+@export
+(defun order-by (expression)
+  (make-clause :order-by expression))
+
+@export
+(defun group-by (expression)
+  (make-clause :group-by expression))
+
+@export
+(defun limit (count1 &optional count2)
+  (apply #'make-clause :limit `(,count1 ,@(and count2 (list count2)))))
+
+@export
+(defun offset (offset)
+  (make-clause :offset offset))
 
 
-
-
+@export
+(defun left-join (table &key on)
+  (make-left-join-clause (detect-and-convert table)
+                         :on (detect-and-convert on)))

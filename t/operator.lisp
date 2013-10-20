@@ -24,26 +24,26 @@
 (ok (make-conjunctive-op "+"
                          (make-sql-variable 1)
                          (make-sql-variable 3)
-                         (make-sql-atom-list (list (make-sql-symbol "a")
-                                                   (make-sql-symbol "b")))
+                         (make-sql-list (make-sql-symbol "a")
+                                        (make-sql-symbol "b"))
                          (make-sql-keyword "NULL")))
 
 (diag "unary-op")
 
 (is (multiple-value-list
-     (stringify (make-op :not (make-sql-variable 1))))
+     (yield (make-op :not (make-sql-variable 1))))
     (list "(NOT ?)" '(1)))
 (is (multiple-value-list
-     (stringify (make-op :is-null (make-sql-symbol "a"))))
+     (yield (make-op :is-null (make-sql-symbol "a"))))
     (list "(`a` IS NULL)" nil))
 (is (multiple-value-list
-     (stringify (make-op :not-null (make-sql-symbol "a"))))
+     (yield (make-op :not-null (make-sql-symbol "a"))))
     (list "(`a` IS NOT NULL)" nil))
 
-(ok (sxql.operator::make-raw-op (make-sql-variable "SELECT * FROM table")))
-(ok (sxql.operator::make-raw-op "SELECT * FROM table"))
+(ok (make-op :raw (make-sql-variable "SELECT * FROM table")))
+(ok (make-op :raw "SELECT * FROM table"))
 (is (multiple-value-list
-     (stringify (make-op :raw "SELECT * FROM table")))
+     (yield (make-op :raw "SELECT * FROM table")))
     (list "(SELECT * FROM table)" nil))
 
 (is-error (make-op :not
@@ -51,59 +51,73 @@
                    (make-sql-variable 1))
           program-error)
 
+(is (multiple-value-list
+     (yield (make-op :distinct 'age)))
+    (list "(DISTINCT `age`)" nil))
+
+(ok (make-op :on (make-op :=
+                          (make-sql-symbol "a")
+                          (make-sql-symbol "b"))))
+(is-error (make-op :on (make-sql-variable 1))
+          type-error)
+(is-error (make-op :on (make-op :+
+                                (make-sql-variable 1)
+                                (make-sql-variable 2)))
+          type-error)
+
 (diag "infix-op")
 
 (is (multiple-value-list
-     (stringify (make-op :=
+     (yield (make-op :=
                          (make-sql-variable 1)
                          (make-sql-variable 1))))
     (list "(? = ?)" '(1 1))
     "=")
 
 (is (multiple-value-list
-     (stringify (make-op :!=
+     (yield (make-op :!=
                          (make-sql-variable 1)
                          (make-sql-variable 1))))
     (list "(? != ?)" '(1 1))
     "!=")
 
 (is (multiple-value-list
-     (stringify (make-op :<
+     (yield (make-op :<
                          (make-sql-variable 1)
                          (make-sql-variable 1))))
     (list "(? < ?)" '(1 1))
     "<")
 
 (is (multiple-value-list
-     (stringify (make-op :>
+     (yield (make-op :>
                          (make-sql-variable 1)
                          (make-sql-variable 1))))
     (list "(? > ?)" '(1 1))
     ">")
 
 (is (multiple-value-list
-     (stringify (make-op :>=
+     (yield (make-op :>=
                          (make-sql-variable 1)
                          (make-sql-variable 1))))
     (list "(? >= ?)" '(1 1))
     ">=")
 
 (is (multiple-value-list
-     (stringify (make-op :<=
+     (yield (make-op :<=
                          (make-sql-variable 1)
                          (make-sql-variable 1))))
     (list "(? <= ?)" '(1 1))
     "<=")
 
 (is (multiple-value-list
-     (stringify (make-op :as
+     (yield (make-op :as
                          (make-sql-symbol "table-name")
                          (make-sql-symbol "a"))))
     (list "(`table-name` AS `a`)" nil)
     "AS")
 
 (is (multiple-value-list
-     (stringify (make-op :in
+     (yield (make-op :in
                          (make-sql-symbol "a")
                          (make-sql-list
                           (make-sql-variable 1)
@@ -112,7 +126,7 @@
     (list "(`a` IN (?, ?, ?))" '(1 10 100))
     "IN")
 (is (multiple-value-list
-     (stringify (make-op :in
+     (yield (make-op :in
                          (make-sql-symbol "a")
                          (make-sql-list
                           (make-sql-variable 1)
@@ -123,7 +137,7 @@
     (list "(`a` IN (?, ?, (? * ?)))" '(1 10 10 10))
     "IN")
 (is (multiple-value-list
-     (stringify (make-op :not-in
+     (yield (make-op :not-in
                          (make-sql-symbol "a")
                          (list (make-sql-variable 1)
                                (make-sql-variable 10)
@@ -140,7 +154,7 @@
           type-error)
 
 (is (multiple-value-list
-     (stringify (make-op :like
+     (yield (make-op :like
                          (make-sql-symbol "name")
                          (make-sql-variable "John %"))))
     (list "(`name` LIKE ?)" '("John %"))
@@ -155,13 +169,13 @@
 (diag "conjunctive-op")
 
 (is (multiple-value-list
-     (stringify (make-op :or
+     (yield (make-op :or
                          (make-sql-variable 1)
                          (make-sql-variable 2)
                          (make-sql-variable 3))))
     (list "(? OR ? OR ?)" '(1 2 3)))
 (is (multiple-value-list
-     (stringify (make-op :or
+     (yield (make-op :or
                          (make-op :>
                                   (make-sql-symbol "age")
                                   (make-sql-variable 65))
@@ -170,7 +184,7 @@
                                   (make-sql-variable 18)))))
     (list "((`age` > ?) OR (`age` <= ?))" '(65 18)))
 (is (multiple-value-list
-     (stringify (make-op :and
+     (yield (make-op :and
                          (make-op :>
                                   (make-sql-symbol "age")
                                   (make-sql-variable 15))
@@ -183,7 +197,7 @@
     (list "((`age` > ?) AND (? > `age`) AND (`name` LIKE ?))"
           '(15 21 "John %")))
 (is (multiple-value-list
-     (stringify (make-op :+
+     (yield (make-op :+
                          (make-sql-variable 1)
                          (make-sql-variable 3)
                          (make-op :*
@@ -206,8 +220,8 @@
 (ok (make-op :count :*))
 (is (slot-value (make-op :count :*) 'name) "COUNT")
 (is-type (make-op :count :*) 'function-op)
-(is (stringify (make-op :count :*)) "COUNT(*)")
-(is (stringify (make-op :count '*)) "COUNT(*)")
-(is (stringify (make-op :count 'column)) "COUNT(`column`)")
+(is (yield (make-op :count :*)) "COUNT(*)")
+(is (yield (make-op :count '*)) "COUNT(*)")
+(is (yield (make-op :count 'column)) "COUNT(`column`)")
 
 (finalize)
