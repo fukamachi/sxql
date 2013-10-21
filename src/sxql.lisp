@@ -24,8 +24,12 @@
 (defun select (field &rest args)
   (check-type args sql-clause-list)
   (apply #'make-statement :select
-         field
-         args))
+         field args))
+
+@export
+(defun insert-into (table &rest args)
+  (apply #'make-statement :insert-into
+         table args))
 
 ;;
 ;; Clauses
@@ -54,6 +58,9 @@
 (defun offset (offset)
   (make-clause :offset offset))
 
+@export
+(defun set= (&rest args)
+  (apply #'make-clause :set= args))
 
 @export
 (defun left-join (table &key on)

@@ -50,4 +50,11 @@
                                          (make-sql-symbol "a")))))
     (list "SELECT (`a`, ?) FROM `table` ORDER BY `a`" '(1)))
 
+(is (multiple-value-list
+     (yield (make-statement :insert-into (make-sql-symbol "table")
+                            (make-clause :set=
+                                         (make-sql-symbol "a")
+                                         (make-sql-variable 10)))))
+    '("INSERT INTO `table` SET `a` = ?" (10)))
+
 (finalize)

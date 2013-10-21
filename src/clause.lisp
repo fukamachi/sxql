@@ -40,6 +40,19 @@
   (:on nil :type (or null =-op)))
 
 @export
+(defstruct (set=-clause (:include sql-clause (name "SET"))
+                        (:constructor %make-set=-clause (&rest args)))
+  (args nil :type (and proper-list
+                     (satisfies sql-expression-list-p))))
+
+(defun make-set=-clause (&rest args)
+  (unless (and (cdr args)
+               (= (mod (length args) 2) 0))
+    ;; TODO: raise an error.
+    )
+  (apply #'%make-set=-clause args))
+
+@export
 (defun make-left-join-clause (statement &key on)
   (%make-left-join-clause
    :statement (if (typep statement 'sql-list)
@@ -80,3 +93,8 @@
              (if (left-join-clause-on clause)
                  (yield (left-join-clause-on clause))
                  nil)))))
+
+(defmethod yield ((clause set=-clause))
+  (with-yield-binds
+    (format nil "SET ~{~A = ~A~^, ~}"
+            (mapcar #'yield (set=-clause-args clause)))))

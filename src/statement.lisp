@@ -12,6 +12,9 @@
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
                              (:constructor make-select-statement (&rest children))))
 
+(defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
+                                  (:constructor make-insert-into-statement (&rest children))))
+
 (defun find-make-statement (statement-name &optional (package *package*))
   (find-constructor statement-name #.(string :-statement)
                     :package package))

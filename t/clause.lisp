@@ -103,4 +103,13 @@
                        (make-sql-variable 2))
           program-error)
 
+(ok (make-clause :set= 'a 1) "set=")
+(ok (make-clause :set= 'a 1 'b 2))
+(is (multiple-value-list
+     (yield (make-clause :set= 'a 1 'b 2)))
+    (list "SET `a` = ?, `b` = ?" '(1 2)))
+;(is-error (make-clause :set=) program-error)
+;(is-error (make-clause :set= 'a 1 'b) program-error)
+;(is-error (make-clause :set= '(a 1)) program-error)
+
 (finalize)
