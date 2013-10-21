@@ -11,11 +11,13 @@
   (:import-from :sxql.sql-type
                 :sql-clause-list
                 :yield
-                :*use-placeholder*)
+                :*use-placeholder*
+                :*quote-character*)
   (:import-from :sxql.operator
                 :detect-and-convert)
   (:export :yield
-           :*use-placeholder*))
+           :*use-placeholder*
+           :*quote-character*))
 (in-package :sxql)
 
 (cl-syntax:use-syntax :annot)

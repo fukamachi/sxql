@@ -9,6 +9,9 @@
 (cl-syntax:use-syntax :annot)
 
 @export
+(defparameter *quote-character* nil)
+
+@export
 (defparameter *use-placeholder* t)
 
 @export
@@ -176,9 +179,11 @@
 (defgeneric yield (object))
 
 (defmethod yield ((symbol sql-symbol))
-  (values
-   (format nil "~{`~A`~^.~}" (split-sequence #\. (sql-symbol-name symbol)))
-   nil))
+  (let ((format-string (format nil "~~{~A~~A~:*~A~~^.~~}"
+                               (or *quote-character* ""))))
+    (values
+     (format nil format-string (split-sequence #\. (sql-symbol-name symbol)))
+     nil)))
 
 (defmethod yield ((keyword sql-keyword))
   (values

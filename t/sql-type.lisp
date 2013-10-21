@@ -8,6 +8,8 @@
 
 (plan nil)
 
+(setf *quote-character* #\`)
+
 (ok (make-sql-variable 1))
 (ok (make-sql-variable "Hello"))
 (is-error (make-sql-variable 'hello) type-error)

@@ -8,10 +8,10 @@
   (where '(:and (:>= age 18)
                 (:< age 65)))
   (order-by '(:desc age)))
-;=> #<SXQL-STATEMENT: SELECT (`id`, `name`, `sex`) FROM (`person` AS `p`) WHERE ((`age` >= 18) AND (`age` < 65)) ORDER BY `age` DESC>
+;=> #<SXQL-STATEMENT: SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= 18) AND (age < 65)) ORDER BY age DESC>
 
 (yield *)
-;=> "SELECT (`id`, `name`, `sex`) FROM (`person` AS `p`) WHERE ((`age` >= ?) AND (`age` < ?)) ORDER BY `age` DESC"
+;=> "SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC"
 ;   (18 65)
 ```
 
@@ -28,19 +28,19 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (select 'name
   (from 'person)
   (where '(:> age 20)))
-;=> #<SXQL-STATEMENT: SELECT `name` FROM `person` WHERE (`age` > 20)>
+;=> #<SXQL-STATEMENT: SELECT name FROM person WHERE (age > 20)>
 
 (select '(id name)
   (from '(:as person p))
   (left-join 'person_config :on '(:= person.config_id person_config.id))
-  (where '(and (:> age 20)
+  (where '(:and (:> age 20)
                (:<= age 65)))
   (order-by 'age)
   (limit 5))
-;=> #<SXQL-STATEMENT: SELECT (`id`, `name`) FROM (`person` AS `p`) LEFT JOIN `person_config` ON (`person`.`config_id` = `person_config`.`id`) WHERE (`and`, (`age` > 20), (`age` <= 65)) ORDER BY `age` LIMIT 5>
+;=> #<SXQL-STATEMENT: SELECT (id, name) FROM (person AS p) LEFT JOIN person_config ON (person.config_id = person_config.id) WHERE ((age > 20) AND (age <= 65)) ORDER BY age LIMIT 5>
 
 (select '(sex (:count :*)) (from 'person) (group-by 'sex))
-;=> #<SXQL-STATEMENT: SELECT (`sex`, COUNT(*)) FROM `person` GROUP BY `sex`>
+;=> #<SXQL-STATEMENT: SELECT (sex, COUNT(*)) FROM person GROUP BY sex>
 ```
 
 ### insert-into (table &rest clauses)
@@ -50,7 +50,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
   (set= 'sex 'male
         'age 25
         'name "Eitarow Fukamachi"))
-;=> #<SXQL-STATEMENT: INSERT INTO `person` SET `sex` = `male`, `age` = 25, `name` = "Eitarow Fukamachi">
+;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = male, age = 25, name = 'Eitarow Fukamachi'>
 ```
 
 ### update (table &rest clauses)
@@ -59,7 +59,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (update 'person
   (set= 'age 26)
   (where '(:like name "Eitarow %")))
-;=> #<SXQL-STATEMENT: UPDATE `person` SET `age` = 26 WHERE (`name` LIKE "Eitarow %")>
+;=> #<SXQL-STATEMENT: UPDATE person SET age = 26 WHERE (name LIKE 'Eitarow %')>
 ```
 
 ### delete-from (table &rest clauses)
@@ -67,7 +67,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ```common-lisp
 (delete-from 'person
   (where '(:= name "Eitarow Fukamachi")))
-;=> #<SXQL-STATEMENT: DELETE FROM `person` WHERE (`name` = "Eitarow Fukamachi")>
+;=> #<SXQL-STATEMENT: DELETE FROM person WHERE (name = 'Eitarow Fukamachi')>
 ```
 
 ## SQL Clauses
@@ -83,10 +83,10 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (where '(:and (:> age 20) (:<= age 65)))
-;=> #<SXQL-CLAUSE: WHERE ((`age` > 20) AND (`age` <= 65))>
+;=> #<SXQL-CLAUSE: WHERE ((age > 20) AND (age <= 65))>
 
 (yield *)
-;=> "WHERE ((`age` > ?) AND (`age` <= ?))"
+;=> "WHERE ((age > ?) AND (age <= ?))"
 ;   (20 65)
 ```
 
@@ -94,10 +94,10 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (order-by 'age)
-;=> #<SXQL-CLAUSE: ORDER BY `age`>
+;=> #<SXQL-CLAUSE: ORDER BY age>
 
 (order-by 'age '(:desc id))
-;=> #<SXQL-CLAUSE: ORDER BY `age`, `id` DESC>
+;=> #<SXQL-CLAUSE: ORDER BY age, id DESC>
 ;   NIL
 ```
 
@@ -105,7 +105,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (group-by 'sex)
-;=> #<SXQL-CLAUSE: GROUP BY `sex`>
+;=> #<SXQL-CLAUSE: GROUP BY sex>
 ```
 
 ### limit
@@ -126,7 +126,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (left-join 'person_config :on '(:= person.config_id person_config.id))
-;=> #<SXQL-CLAUSE: LEFT JOIN `person_config` ON (`person`.`config_id` = `person_config`.`id`)>
+;=> #<SXQL-CLAUSE: LEFT JOIN person_config ON (person.config_id = person_config.id)>
 ```
 
 ## SQL Operators
