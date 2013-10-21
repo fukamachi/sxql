@@ -38,16 +38,6 @@
                        (:constructor make-sql-symbol (name)))
   (name nil :type string))
 
-(defun sql-atom-list-p (object)
-  (every #'sql-atom-p object))
-
-@export
-@export-constructors
-(defstruct (sql-atom-list (:constructor make-sql-atom-list (&rest atoms))
-                          (:predicate nil))
-  (atoms nil :type (and proper-list
-                      (satisfies sql-atom-list-p))))
-
 @export 'elements
 @export
 @export-accessors
@@ -198,12 +188,6 @@
                     #'princ-to-string)
                 (sql-variable-value var))
        nil)))
-
-(defmethod yield ((atom-list sql-atom-list))
-  (with-yield-binds
-    (format nil "(~{~A~^, ~})"
-            (mapcar #'yield
-                    (sql-atom-list-atoms atom-list)))))
 
 (defmethod yield ((list sql-list))
   (with-yield-binds

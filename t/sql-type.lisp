@@ -46,30 +46,4 @@
 (is (multiple-value-list (yield (make-sql-symbol "table.column-name")))
     (list "`table`.`column-name`" nil))
 
-(ok (make-sql-atom-list (make-sql-variable 1)
-                        (make-sql-variable 2)
-                        (make-sql-variable 3)))
-(ok (make-sql-atom-list (make-sql-variable 1)
-                        (make-sql-symbol "a")
-                        (make-sql-keyword "NULL")))
-(ok (make-sql-atom-list))
-(is-error (make-sql-atom-list 1) type-error)
-(is-error (make-sql-atom-list nil) type-error)
-(is-error (make-sql-atom-list (make-sql-variable 1)
-                              "a")
-          type-error)
-
-(is (multiple-value-list
-     (yield (make-sql-atom-list (make-sql-variable 1)
-                                (make-sql-variable 2)
-                                (make-sql-variable "3"))))
-    (list "(?, ?, ?)" '(1 2 "3")))
-(is (multiple-value-list
-     (yield (make-sql-atom-list (make-sql-variable 1)
-                                (make-sql-variable 2)
-                                (make-sql-keyword "NULL")
-                                (make-sql-symbol "a")
-                                (make-sql-symbol "table.b"))))
-    (list "(?, ?, NULL, `a`, `table`.`b`)" '(1 2)))
-
 (finalize)
