@@ -34,7 +34,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
   (from '(:as person p))
   (left-join 'person_config :on '(:= person.config_id person_config.id))
   (where '(:and (:> age 20)
-               (:<= age 65)))
+                (:<= age 65)))
   (order-by 'age)
   (limit 5))
 ;=> #<SXQL-STATEMENT: SELECT (id, name) FROM (person AS p) LEFT JOIN person_config ON (person.config_id = person_config.id) WHERE ((age > 20) AND (age <= 65)) ORDER BY age LIMIT 5>
