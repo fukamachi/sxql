@@ -80,7 +80,7 @@
   (var nil :type sql-expression))
 
 @export
-(defstruct (unary-suffix-op (:include unary-op)))
+(defstruct (unary-postfix-op (:include unary-op)))
 
 @export 'left @export 'right
 @export
@@ -221,7 +221,7 @@
                     var)
             binds)))
 
-(defmethod yield ((op unary-suffix-op))
+(defmethod yield ((op unary-postfix-op))
   (multiple-value-bind (var binds)
       (yield (unary-op-var op))
     (values (format nil "~A ~A"

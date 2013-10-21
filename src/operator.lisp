@@ -24,7 +24,7 @@
                                                                   #.(string :-op)))
                                   ,(case struct-type
                                      ((unary-op
-                                       unary-suffix-op) '(var))
+                                       unary-postfix-op) '(var))
                                      ((infix-op
                                        infix-list-op) '(left right))
                                      (conjunctive-op '(&rest expressions
@@ -34,8 +34,8 @@
 (define-op (:not unary-op))
 (define-op (:is-null unary-op))
 (define-op (:not-null unary-op))
-(define-op (:desc unary-suffix-op))
-(define-op (:asc unary-suffix-op))
+(define-op (:desc unary-postfix-op))
+(define-op (:asc unary-postfix-op))
 (define-op (:distinct unary-op))
 (defstruct (on-op (:include sql-op (name "ON"))
                   (:constructor make-on-op (var)))
