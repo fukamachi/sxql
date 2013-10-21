@@ -24,7 +24,7 @@
 (defun select (field &rest args)
   (check-type args sql-clause-list)
   (apply #'make-statement :select
-         (make-clause :field field)
+         field
          args))
 
 ;;

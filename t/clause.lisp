@@ -28,19 +28,6 @@
                              (make-op :as 'table-name 'a))))
     (list "FROM (`table-name` AS `a`)" nil))
 
-(ok (make-clause :field (make-sql-symbol "a")))
-(is (multiple-value-list
-     (yield
-      (make-clause :field
-                   (make-sql-symbol "a"))))
-    (list "`a`" nil))
-(is (multiple-value-list
-     (yield
-      (make-clause :field
-                   (make-sql-list (make-sql-symbol "a")
-                                  (make-sql-symbol "b")))))
-    (list "(`a`, `b`)" nil))
-
 (ok (make-clause :order-by (make-sql-symbol "a")))
 (is (multiple-value-list
      (yield

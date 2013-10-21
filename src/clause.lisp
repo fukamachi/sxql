@@ -8,12 +8,6 @@
 (cl-syntax:use-syntax :annot)
 
 @export
-(defstruct (field-clause (:include sql-clause (name ""))
-                         (:constructor make-field-clause (fields)))
-  (fields nil :type (or sql-expression
-                      sql-list)))
-
-@export
 (defstruct (from-clause (:include statement-clause (name "FROM"))
                         (:constructor make-from-clause (statement))))
 
@@ -61,11 +55,6 @@
 (defun make-clause (clause-name &rest args)
   (apply (find-make-clause clause-name #.*package*)
          (mapcar #'detect-and-convert args)))
-
-(defmethod yield ((clause field-clause))
-  (if (field-clause-fields clause)
-      (yield (field-clause-fields clause))
-      (values "*" nil)))
 
 (defmethod yield ((clause limit-clause))
   (let ((*use-placeholder* nil))

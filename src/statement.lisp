@@ -3,13 +3,14 @@
   (:use :cl
         :sxql.sql-type)
   (:import-from :sxql.operator
-                :find-constructor))
+                :find-constructor
+                :detect-and-convert))
 (in-package :sxql.statement)
 
 (cl-syntax:use-syntax :annot)
 
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
-                             (:constructor make-select-statement (&rest clauses))))
+                             (:constructor make-select-statement (&rest children))))
 
 (defun find-make-statement (statement-name &optional (package *package*))
   (find-constructor statement-name #.(string :-statement)
@@ -18,4 +19,4 @@
 @export
 (defun make-statement (statement-name &rest args)
   (apply (find-make-statement statement-name #.*package*)
-         args))
+         (mapcar #'detect-and-convert args)))

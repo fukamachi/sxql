@@ -14,41 +14,36 @@
 (diag "statement")
 
 (ok (make-statement :select
-                    (make-clause :field
-                                 (make-sql-keyword "*"))
+                    (make-sql-keyword "*")
                     (make-clause :from (make-sql-symbol "table-name"))
                     (make-clause :where
                                  (make-op := 'name "Eitarow"))))
 
 (is (yield (make-statement :select
-                           (make-clause :field
-                                        (make-sql-keyword "*"))
+                           (make-sql-keyword "*")
                            (make-clause :from (make-sql-symbol "table-name"))
                            (make-clause :where
                                                (make-op := 'name "Eitarow"))))
     "SELECT * FROM `table-name` WHERE (`name` = ?)")
 
 (is (yield (make-statement :select
-                           (make-clause :field
-                                        (make-sql-list
-                                         (make-sql-symbol "a")
-                                         (make-sql-symbol "b")))
+                           (make-sql-list
+                            (make-sql-symbol "a")
+                            (make-sql-symbol "b"))
                            (make-clause :from (make-sql-symbol "table-name"))
                            (make-clause :where
                                                (make-op := 'name "Eitarow"))))
     "SELECT (`a`, `b`) FROM `table-name` WHERE (`name` = ?)")
 
 (is (multiple-value-list
-     (yield (make-statement :select
-                            (make-clause :field (make-op :+ 1 1)))))
+     (yield (make-statement :select (make-op :+ 1 1))))
     (list "SELECT (? + ?)" '(1 1)))
 
 (is (multiple-value-list
      (yield (make-statement :select
-                            (make-clause :field
-                                         (make-sql-list
-                                          (make-sql-symbol "a")
-                                          (make-sql-variable 1)))
+                            (make-sql-list
+                             (make-sql-symbol "a")
+                             (make-sql-variable 1))
                             (make-clause :from
                                          (make-sql-symbol "table"))
                             (make-clause :order-by

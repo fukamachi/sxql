@@ -162,10 +162,10 @@
 (defstruct sql-statement
   (name nil :type string))
 
-@export 'clauses
+@export 'children
 @export
 (defstruct (sql-composed-statement (:include sql-statement))
-  (clauses nil :type sql-clause-list))
+  (children nil :type proper-list))
 
 (defmethod print-object ((clause sql-statement) stream)
   (format stream "#<SXQL-STATEMENT: ~A>"
@@ -277,7 +277,7 @@
   (with-yield-binds
     (format nil "~A ~{~A~^ ~}"
             (sql-statement-name statement)
-            (mapcar #'yield (sql-composed-statement-clauses statement)))))
+            (mapcar #'yield (sql-composed-statement-children statement)))))
 
 (defparameter *bind-values* nil)
 (defparameter *use-global-bind-values* nil)
