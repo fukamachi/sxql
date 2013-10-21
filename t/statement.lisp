@@ -57,4 +57,21 @@
                                          (make-sql-variable 10)))))
     '("INSERT INTO `table` SET `a` = ?" (10)))
 
+(is (multiple-value-list
+     (yield (make-statement :update (make-sql-symbol "table")
+                            (make-clause :set=
+                                         (make-sql-symbol "a")
+                                         (make-sql-variable 10)
+                                         (make-sql-symbol "b")
+                                         (make-sql-variable 20))
+                            (make-clause :where
+                                         (make-op :>
+                                                  (make-sql-symbol "age")
+                                                  (make-sql-variable 20)))
+                            (make-clause :order-by
+                                         (make-sql-symbol "id"))
+                            (make-clause :limit 5))))
+    '("UPDATE `table` SET `a` = ?, `b` = ? WHERE (`age` > ?) ORDER BY `id` LIMIT 5" (10 20 20))
+    "UPDATE")
+
 (finalize)

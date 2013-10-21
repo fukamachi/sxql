@@ -84,4 +84,14 @@
        '("INSERT INTO `person` SET `name` = ?, `sex` = ?" ("Eitarow" "male"))
        "INSERT INTO")
 
+(is-mv (update 'person
+               (set= 'name "Eitarow Fukamachi"
+                     'sex "male")
+               (where '(:> age 20))
+               (order-by 'id)
+               (limit 5))
+       '("UPDATE `person` SET `name` = ?, `sex` = ? WHERE (`age` > ?) ORDER BY `id` LIMIT 5"
+         ("Eitarow Fukamachi" "male" 20))
+       "UPDATE")
+
 (finalize)

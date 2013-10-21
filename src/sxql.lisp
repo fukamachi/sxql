@@ -31,6 +31,11 @@
   (apply #'make-statement :insert-into
          table args))
 
+@export
+(defun update (table &rest args)
+  (apply #'make-statement :update
+         table args))
+
 ;;
 ;; Clauses
 
