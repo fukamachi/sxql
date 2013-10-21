@@ -36,6 +36,11 @@
   (apply #'make-statement :update
          table args))
 
+@export
+(defun delete-from (table &rest args)
+  (apply #'make-statement :delete-from
+         table args))
+
 ;;
 ;; Clauses
 

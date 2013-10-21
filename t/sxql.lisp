@@ -94,4 +94,12 @@
          ("Eitarow Fukamachi" "male" 20))
        "UPDATE")
 
+(is-mv (delete-from 'person
+                    (left-join 'config :on '(:= person.config_id config.id))
+                    (where '(:< age 20))
+                    (order-by '(:desc age))
+                    (limit 1))
+       '("DELETE FROM `person` LEFT JOIN `config` ON (`person`.`config_id` = `config`.`id`) WHERE (`age` < ?) ORDER BY `age` DESC LIMIT 1" (20))
+       "DELETE FROM")
+
 (finalize)
