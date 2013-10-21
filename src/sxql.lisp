@@ -21,25 +21,26 @@
 (cl-syntax:use-syntax :annot)
 
 @export
-(defun select (field &rest args)
-  (check-type args sql-clause-list)
+(defun select (field &rest clauses)
+  (check-type clauses sql-clause-list)
   (apply #'make-statement :select
-         field args))
+         field clauses))
 
 @export
-(defun insert-into (table &rest args)
+(defun insert-into (table &rest clauses)
+  (check-type clauses sql-clause-list)
   (apply #'make-statement :insert-into
-         table args))
+         table clauses))
 
 @export
-(defun update (table &rest args)
+(defun update (table &rest clauses)
   (apply #'make-statement :update
-         table args))
+         table clauses))
 
 @export
-(defun delete-from (table &rest args)
+(defun delete-from (table &rest clauses)
   (apply #'make-statement :delete-from
-         table args))
+         table clauses))
 
 ;;
 ;; Clauses
