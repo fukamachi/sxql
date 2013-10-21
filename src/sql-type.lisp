@@ -189,10 +189,12 @@
   (if *use-placeholder*
       (values "?" (list (sql-variable-value var)))
       (values
-       (funcall (if *use-prin1-for-print-object*
-                    #'prin1-to-string
-                    #'princ-to-string)
-                (sql-variable-value var))
+       (if *use-prin1-for-print-object*
+           (if (stringp (sql-variable-value var))
+               (format nil "'~A'"
+                       (sql-variable-value var))
+               (prin1-to-string (sql-variable-value var)))
+           (princ-to-string (sql-variable-value var)))
        nil)))
 
 (defmethod yield ((list sql-list))
