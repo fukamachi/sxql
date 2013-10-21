@@ -53,12 +53,12 @@
   (make-clause :where expression))
 
 @export
-(defun order-by (expression)
-  (make-clause :order-by expression))
+(defun order-by (&rest expressions)
+  (apply #'make-clause :order-by expressions))
 
 @export
-(defun group-by (expression)
-  (make-clause :group-by expression))
+(defun group-by (&rest expressions)
+  (apply #'make-clause :group-by expressions))
 
 @export
 (defun limit (count1 &optional count2)

@@ -139,6 +139,12 @@
                          sql-expression-list
                          sql-statement)))
 
+@export 'expressions
+@export
+(defstruct (expression-list-clause (:include sql-clause))
+  (expressions nil :type (and proper-list
+                            (satisfies sql-expression-list-p))))
+
 (defmethod print-object ((clause sql-clause) stream)
   (format stream "#<SXQL-CLAUSE: ~A>"
           (let ((*use-placeholder* nil)
@@ -256,6 +262,12 @@
                   "~A ~A")
             (sql-clause-name clause)
             (yield (statement-clause-statement clause)))))
+
+(defmethod yield ((clause expression-list-clause))
+  (with-yield-binds
+    (format nil "~A ~{~A~^, ~}"
+            (sql-clause-name clause)
+            (mapcar #'yield (expression-list-clause-expressions clause)))))
 
 (defmethod yield ((statement sql-composed-statement))
   (with-yield-binds

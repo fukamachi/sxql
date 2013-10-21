@@ -74,7 +74,7 @@
                    (make-op :+ (make-sql-symbol "a") (make-sql-variable 1)))))
     (list "GROUP BY (`a` + ?)" '(1)))
 
-(ok (make-clause :limit (make-sql-variable 1)))
+(ok (make-clause :limit (make-sql-variable 1)) "LIMIT")
 (ok (make-clause :limit (make-sql-variable 0) (make-sql-variable 10)))
 (is (multiple-value-list
      (yield

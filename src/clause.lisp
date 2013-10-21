@@ -16,12 +16,13 @@
                          (:constructor make-where-clause (expression))))
 
 @export
-(defstruct (order-by-clause (:include expression-clause (name "ORDER BY"))
-                            (:constructor make-order-by-clause (expression))))
+(defstruct (order-by-clause (:include expression-list-clause (name "ORDER BY"))
+                            (:constructor make-order-by-clause (&rest expressions))))
 
 @export
-(defstruct (limit-clause (:include sql-clause (name "LIMIT"))
-                         (:constructor make-limit-clause (count1 &optional count2)))
+(defstruct (limit-clause (:include expression-list-clause (name "LIMIT"))
+                         (:constructor make-limit-clause (count1 &optional count2
+                                                          &aux (expressions `(,count1 ,@(and count2 (list count2)))))))
   (count1 nil :type sql-variable)
   (count2 nil :type (or null sql-variable)))
 
@@ -31,8 +32,8 @@
   (offset nil :type sql-variable))
 
 @export
-(defstruct (group-by-clause (:include expression-clause (name "GROUP BY"))
-                            (:constructor make-group-by-clause (expression))))
+(defstruct (group-by-clause (:include expression-list-clause (name "GROUP BY"))
+                            (:constructor make-group-by-clause (&rest expressions))))
 
 @export
 (defstruct (left-join-clause (:include statement-clause (name "LEFT JOIN"))
@@ -71,12 +72,7 @@
 
 (defmethod yield ((clause limit-clause))
   (let ((*use-placeholder* nil))
-    (values
-     (format nil "LIMIT ~A~:[~;~:*, ~A~]"
-             (yield (limit-clause-count1 clause))
-             (and (limit-clause-count2 clause)
-                  (yield (limit-clause-count2 clause))))
-     nil)))
+    (call-next-method)))
 
 (defmethod yield ((clause offset-clause))
   (let ((*use-placeholder* nil))
