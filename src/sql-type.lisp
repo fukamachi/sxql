@@ -17,6 +17,18 @@
 @export
 (defparameter *use-prin1-for-print-object* nil)
 
+(defparameter *bind-values* nil)
+(defparameter *use-global-bind-values* nil)
+
+@export
+(defmacro with-yield-binds (&body body)
+  `(let ((*bind-values* nil)
+         (*use-global-bind-values* t))
+     (values
+      (progn ,@body)
+      (loop for bind in (reverse *bind-values*)
+            append bind))))
+
 ;;
 ;; Atom
 
@@ -282,9 +294,6 @@
             (sql-statement-name statement)
             (mapcar #'yield (sql-composed-statement-children statement)))))
 
-(defparameter *bind-values* nil)
-(defparameter *use-global-bind-values* nil)
-
 (defmethod yield :around ((object t))
   (if *use-global-bind-values*
       (progn
@@ -292,12 +301,3 @@
           (when bind (push bind *bind-values*))
           (values var nil)))
       (call-next-method)))
-
-@export
-(defmacro with-yield-binds (&body body)
-  `(let ((*bind-values* nil)
-         (*use-global-bind-values* t))
-     (values
-      (progn ,@body)
-      (loop for bind in (reverse *bind-values*)
-            append bind))))
