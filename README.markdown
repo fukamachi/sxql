@@ -47,10 +47,10 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (insert-into 'person
-  (set= 'sex 'male
+  (set= 'sex "male"
         'age 25
         'name "Eitarow Fukamachi"))
-;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = male, age = 25, name = 'Eitarow Fukamachi'>
+;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = 'male', age = 25, name = 'Eitarow Fukamachi'>
 ```
 
 ### update (table &rest clauses)
