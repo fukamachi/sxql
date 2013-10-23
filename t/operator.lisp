@@ -127,13 +127,13 @@
     "IN")
 (is (multiple-value-list
      (yield (make-op :in
-                         (make-sql-symbol "a")
-                         (make-sql-list
-                          (make-sql-variable 1)
-                          (make-sql-variable 10)
-                          (make-op :*
-                                   (make-sql-variable 10)
-                                   (make-sql-variable 10))))))
+                     (make-sql-symbol "a")
+                     (make-sql-list
+                      (make-sql-variable 1)
+                      (make-sql-variable 10)
+                      (make-op :*
+                               (make-sql-variable 10)
+                               (make-sql-variable 10))))))
     (list "(`a` IN (?, ?, (? * ?)))" '(1 10 10 10))
     "IN")
 (is (multiple-value-list
@@ -170,48 +170,48 @@
 
 (is (multiple-value-list
      (yield (make-op :or
-                         (make-sql-variable 1)
-                         (make-sql-variable 2)
-                         (make-sql-variable 3))))
+                     (make-sql-variable 1)
+                     (make-sql-variable 2)
+                     (make-sql-variable 3))))
     (list "(? OR ? OR ?)" '(1 2 3)))
 (is (multiple-value-list
      (yield (make-op :or
-                         (make-op :>
-                                  (make-sql-symbol "age")
-                                  (make-sql-variable 65))
-                         (make-op :<=
-                                  (make-sql-symbol "age")
-                                  (make-sql-variable 18)))))
+                     (make-op :>
+                              (make-sql-symbol "age")
+                              (make-sql-variable 65))
+                     (make-op :<=
+                              (make-sql-symbol "age")
+                              (make-sql-variable 18)))))
     (list "((`age` > ?) OR (`age` <= ?))" '(65 18)))
 (is (multiple-value-list
      (yield (make-op :and
-                         (make-op :>
-                                  (make-sql-symbol "age")
-                                  (make-sql-variable 15))
-                         (make-op :>
-                                  (make-sql-variable 21)
-                                  (make-sql-symbol "age"))
-                         (make-op :like
-                                  (make-sql-symbol "name")
-                                  (make-sql-variable "John %")))))
+                     (make-op :>
+                              (make-sql-symbol "age")
+                              (make-sql-variable 15))
+                     (make-op :>
+                              (make-sql-variable 21)
+                              (make-sql-symbol "age"))
+                     (make-op :like
+                              (make-sql-symbol "name")
+                              (make-sql-variable "John %")))))
     (list "((`age` > ?) AND (? > `age`) AND (`name` LIKE ?))"
           '(15 21 "John %")))
 (is (multiple-value-list
      (yield (make-op :+
-                         (make-sql-variable 1)
-                         (make-sql-variable 3)
-                         (make-op :*
-                                  (make-sql-variable 100)
-                                  (make-op :-
-                                           (make-sql-variable 0.8)
-                                           (make-sql-variable 0.3)))
-                         (make-op :/
-                                  (make-sql-symbol "a")
-                                  (make-sql-variable 10))
-                         (make-op :%
-                                  (make-sql-variable 100)
-                                  (make-sql-variable 3)
-                                  (make-sql-variable 3)))))
+                     (make-sql-variable 1)
+                     (make-sql-variable 3)
+                     (make-op :*
+                              (make-sql-variable 100)
+                              (make-op :-
+                                       (make-sql-variable 0.8)
+                                       (make-sql-variable 0.3)))
+                     (make-op :/
+                              (make-sql-symbol "a")
+                              (make-sql-variable 10))
+                     (make-op :%
+                              (make-sql-variable 100)
+                              (make-sql-variable 3)
+                              (make-sql-variable 3)))))
     (list "(? + ? + (? * (? - ?)) + (`a` / ?) + (? % ? % ?))"
           '(1 3 100 0.8 0.3 10 100 3 3)))
 

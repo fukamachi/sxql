@@ -70,6 +70,24 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-STATEMENT: DELETE FROM person WHERE (name = 'Eitarow Fukamachi')>
 ```
 
+### union-queies (&rest statements)
+
+```common-lisp
+(union-queries
+ (select '(name birthday) (from 'fulltime))
+ (select '(name birthday) (from 'parttime)))
+;=> #<SXQL-OP: (SELECT (`name`, `birthday`) FROM `fulltime` UNION SELECT (`name`, `birthday`) FROM `parttime`)>
+```
+
+### union-all-queries (&rest statements)
+
+```common-lisp
+(union-all-queries
+ (select '(name birthday) (from 'fulltime))
+ (select '(name birthday) (from 'parttime)))
+;=> #<SXQL-OP: (SELECT (`name`, `birthday`) FROM `fulltime` UNION ALL SELECT (`name`, `birthday`) FROM `parttime`)>
+```
+
 ## SQL Clauses
 
 ### from

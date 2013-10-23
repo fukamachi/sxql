@@ -27,8 +27,7 @@
                                        unary-postfix-op) '(var))
                                      ((infix-op
                                        infix-list-op) '(left right))
-                                     (conjunctive-op '(&rest expressions
-                                                       &aux (expressions (apply #'make-sql-expression-list expressions)))))))
+                                     (conjunctive-op '(&rest expressions)))))
        ,@body)))
 
 (define-op (:not unary-op))
@@ -59,6 +58,8 @@
 (define-op (:* conjunctive-op))
 (define-op (:/ conjunctive-op))
 (define-op (:% conjunctive-op))
+(define-op (:union conjunctive-op))
+(define-op (:union-all conjunctive-op))
 
 (defstruct (raw-op (:include sql-op (name ""))
                    (:constructor make-raw-op (var)))

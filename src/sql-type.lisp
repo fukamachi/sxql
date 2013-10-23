@@ -60,13 +60,16 @@
 (defstruct (sql-list (:constructor make-sql-list (&rest elements)))
   (elements nil :type proper-list))
 
-;;
-;; Operator
-
 @export 'name
 @export
 (defstruct sql-op
   (name nil :type string))
+
+(defmethod print-object ((op sql-op) stream)
+  (format stream "#<SXQL-OP: ~A>"
+          (let ((*use-placeholder* nil)
+                (*use-prin1-for-print-object* t))
+            (yield op))))
 
 @export
 (deftype sql-expression () '(or sql-atom sql-list sql-op))
@@ -83,6 +86,20 @@
                                 (:predicate nil))
   (elements nil :type (and proper-list
                          (satisfies sql-expression-list-p))))
+
+(deftype sql-all-type () '(or sql-expression sql-statement))
+
+@export
+(defstruct sql-statement
+  (name nil :type string))
+
+(defun sql-statement-list-p (object)
+  (every #'(lambda (element)
+             (typep element 'sql-all-type))
+         object))
+
+;;
+;; Operator
 
 @export 'var
 @export
@@ -102,8 +119,8 @@
   (left nil :type (or sql-expression
                     sql-expression-list))
   (right nil :type (or sql-expression
-                     sql-expression-list
-                     sql-list)))
+                     sql-list
+                     sql-expression-list)))
 
 @export
 @export-constructors
@@ -115,15 +132,14 @@
 @export
 @export-constructors
 (defstruct (conjunctive-op (:include sql-op)
-                           (:constructor make-conjunctive-op (name &rest expressions
-                                                              &aux (expressions (apply #'make-sql-expression-list expressions)))))
-  (expressions nil :type sql-expression-list))
+                           (:constructor make-conjunctive-op (name &rest expressions)))
+  (expressions nil :type (and proper-list
+                            (satisfies sql-statement-list-p))))
 
 @export
 @export-constructors
 (defstruct (function-op (:include conjunctive-op)
-                        (:constructor make-function-op (name &rest expressions
-                                                        &aux (expressions (apply #'make-sql-expression-list expressions))))))
+                        (:constructor make-function-op (name &rest expressions))))
 
 ;;
 ;; Clause
@@ -168,10 +184,6 @@
 
 ;;
 ;; Statement
-
-@export
-(defstruct sql-statement
-  (name nil :type string))
 
 @export 'children
 @export
@@ -257,13 +269,13 @@
 (defmethod yield ((op conjunctive-op))
   (with-yield-binds
     (format nil (format nil "(~~{~~A~~^ ~A ~~})" (sql-op-name op))
-            (mapcar #'yield (sql-expression-list-elements (conjunctive-op-expressions op))))))
+            (mapcar #'yield (conjunctive-op-expressions op)))))
 
 (defmethod yield ((op function-op))
   (with-yield-binds
     (format nil "~A(~{~A~^, ~})"
             (sql-op-name op)
-            (mapcar #'yield (sql-expression-list-elements (function-op-expressions op))))))
+            (mapcar #'yield (function-op-expressions op)))))
 
 (defmethod yield ((clause expression-clause))
   (multiple-value-bind (sql bind)

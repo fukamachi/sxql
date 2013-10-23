@@ -102,4 +102,18 @@
        '("DELETE FROM `person` LEFT JOIN `config` ON (`person`.`config_id` = `config`.`id`) WHERE (`age` < ?) ORDER BY `age` DESC LIMIT 1" (20))
        "DELETE FROM")
 
+(is-mv (union-queries
+        (select '* (from 'table-1) (where '(:= a 10)))
+        (select '* (from 'table-2) (where '(:> b 100))))
+       '("(SELECT * FROM `table-1` WHERE (`a` = ?) UNION SELECT * FROM `table-2` WHERE (`b` > ?))"
+         (10 100))
+       "UNION")
+
+(is-mv (union-all-queries
+        (select '* (from 'table-1) (where '(:= a 10)))
+        (select '* (from 'table-2) (where '(:> b 100))))
+       '("(SELECT * FROM `table-1` WHERE (`a` = ?) UNION ALL SELECT * FROM `table-2` WHERE (`b` > ?))"
+         (10 100))
+       "UNION ALL")
+
 (finalize)

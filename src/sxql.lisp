@@ -44,6 +44,14 @@
   (apply #'make-statement :delete-from
          table clauses))
 
+@export
+(defun union-queries (&rest queries)
+  (apply #'sxql.operator:make-op :union queries))
+
+@export
+(defun union-all-queries (&rest queries)
+  (apply #'sxql.operator:make-op :union-all queries))
+
 ;;
 ;; Clauses
 
