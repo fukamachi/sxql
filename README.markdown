@@ -76,7 +76,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (union-queries
  (select '(name birthday) (from 'fulltime))
  (select '(name birthday) (from 'parttime)))
-;=> #<SXQL-OP: (SELECT (`name`, `birthday`) FROM `fulltime` UNION SELECT (`name`, `birthday`) FROM `parttime`)>
+;=> #<SXQL-OP: (SELECT (name, birthday) FROM fulltime UNION SELECT (name, birthday) FROM parttime)>
 ```
 
 ### union-all-queries (&rest statements)
@@ -85,7 +85,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (union-all-queries
  (select '(name birthday) (from 'fulltime))
  (select '(name birthday) (from 'parttime)))
-;=> #<SXQL-OP: (SELECT (`name`, `birthday`) FROM `fulltime` UNION ALL SELECT (`name`, `birthday`) FROM `parttime`)>
+;=> #<SXQL-OP: (SELECT (name, birthday) FROM fulltime UNION ALL SELECT (name, birthday) FROM parttime)>
 ```
 
 ### create-table
@@ -103,10 +103,10 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
                     :default "None")
     (identifying_color :type (:char 20)
                        :unique t)))
-;=> #<SXQL-STATEMENT: CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT 'None', `identifying_color` CHAR(20) UNIQUE)>
+;=> #<SXQL-STATEMENT: CREATE TABLE enemy (name STRING PRIMARY KEY, age INTEGER NOT NULL, address TEXT, fatal_weakness TEXT NOT NULL DEFAULT 'None', identifying_color CHAR(20) UNIQUE)>
 
 (yield *)
-;=> "CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)"
+;=> "CREATE TABLE enemy (name STRING PRIMARY KEY, age INTEGER NOT NULL, address TEXT, fatal_weakness TEXT NOT NULL DEFAULT ?, identifying_color CHAR(20) UNIQUE)"
 ;   ("None")
 ```
 
