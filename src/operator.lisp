@@ -96,16 +96,14 @@
   (etypecase object
     (number (make-sql-variable object))
     (string (make-sql-variable object))
-    (keyword (make-sql-keyword (string-upcase object)))
     (symbol
      (if (string= (symbol-name object) "*")
-         (detect-and-convert :*)
+         (make-sql-keyword "*")
          (make-sql-symbol (string-downcase object))))
     (list
      (if (keywordp (car object))
          (apply #'make-op object)
-         (apply #'make-sql-list
-                (mapcar #'detect-and-convert object))))
+         (mapcar #'detect-and-convert object)))
     (structure-object object)))
 
 (defmethod yield ((op is-null-op))

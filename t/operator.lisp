@@ -118,17 +118,17 @@
 
 (is (multiple-value-list
      (yield (make-op :in
-                         (make-sql-symbol "a")
-                         (make-sql-list
-                          (make-sql-variable 1)
-                          (make-sql-variable 10)
-                          (make-sql-variable 100)))))
+                     (make-sql-symbol "a")
+                     (list
+                      (make-sql-variable 1)
+                      (make-sql-variable 10)
+                      (make-sql-variable 100)))))
     (list "(`a` IN (?, ?, ?))" '(1 10 100))
     "IN")
 (is (multiple-value-list
      (yield (make-op :in
                      (make-sql-symbol "a")
-                     (make-sql-list
+                     (list
                       (make-sql-variable 1)
                       (make-sql-variable 10)
                       (make-op :*

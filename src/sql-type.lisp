@@ -119,14 +119,13 @@
   (left nil :type (or sql-expression
                     sql-expression-list))
   (right nil :type (or sql-expression
-                     sql-list
                      sql-expression-list)))
 
 @export
 @export-constructors
 (defstruct (infix-list-op (:include sql-op))
   (left nil :type sql-expression)
-  (right nil :type sql-list))
+  (right nil :type proper-list))
 
 @export 'expressions
 @export
@@ -160,8 +159,7 @@
 @export
 (defstruct (expression-clause (:include sql-clause))
   (expression nil :type (or sql-expression
-                           sql-expression-list
-                           sql-list)))
+                           sql-expression-list)))
 
 @export 'statement
 @export
@@ -261,10 +259,11 @@
             (yield (infix-op-right op)))))
 
 (defmethod yield ((op infix-list-op))
-  (yield
-   (make-infix-op (sql-op-name op)
-                  (infix-list-op-left op)
-                  (infix-list-op-right op))))
+  (with-yield-binds
+    (format nil "(~A ~A ~A)"
+            (yield (infix-list-op-left op))
+            (sql-op-name op)
+            (yield (apply #'make-sql-list (infix-list-op-right op))))))
 
 (defmethod yield ((op conjunctive-op))
   (with-yield-binds

@@ -10,7 +10,13 @@
 (cl-syntax:use-syntax :annot)
 
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
-                             (:constructor make-select-statement (&rest children))))
+                             (:constructor make-select-statement
+                                 (fields &rest statements
+                                  &aux (children
+                                        (list* (if (listp fields)
+                                                   (apply #'make-sql-list fields)
+                                                   fields)
+                                               statements))))))
 
 (defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
                                   (:constructor make-insert-into-statement (&rest children))))
@@ -29,3 +35,4 @@
 (defun make-statement (statement-name &rest args)
   (apply (find-make-statement statement-name #.*package*)
          (mapcar #'detect-and-convert args)))
+
