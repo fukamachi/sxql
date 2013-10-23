@@ -32,6 +32,11 @@
 (defstruct (create-table-statement (:include sql-composed-statement (name "CREATE TABLE"))
                                    (:constructor make-create-table-statement (&rest children))))
 
+(defstruct (drop-table-statement (:include sql-statement (name "DROP TABLE"))
+                                 (:constructor make-drop-table-statement (table &key if-exists)))
+  (table nil :type sql-symbol)
+  (if-exists nil :type boolean))
+
 (defun find-make-statement (statement-name &optional (package *package*))
   (find-constructor statement-name #.(string :-statement)
                     :package package))
@@ -56,3 +61,15 @@
                                              append (list key (detect-and-convert val)))))
                           column-definitions))
            options)))
+
+(defmethod make-statement ((statement-name (eql :drop-table)) &rest args)
+  (destructuring-bind (table &key if-exists) args
+    (make-drop-table-statement (detect-and-convert table)
+                               :if-exists if-exists)))
+
+(defmethod yield ((statement drop-table-statement))
+  (values
+   (format nil "DROP TABLE~:[~; IF EXISTS~] ~A"
+           (drop-table-statement-if-exists statement)
+           (yield (drop-table-statement-table statement)))
+   nil))

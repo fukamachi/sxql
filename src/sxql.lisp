@@ -50,6 +50,11 @@
          table column-definitions options))
 
 @export
+(defun drop-table (table &key if-exists)
+  (make-statement :drop-table
+                  table :if-exists if-exists))
+
+@export
 (defun union-queries (&rest queries)
   (apply #'sxql.operator:make-op :union queries))
 

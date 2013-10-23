@@ -131,4 +131,12 @@
        '("CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)" ("None"))
        "CREATE TABLE")
 
+(is-mv (drop-table 'enemy)
+       '("DROP TABLE `enemy`" nil)
+       "DROP TABLE")
+
+(is-mv (drop-table 'enemy :if-exists t)
+       '("DROP TABLE IF EXISTS `enemy`" nil)
+       "DROP TABLE IF EXISTS")
+
 (finalize)

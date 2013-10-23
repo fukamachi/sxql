@@ -110,6 +110,16 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;   ("None")
 ```
 
+### drop-table
+
+```common-lisp
+(drop-table 'enemy)
+;=> #<SXQL-STATEMENT: DROP TABLE `enemy`>
+
+(drop-table 'enemy :if-exists t)
+;=> #<SXQL-STATEMENT: DROP TABLE IF EXISTS `enemy`>
+```
+
 ## SQL Clauses
 
 ### from
