@@ -45,6 +45,11 @@
          table clauses))
 
 @export
+(defun create-table (table column-definitions &rest options)
+  (apply #'make-statement :create-table
+         table column-definitions options))
+
+@export
 (defun union-queries (&rest queries)
   (apply #'sxql.operator:make-op :union queries))
 

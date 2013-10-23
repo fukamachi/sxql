@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage sxql.clause
   (:use :cl
+        :annot.class
         :sxql.sql-type
         :sxql.operator))
 (in-package :sxql.clause)
@@ -41,6 +42,14 @@
   (:on nil :type (or null =-op)))
 
 @export
+(defun make-left-join-clause (statement &key on)
+  (%make-left-join-clause
+   :statement (if (typep statement 'sql-list)
+                  (apply #'make-sql-expression-list (sql-list-elements statement))
+                  statement)
+   :on on))
+
+@export
 (defstruct (set=-clause (:include sql-clause (name "SET"))
                         (:constructor %make-set=-clause (&rest args)))
   (args nil :type (and proper-list
@@ -54,12 +63,37 @@
   (apply #'%make-set=-clause args))
 
 @export
-(defun make-left-join-clause (statement &key on)
-  (%make-left-join-clause
-   :statement (if (typep statement 'sql-list)
-                  (apply #'make-sql-expression-list (sql-list-elements statement))
-                  statement)
-   :on on))
+@export-constructors
+(defstruct (column-definition-clause (:include sql-clause (name ""))
+                                     (:constructor make-column-definition-clause (column-name &key type not-null default auto-increment unique primary-key)))
+  column-name
+  type
+  not-null
+  default
+  auto-increment
+  unique
+  primary-key)
+
+(defmethod yield ((clause column-definition-clause))
+  (with-yield-binds
+    (with-output-to-string (s)
+      (write-string
+       (yield (column-definition-clause-column-name clause)) s)
+      (when (column-definition-clause-type clause)
+        (let ((*use-placeholder* nil))
+          (format s " ~:@(~A~)"
+                  (yield (column-definition-clause-type clause)))))
+      (when (column-definition-clause-not-null clause)
+        (write-string " NOT NULL" s))
+      (when (column-definition-clause-default clause)
+        (format s " DEFAULT ~A"
+                (yield (column-definition-clause-default clause))))
+      (when (column-definition-clause-auto-increment clause)
+        (write-string " AUTO_INCREMENT" s))
+      (when (column-definition-clause-unique clause)
+        (write-string " UNIQUE" s))
+      (when (column-definition-clause-primary-key clause)
+        (write-string " PRIMARY KEY" s)))))
 
 (defun find-make-clause (clause-name &optional (package *package*))
   (find-constructor clause-name #.(string :-clause)

@@ -96,6 +96,7 @@
   (etypecase object
     (number (make-sql-variable object))
     (string (make-sql-variable object))
+    (boolean object)
     (symbol
      (if (string= (symbol-name object) "*")
          (make-sql-keyword "*")

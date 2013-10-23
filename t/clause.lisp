@@ -112,4 +112,34 @@
 ;(is-error (make-clause :set= 'a 1 'b) program-error)
 ;(is-error (make-clause :set= '(a 1)) program-error)
 
+(is (multiple-value-list
+     (yield
+      (sxql.clause::make-column-definition-clause
+       (make-sql-symbol "name")
+       :type (make-op :char (make-sql-variable 64))
+       :not-null t
+       :default (make-sql-variable "No Name"))))
+    '("`name` CHAR(64) NOT NULL DEFAULT ?" ("No Name"))
+    "column-definition")
+
+(is (multiple-value-list
+     (yield
+      (sxql.clause::make-column-definition-clause
+       (make-sql-symbol "id")
+       :type (make-sql-keyword "bigint")
+       :primary-key t
+       :auto-increment t)))
+    '("`id` BIGINT AUTO_INCREMENT PRIMARY KEY" nil)
+    "column-definition")
+
+(is (multiple-value-list
+     (yield
+      (sxql.clause::make-column-definition-clause
+       (make-sql-symbol "email")
+       :type (make-sql-keyword "text")
+       :not-null t
+       :unique t)))
+    '("`email` TEXT NOT NULL UNIQUE" nil)
+    "column-definition")
+
 (finalize)

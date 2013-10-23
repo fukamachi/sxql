@@ -88,6 +88,28 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-OP: (SELECT (`name`, `birthday`) FROM `fulltime` UNION ALL SELECT (`name`, `birthday`) FROM `parttime`)>
 ```
 
+### create-table
+
+```common-lisp
+(create-table 'enemy
+  '((name :type string
+          :primary-key t)
+    (age :type integer
+         :not-null t)
+    (address :type text
+             :not-null nil)
+    (fatal_weakness :type text
+                    :not-null t
+                    :default "None")
+    (identifying_color :type (:char 20)
+                       :unique t)))
+;=> #<SXQL-STATEMENT: CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT 'None', `identifying_color` CHAR(20) UNIQUE)>
+
+(yield *)
+;=> "CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)"
+;   ("None")
+```
+
 ## SQL Clauses
 
 ### from
