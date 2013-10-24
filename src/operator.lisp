@@ -126,7 +126,6 @@
    (format nil "(~A)"
            (etypecase (raw-op-var raw)
              (string (raw-op-var raw))
-             (sql-variable (let ((*use-placeholder* nil)
-                                 (*use-prin1-for-print-object* nil))
-                             (yield (raw-op-var raw))))))
+             (sql-variable (let ((*use-placeholder* nil))
+                             (sql-variable-value (raw-op-var raw))))))
    nil))

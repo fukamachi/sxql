@@ -143,4 +143,15 @@
        '("DROP TABLE IF EXISTS `enemy`" nil)
        "DROP TABLE IF EXISTS")
 
+(diag "placeholder")
+
+(is-mv (let ((*use-placeholder* nil))
+         (sql-compile (select :* (from 'table) (where '(:= a "dog")))))
+       '("SELECT * FROM `table` WHERE (`a` = 'dog')" ())
+       "Not use placeholder (string)")
+(is-mv (let ((*use-placeholder* nil))
+         (sql-compile (select :* (from 'table) (where '(:= a 101)))))
+       '("SELECT * FROM `table` WHERE (`a` = 101)" ())
+       "Not use placeholder (integer)")
+
 (finalize)

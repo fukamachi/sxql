@@ -14,9 +14,6 @@
 @export
 (defparameter *use-placeholder* t)
 
-@export
-(defparameter *use-prin1-for-print-object* nil)
-
 (defparameter *bind-values* nil)
 (defparameter *use-global-bind-values* nil)
 
@@ -36,6 +33,7 @@
 (defstruct sql-atom)
 
 @export
+@export-accessors
 @export-constructors
 (defstruct (sql-variable (:include sql-atom)
                          (:constructor make-sql-variable (value)))
@@ -67,8 +65,7 @@
 
 (defmethod print-object ((op sql-op) stream)
   (format stream "#<SXQL-OP: ~A>"
-          (let ((*use-placeholder* nil)
-                (*use-prin1-for-print-object* t))
+          (let ((*use-placeholder* nil))
             (yield op))))
 
 @export
@@ -176,8 +173,7 @@
 
 (defmethod print-object ((clause sql-clause) stream)
   (format stream "#<SXQL-CLAUSE: ~A>"
-          (let ((*use-placeholder* nil)
-                (*use-prin1-for-print-object* t))
+          (let ((*use-placeholder* nil))
             (yield clause))))
 
 ;;
@@ -190,8 +186,7 @@
 
 (defmethod print-object ((clause sql-statement) stream)
   (format stream "#<SXQL-STATEMENT: ~A>"
-          (let ((*use-placeholder* nil)
-                (*use-prin1-for-print-object* t))
+          (let ((*use-placeholder* nil))
             (yield clause))))
 
 ;;
@@ -216,11 +211,9 @@
   (if *use-placeholder*
       (values "?" (list (sql-variable-value var)))
       (values
-       (if *use-prin1-for-print-object*
-           (if (stringp (sql-variable-value var))
-               (format nil "'~A'"
-                       (sql-variable-value var))
-               (prin1-to-string (sql-variable-value var)))
+       (if (stringp (sql-variable-value var))
+           (format nil "'~A'"
+                   (sql-variable-value var))
            (princ-to-string (sql-variable-value var)))
        nil)))
 
