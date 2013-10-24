@@ -55,16 +55,6 @@
      (yield (make-op :distinct 'age)))
     (list "(DISTINCT `age`)" nil))
 
-(ok (make-op :on (make-op :=
-                          (make-sql-symbol "a")
-                          (make-sql-symbol "b"))))
-(is-error (make-op :on (make-sql-variable 1))
-          type-error)
-(is-error (make-op :on (make-op :+
-                                (make-sql-variable 1)
-                                (make-sql-variable 2)))
-          type-error)
-
 (diag "infix-op")
 
 (is (multiple-value-list

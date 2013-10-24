@@ -4,7 +4,8 @@
         :cl-test-more
         :sxql.sql-type
         :sxql.operator
-        :sxql.clause))
+        :sxql.clause
+        :sxql.compile))
 (in-package :t.sxql.clause)
 
 (plan nil)
