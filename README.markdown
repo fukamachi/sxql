@@ -124,10 +124,10 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (drop-table 'enemy)
-;=> #<SXQL-STATEMENT: DROP TABLE `enemy`>
+;=> #<SXQL-STATEMENT: DROP TABLE enemy>
 
 (drop-table 'enemy :if-exists t)
-;=> #<SXQL-STATEMENT: DROP TABLE IF EXISTS `enemy`>
+;=> #<SXQL-STATEMENT: DROP TABLE IF EXISTS enemy>
 ```
 
 ## SQL Clauses
@@ -136,7 +136,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (from 'person)
-;=> #<SXQL-CLAUSE: FROM `person`>
+;=> #<SXQL-CLAUSE: FROM person>
 ```
 
 ### where
