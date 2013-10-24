@@ -13,6 +13,16 @@
 (yield *)
 ;=> "SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC"
 ;   (18 65)
+
+(sql-compile **)
+;=> #<SXQL-COMPILED: SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC [18, 65]>
+
+(union-queries * (select '(id name sex) (from '(:as animal a))))
+;=> #<SXQL-OP: (SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC UNION SELECT (id, name, sex) FROM (animal AS a))>
+
+(yield *)
+;=> "(SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC UNION SELECT (id, name, sex) FROM (animal AS a))"
+;   (18 65)
 ```
 
 ## SQL Statements

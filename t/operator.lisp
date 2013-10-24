@@ -224,4 +224,14 @@
 (is (yield (make-op :count '*)) "COUNT(*)")
 (is (yield (make-op :count 'column)) "COUNT(`column`)")
 
+(diag "sql-compile op")
+
+(ok (sql-compile (make-op :+ 1 2 3)))
+
+(let ((op (sql-compile (make-op :+ 1 2 3))))
+  (ok (make-op :* op (make-op :- 10 2) op))
+  (is (multiple-value-list
+       (yield (make-op :* op (make-op :- 10 2) op)))
+      '("((? + ? + ?) * (? - ?) * (? + ? + ?))" (1 2 3 10 2 1 2 3))))
+
 (finalize)

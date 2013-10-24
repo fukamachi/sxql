@@ -87,16 +87,28 @@
   (elements nil :type (and proper-list
                          (satisfies sql-expression-list-p))))
 
-(deftype sql-all-type () '(or sql-expression sql-statement))
+@export
+(defstruct sql-clause
+  (name "" :type string))
+
+(defun sql-clause-list-p (object)
+  (every #'sql-clause-p object))
+
+@export
+(deftype sql-clause-list ()
+  '(and proper-list
+        (satisfies sql-clause-list-p)))
 
 @export
 (defstruct sql-statement
-  (name nil :type string))
+  (name "" :type string))
 
 (defun sql-statement-list-p (object)
   (every #'(lambda (element)
              (typep element 'sql-all-type))
          object))
+
+(deftype sql-all-type () '(or sql-expression sql-statement))
 
 ;;
 ;; Operator
@@ -142,18 +154,6 @@
 
 ;;
 ;; Clause
-
-@export
-(defstruct sql-clause
-  (name nil :type string))
-
-(defun sql-clause-list-p (object)
-  (every #'sql-clause-p object))
-
-@export
-(deftype sql-clause-list ()
-  '(and proper-list
-        (satisfies sql-clause-list-p)))
 
 @export 'expression
 @export

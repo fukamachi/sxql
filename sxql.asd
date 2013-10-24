@@ -22,7 +22,8 @@
                :split-sequence)
   :components ((:module "src"
                 :components
-                ((:file "sxql" :depends-on ("statement" "clause" "operator"))
+                ((:file "sxql" :depends-on ("statement" "clause" "operator" "compile"))
+                 (:file "compile" :depends-on ("sql-type"))
                  (:file "sql-type")
                  (:file "operator" :depends-on ("sql-type"))
                  (:file "clause" :depends-on ("operator"))

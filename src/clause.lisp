@@ -64,7 +64,7 @@
 
 @export
 @export-constructors
-(defstruct (column-definition-clause (:include sql-clause (name ""))
+(defstruct (column-definition-clause (:include sql-clause)
                                      (:constructor make-column-definition-clause (column-name &key type not-null default auto-increment unique primary-key)))
   column-name
   type

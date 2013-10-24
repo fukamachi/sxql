@@ -142,4 +142,12 @@
     '("`email` TEXT NOT NULL UNIQUE" nil)
     "column-definition")
 
+(diag "sql-compile clause")
+
+(ok (sql-compile (make-clause :limit 10)))
+
+(is (multiple-value-list
+     (yield (sql-compile (make-clause :limit 10))))
+    '("LIMIT 10" ()))
+
 (finalize)

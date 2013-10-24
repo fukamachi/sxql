@@ -91,4 +91,27 @@
     '("CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)" ("None"))
     "CREATE TABLE")
 
+(diag "sql-compile statement")
+
+(let ((stmt (sql-compile
+             (make-statement :select
+                             (make-sql-keyword "*")
+                             (make-clause :from (make-sql-symbol "table-name"))
+                             (make-clause :where
+                                          (make-op :<
+                                                   (make-sql-symbol "age")
+                                                   (make-sql-variable 20)))))))
+  (ok stmt)
+
+  (is (multiple-value-list (yield stmt))
+      '("SELECT * FROM `table-name` WHERE (`age` < ?)" (20)))
+
+  (let ((union-stmt
+          (make-op :union stmt (make-statement :select
+                                               (make-sql-keyword "*")
+                                               (make-clause :from (make-sql-symbol "table-2"))))))
+    (ok union-stmt)
+    (is (multiple-value-list (yield union-stmt))
+        '("(SELECT * FROM `table-name` WHERE (`age` < ?) UNION SELECT * FROM `table-2`)" (20)))))
+
 (finalize)

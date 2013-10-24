@@ -13,9 +13,12 @@
                 :yield
                 :*use-placeholder*
                 :*quote-character*)
+  (:import-from :sxql.compile
+                :sql-compile)
   (:import-from :sxql.operator
                 :detect-and-convert)
   (:export :yield
+           :sql-compile
            :*use-placeholder*
            :*quote-character*))
 (in-package :sxql)
