@@ -78,6 +78,10 @@
        '("SELECT * FROM (SELECT * FROM `table`) WHERE (`age` > ?)" (20))
        "subquery")
 
+(is-mv (select :* (from 'table) (where '(:= a :null)))
+       '("SELECT * FROM `table` WHERE (`a` = NULL)" ())
+       "NULL")
+
 (is-mv (insert-into 'person
                     (set= 'name "Eitarow"
                           'sex "male"))

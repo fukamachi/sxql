@@ -98,9 +98,11 @@
     (string (make-sql-variable object))
     (boolean object)
     (symbol
-     (if (string= (symbol-name object) "*")
-         (make-sql-keyword "*")
-         (make-sql-symbol (string-downcase object))))
+     (let ((name (symbol-name object)))
+       (if (or (string= name "*")
+               (string-equal name "null"))
+           (make-sql-keyword name)
+           (make-sql-symbol (string-downcase object)))))
     (list
      (if (keywordp (car object))
          (apply #'make-op object)
