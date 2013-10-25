@@ -86,6 +86,38 @@
        '("SELECT * FROM `table` WHERE (`a` = NULL)" ())
        "NULL")
 
+(let ((age-limit 20))
+  (is-mv (select :* (from :table) (where (:< :age age-limit)))
+         '("SELECT * FROM `table` WHERE (`age` < ?)" (20)))
+
+  (is-mv (select ((:+ 1 age-limit)))
+         '("SELECT (? + ?)" (1 20))))
+
+(let ((field '(:id :name)))
+  (is-mv (select field (from :table))
+         '("SELECT `id`, `name` FROM `table`" ())))
+
+(let ((field '(:count :id)))
+  (is-mv (select (list field) (from :table))
+         '("SELECT COUNT(`id`) FROM `table`" ())))
+
+(let ((table :table)
+      (table-alias "t"))
+  (is-mv (select :* (from (:as :table (intern table-alias :keyword))))
+         '("SELECT * FROM (`table` AS `t`)" ()))
+  (is-mv (left-join (:as table (intern table-alias :keyword))
+                    :on (:= (intern (format nil "~A.id" table-alias) :keyword) :table.id))
+         '("LEFT JOIN (`table` AS `t`) ON (`t`.`id` = `table`.`id`)" ())))
+
+(let ((col :age))
+  (is-mv (order-by col) '("ORDER BY `age`" ()))
+  (is-mv (order-by (:desc col)) '("ORDER BY `age` DESC" ())))
+
+(let ((limit 10))
+  (is-mv (limit limit) '("LIMIT 10" ()))
+  (is-mv (limit 0 limit) '("LIMIT 0, 10" ()))
+  (is-mv (offset limit) '("OFFSET 10" ())))
+
 (is-mv (insert-into :person
                     (set= :name "Eitarow"
                           :sex "male"))
@@ -109,6 +141,19 @@
                     (limit 1))
        '("DELETE FROM `person` LEFT JOIN `config` ON (`person`.`config_id` = `config`.`id`) WHERE (`age` < ?) ORDER BY `age` DESC LIMIT 1" (20))
        "DELETE FROM")
+
+(let ((table :person)
+      (name "Eitarow"))
+  (is-mv (set= :name name) '("SET `name` = ?" ("Eitarow")))
+  (is-mv (set= :name (concatenate 'string name " Fukamachi")) '("SET `name` = ?" ("Eitarow Fukamachi")))
+  (is-mv (insert-into table
+                      (set= :name name))
+         '("INSERT INTO `person` SET `name` = ?" ("Eitarow")))
+  (is-mv (update table
+                 (set= :name name))
+         '("UPDATE `person` SET `name` = ?" ("Eitarow")))
+  (is-mv (delete-from table (where (:= :name name)))
+         '("DELETE FROM `person` WHERE (`name` = ?)" ("Eitarow"))))
 
 (is-mv (union-queries
         (select :* (from :table-1) (where (:= :a 10)))
@@ -147,6 +192,10 @@
        '("DROP TABLE IF EXISTS `enemy`" nil)
        "DROP TABLE IF EXISTS")
 
+(let ((table-name :enemy))
+  (is-mv (drop-table table-name :if-exists t)
+         '("DROP TABLE IF EXISTS `enemy`" ())))
+
 (diag "placeholder")
 
 (is-mv (let ((*use-placeholder* nil))
@@ -157,14 +206,5 @@
          (sql-compile (select :* (from :table) (where (:= :a 101)))))
        '("SELECT * FROM `table` WHERE (`a` = 101)" ())
        "Not use placeholder (integer)")
-
-(diag "Use variables in where")
-
-(let ((age-limit 20))
-  (is-mv (select :* (from :table) (where (:< :age age-limit)))
-         '("SELECT * FROM `table` WHERE (`age` < ?)" (20)))
-
-  (is-mv (select ((:+ 1 age-limit)))
-         '("SELECT (? + ?)" (1 20))))
 
 (finalize)

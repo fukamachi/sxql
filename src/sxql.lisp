@@ -32,13 +32,24 @@
       `(make-op ,(car object) ,@(mapcar #'expand-op (cdr object)))
       object))
 
+(defun expand-expression (expressions)
+  (cond
+    ((not (listp expressions)) expressions)
+    ((and (symbolp (car expressions))
+          (not (keywordp (car expressions))))
+     expressions)
+    (t (mapcar #'expand-op expressions))))
+
 @export
 (defmacro select (field &rest clauses)
   (let ((clauses-g (gensym "CLAUSES")))
     `(let ((,clauses-g (list ,@clauses)))
        (check-type ,clauses-g sql-clause-list)
        (apply #'make-statement :select ,(if (listp field)
-                                            `(list ,@(mapcar #'expand-op field))
+                                            (if (and (symbolp (car field))
+                                                     (not (keywordp (car field))))
+                                                field
+                                                `(list ,@(mapcar #'expand-op field)))
                                             `,field) ,clauses-g))))
 
 @export
@@ -47,27 +58,28 @@
     `(let ((,clauses-g (list ,@clauses)))
        (check-type ,clauses-g sql-clause-list)
        (apply #'make-statement :insert-into
-              ',table ,clauses-g))))
+              ,(expand-expression table)
+              ,clauses-g))))
 
 @export
 (defmacro update (table &rest clauses)
   `(make-statement :update
-                   ',table ,@clauses))
+                   ,(expand-expression table) ,@clauses))
 
 @export
 (defmacro delete-from (table &rest clauses)
   `(make-statement :delete-from
-                   ',table ,@clauses))
+                   ,(expand-expression table) ,@clauses))
 
 @export
 (defmacro create-table (table column-definitions &rest options)
   `(apply #'make-statement :create-table
-          ',table ',column-definitions ',options))
+          ,(expand-expression table) ',column-definitions ',options))
 
 @export
 (defmacro drop-table (table &key if-exists)
   `(make-statement :drop-table
-                   ',table :if-exists ,if-exists))
+                   ,(expand-expression table) :if-exists ,if-exists))
 
 @export
 (defun union-queries (&rest queries)
@@ -82,11 +94,7 @@
 
 @export
 (defmacro from (statement)
-  `(make-clause :from
-                ,(if (and (listp statement)
-                          (keywordp (car statement)))
-                     `(make-op ,@statement)
-                     statement)))
+  `(make-clause :from ,(expand-op statement)))
 
 @export
 (defmacro where (expression)
@@ -98,7 +106,7 @@
 
 @export
 (defmacro order-by (&rest expressions)
-  `(apply #'make-clause :order-by ',expressions))
+  `(make-clause :order-by ,@(expand-expression expressions)))
 
 @export
 (defmacro group-by (&rest expressions)
@@ -118,5 +126,5 @@
 
 @export
 (defmacro left-join (table &key on)
-  `(make-left-join-clause (detect-and-convert ',table)
-                          :on (detect-and-convert ',on)))
+  `(make-left-join-clause (detect-and-convert ,(expand-op table))
+                          :on ,(expand-op on)))
