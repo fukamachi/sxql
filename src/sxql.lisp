@@ -26,12 +26,20 @@
 
 (cl-syntax:use-syntax :annot)
 
+(defun expand-op (object)
+  (if (and (listp object)
+           (keywordp (car object)))
+      `(make-op ,(car object) ,@(mapcar #'expand-op (cdr object)))
+      object))
+
 @export
 (defmacro select (field &rest clauses)
   (let ((clauses-g (gensym "CLAUSES")))
     `(let ((,clauses-g (list ,@clauses)))
        (check-type ,clauses-g sql-clause-list)
-       (apply #'make-statement :select ',field ,clauses-g))))
+       (apply #'make-statement :select ,(if (listp field)
+                                            `(list ,@(mapcar #'expand-op field))
+                                            `,field) ,clauses-g))))
 
 @export
 (defmacro insert-into (table &rest clauses)
@@ -85,7 +93,7 @@
   `(make-clause :where
                 ,(if (and (listp expression)
                           (keywordp (car expression)))
-                     `(detect-and-convert ',expression)
+                     (expand-op expression)
                      `,expression)))
 
 @export

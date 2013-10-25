@@ -158,4 +158,13 @@
        '("SELECT * FROM `table` WHERE (`a` = 101)" ())
        "Not use placeholder (integer)")
 
+(diag "Use variables in where")
+
+(let ((age-limit 20))
+  (is-mv (select :* (from :table) (where (:< :age age-limit)))
+         '("SELECT * FROM `table` WHERE (`age` < ?)" (20)))
+
+  (is-mv (select ((:+ 1 age-limit)))
+         '("SELECT (? + ?)" (1 20))))
+
 (finalize)
