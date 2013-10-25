@@ -46,6 +46,16 @@
   (apply (find-make-statement statement-name #.*package*)
          (mapcar #'detect-and-convert args)))
 
+(defmethod make-statement ((statement-name (eql :select)) &rest args)
+  (destructuring-bind (field &rest clauses) args
+    (apply #'call-next-method
+           statement-name
+           (if (listp field)
+               (apply #'make-sql-list
+                      (mapcar #'detect-and-convert field))
+               (detect-and-convert field))
+           clauses)))
+
 (defmethod make-statement ((statement-name (eql :create-table)) &rest args)
   (destructuring-bind (table column-definitions &rest options) args
     (apply #'make-create-table-statement

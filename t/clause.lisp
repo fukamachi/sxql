@@ -10,23 +10,23 @@
 
 (plan nil)
 
-(ok (make-clause :where (make-op := 'a 10)))
+(ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
-     (yield (make-clause :where (make-op := 'a 10))))
+     (yield (make-clause :where (make-op := :a 10))))
     (list "WHERE (`a` = ?)" '(10)))
 (is-error (make-clause :where
-                       (make-op := 'a 10)
-                       (make-op :!= 'b 20))
+                       (make-op := :a 10)
+                       (make-op :!= :b 20))
           program-error)
 
 (ok (make-clause :from (make-sql-symbol "table-name")))
-(ok (make-clause :from (make-op :as 'table-name 'a)))
+(ok (make-clause :from (make-op :as :table-name :a)))
 (is (multiple-value-list
      (yield (make-clause :from (make-sql-symbol "table-name"))))
     (list "FROM `table-name`" nil))
 (is (multiple-value-list
      (yield (make-clause :from
-                             (make-op :as 'table-name 'a))))
+                         (make-op :as :table-name :a))))
     (list "FROM (`table-name` AS `a`)" nil))
 
 (ok (make-clause :order-by (make-sql-symbol "a")))
@@ -104,10 +104,10 @@
                        (make-sql-variable 2))
           program-error)
 
-(ok (make-clause :set= 'a 1) "set=")
-(ok (make-clause :set= 'a 1 'b 2))
+(ok (make-clause :set= :a 1) "set=")
+(ok (make-clause :set= :a 1 :b 2))
 (is (multiple-value-list
-     (yield (make-clause :set= 'a 1 'b 2)))
+     (yield (make-clause :set= :a 1 :b 2)))
     (list "SET `a` = ?, `b` = ?" '(1 2)))
 ;(is-error (make-clause :set=) program-error)
 ;(is-error (make-clause :set= 'a 1 'b) program-error)

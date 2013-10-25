@@ -52,7 +52,7 @@
           program-error)
 
 (is (multiple-value-list
-     (yield (make-op :distinct 'age)))
+     (yield (make-op :distinct :age)))
     (list "(DISTINCT `age`)" nil))
 
 (diag "infix-op")
@@ -211,8 +211,7 @@
 (is (slot-value (make-op :count :*) 'name) "COUNT")
 (is-type (make-op :count :*) 'function-op)
 (is (yield (make-op :count :*)) "COUNT(*)")
-(is (yield (make-op :count '*)) "COUNT(*)")
-(is (yield (make-op :count 'column)) "COUNT(`column`)")
+(is (yield (make-op :count :column)) "COUNT(`column`)")
 
 (diag "sql-compile op")
 

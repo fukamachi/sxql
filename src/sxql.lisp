@@ -16,6 +16,7 @@
   (:import-from :sxql.compile
                 :sql-compile)
   (:import-from :sxql.operator
+                :make-op
                 :detect-and-convert)
   (:export :yield
            :sql-compile
@@ -26,36 +27,39 @@
 (cl-syntax:use-syntax :annot)
 
 @export
-(defun select (field &rest clauses)
-  (check-type clauses sql-clause-list)
-  (apply #'make-statement :select
-         field clauses))
+(defmacro select (field &rest clauses)
+  (let ((clauses-g (gensym "CLAUSES")))
+    `(let ((,clauses-g (list ,@clauses)))
+       (check-type ,clauses-g sql-clause-list)
+       (apply #'make-statement :select ',field ,clauses-g))))
 
 @export
-(defun insert-into (table &rest clauses)
-  (check-type clauses sql-clause-list)
-  (apply #'make-statement :insert-into
-         table clauses))
+(defmacro insert-into (table &rest clauses)
+  (let ((clauses-g (gensym "CLAUSES")))
+    `(let ((,clauses-g (list ,@clauses)))
+       (check-type ,clauses-g sql-clause-list)
+       (apply #'make-statement :insert-into
+              ',table ,clauses-g))))
 
 @export
-(defun update (table &rest clauses)
-  (apply #'make-statement :update
-         table clauses))
+(defmacro update (table &rest clauses)
+  `(make-statement :update
+                   ',table ,@clauses))
 
 @export
-(defun delete-from (table &rest clauses)
-  (apply #'make-statement :delete-from
-         table clauses))
+(defmacro delete-from (table &rest clauses)
+  `(make-statement :delete-from
+                   ',table ,@clauses))
 
 @export
-(defun create-table (table column-definitions &rest options)
-  (apply #'make-statement :create-table
-         table column-definitions options))
+(defmacro create-table (table column-definitions &rest options)
+  `(apply #'make-statement :create-table
+          ',table ',column-definitions ',options))
 
 @export
-(defun drop-table (table &key if-exists)
-  (make-statement :drop-table
-                  table :if-exists if-exists))
+(defmacro drop-table (table &key if-exists)
+  `(make-statement :drop-table
+                   ',table :if-exists ,if-exists))
 
 @export
 (defun union-queries (&rest queries)
@@ -69,20 +73,28 @@
 ;; Clauses
 
 @export
-(defun from (statement)
-  (make-clause :from statement))
+(defmacro from (statement)
+  `(make-clause :from
+                ,(if (and (listp statement)
+                          (keywordp (car statement)))
+                     `(make-op ,@statement)
+                     statement)))
 
 @export
-(defun where (expression)
-  (make-clause :where expression))
+(defmacro where (expression)
+  `(make-clause :where
+                ,(if (and (listp expression)
+                          (keywordp (car expression)))
+                     `(make-op ,@expression)
+                     `,expression)))
 
 @export
-(defun order-by (&rest expressions)
-  (apply #'make-clause :order-by expressions))
+(defmacro order-by (&rest expressions)
+  `(apply #'make-clause :order-by ',expressions))
 
 @export
-(defun group-by (&rest expressions)
-  (apply #'make-clause :group-by expressions))
+(defmacro group-by (&rest expressions)
+  `(apply #'make-clause :group-by ',expressions))
 
 @export
 (defun limit (count1 &optional count2)
@@ -93,10 +105,10 @@
   (make-clause :offset offset))
 
 @export
-(defun set= (&rest args)
-  (apply #'make-clause :set= args))
+(defmacro set= (&rest args)
+  `(make-clause :set= ,@args))
 
 @export
-(defun left-join (table &key on)
-  (make-left-join-clause (detect-and-convert table)
-                         :on (detect-and-convert on)))
+(defmacro left-join (table &key on)
+  `(make-left-join-clause (detect-and-convert ',table)
+                          :on (detect-and-convert ',on)))
