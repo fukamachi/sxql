@@ -8,20 +8,21 @@
   (where (:and (:>= :age 18)
                (:< :age 65)))
   (order-by (:desc age)))
-;=> #<SXQL-STATEMENT: SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= 18) AND (age < 65)) ORDER BY age DESC>
+;=> #<SXQL-STATEMENT: SELECT id, name, sex FROM (person AS p) WHERE ((age >= 18) AND (age < 65)) ORDER BY age DESC>
 
 (yield *)
-;=> "SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC"
+
+;=> "SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC"
 ;   (18 65)
 
 (sql-compile **)
-;=> #<SXQL-COMPILED: SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC [18, 65]>
+;=> #<SXQL-COMPILED: SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC [18, 65]>
 
-(union-queries * (select '(id name sex) (from '(:as animal a))))
-;=> #<SXQL-OP: (SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC UNION SELECT (id, name, sex) FROM (animal AS a))>
+(union-queries * (select (:id :name :sex) (from '(:as animal a))))
+;=> #<SXQL-OP: (SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC UNION SELECT id, name, sex FROM (animal AS a))>
 
 (yield *)
-;=> "(SELECT (id, name, sex) FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC UNION SELECT (id, name, sex) FROM (animal AS a))"
+;=> "(SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC UNION SELECT id, name, sex FROM (animal AS a))"
 ;   (18 65)
 ```
 
@@ -33,7 +34,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (select ((:+ 1 1)))
-;=> #<SXQL-STATEMENT: SELECT ((1 + 1))>
+;=> #<SXQL-STATEMENT: SELECT (1 + 1)>
 
 (select :name
   (from :person)
@@ -47,10 +48,10 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
                (:<= age 65)))
   (order-by :age)
   (limit 5))
-;=> #<SXQL-STATEMENT: SELECT (id, name) FROM (person AS p) LEFT JOIN person_config ON (person.config_id = person_config.id) WHERE ((age > 20) AND (age <= 65)) ORDER BY age LIMIT 5>
+;=> #<SXQL-STATEMENT: SELECT id, name FROM (person AS p) LEFT JOIN person_config ON (person.config_id = person_config.id) WHERE ((age > 20) AND (age <= 65)) ORDER BY age LIMIT 5>
 
 (select (:sex (:count :*)) (from :person) (group-by :sex))
-;=> #<SXQL-STATEMENT: SELECT (sex, COUNT(*)) FROM person GROUP BY sex>
+;=> #<SXQL-STATEMENT: SELECT sex, COUNT(*) FROM person GROUP BY sex>
 ```
 
 ### insert-into (table &rest clauses)
@@ -86,7 +87,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (union-queries
  (select (:name :birthday) (from :fulltime))
  (select (:name :birthday) (from :parttime)))
-;=> #<SXQL-OP: (SELECT (name, birthday) FROM fulltime UNION SELECT (name, birthday) FROM parttime)>
+;=> #<SXQL-OP: (SELECT name, birthday FROM fulltime UNION SELECT name, birthday FROM parttime)>
 ```
 
 ### union-all-queries (&rest statements)
@@ -95,7 +96,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (union-all-queries
  (select (:name :birthday) (from :fulltime))
  (select (:name :birthday) (from :parttime)))
-;=> #<SXQL-OP: (SELECT (name, birthday) FROM fulltime UNION ALL SELECT (name, birthday) FROM parttime)>
+;=> #<SXQL-OP: (SELECT name, birthday FROM fulltime UNION ALL SELECT name, birthday FROM parttime)>
 ```
 
 ### create-table

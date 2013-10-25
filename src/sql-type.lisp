@@ -58,6 +58,10 @@
 (defstruct (sql-list (:constructor make-sql-list (&rest elements)))
   (elements nil :type proper-list))
 
+@export-constructors
+(defstruct (sql-splicing-list (:include sql-list)
+                              (:constructor make-sql-splicing-list (&rest elements))))
+
 @export 'name
 @export
 (defstruct sql-op
@@ -219,7 +223,14 @@
 
 (defmethod yield ((list sql-list))
   (with-yield-binds
-    (format nil "(~{~A~^, ~})"
+    (format nil "(~A)"
+            (yield
+             (apply #'make-sql-splicing-list
+                    (sql-list-elements list))))))
+
+(defmethod yield ((list sql-splicing-list))
+  (with-yield-binds
+    (format nil "~{~A~^, ~}"
             (mapcar #'yield
                     (sql-list-elements list)))))
 

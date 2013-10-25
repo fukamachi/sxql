@@ -14,11 +14,7 @@
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
                              (:constructor make-select-statement
                                  (fields &rest statements
-                                  &aux (children
-                                        (list* (if (listp fields)
-                                                   (apply #'make-sql-list fields)
-                                                   fields)
-                                               statements))))))
+                                  &aux (children (list* fields statements))))))
 
 (defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
                                   (:constructor make-insert-into-statement (&rest children))))
@@ -51,7 +47,7 @@
     (apply #'call-next-method
            statement-name
            (if (listp field)
-               (apply #'make-sql-list
+               (apply #'make-sql-splicing-list
                       (mapcar #'detect-and-convert field))
                (detect-and-convert field))
            clauses)))

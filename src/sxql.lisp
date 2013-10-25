@@ -85,7 +85,7 @@
   `(make-clause :where
                 ,(if (and (listp expression)
                           (keywordp (car expression)))
-                     `(make-op ,@expression)
+                     `(detect-and-convert ',expression)
                      `,expression)))
 
 @export

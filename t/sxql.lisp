@@ -20,7 +20,7 @@
        ,desc))
 
 (is-mv (select ((:+ 1 1)))
-       '("SELECT ((? + ?))" (1 1))
+       '("SELECT (? + ?)" (1 1))
        "field")
 (is-mv (select :*)
        '("SELECT *" nil)
@@ -30,6 +30,10 @@
        "where")
 (is-mv (select :* (from :table) (where (:is-null :name)))
        '("SELECT * FROM `table` WHERE (`name` IS NULL)" nil)
+       "where")
+(is-mv (select :* (from :table) (where (:or (:is-null :name)
+                                            (:< :age 20))))
+       '("SELECT * FROM `table` WHERE ((`name` IS NULL) OR (`age` < ?))" (20))
        "where")
 (is-mv (select :* (from :person) (order-by :age))
        '("SELECT * FROM `person` ORDER BY `age`" nil)
@@ -66,7 +70,7 @@
                (from (:as :person :p))
                (left-join :config :on (:= :p.config_id :config.id))
                (limit 5))
-       '("SELECT (`name`, `age`) FROM (`person` AS `p`) LEFT JOIN `config` ON (`p`.`config_id` = `config`.`id`) LIMIT 5" nil)
+       '("SELECT `name`, `age` FROM (`person` AS `p`) LEFT JOIN `config` ON (`p`.`config_id` = `config`.`id`) LIMIT 5" nil)
        "LEFT JOIN")
 
 (is-mv (select :* (from (select :* (from :table)))
