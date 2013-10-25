@@ -204,6 +204,28 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 * :+, :-, :* :/ :%
 * :raw
 
+## Set a quote character
+
+`*quote-character*` is the character that a table or column name will be quoted with. The default value is NIL (not quote).
+
+```common-lisp
+(yield (select :* (from 'table)))
+;=> "SELECT * FROM table"
+;   NIL
+
+;; for MySQL
+(let ((*quote-character* #\`))
+  (yield (select :* (from 'table))))
+;=> "SELECT * FROM `table`"
+;   NIL
+
+;; for PostgreSQL
+(let ((*quote-character* #\"))
+  (yield (select :* (from 'table))))
+;=> "SELECT * FROM "table""
+;   NIL
+```
+
 ## Author
 
 * Eitarow Fukamachi (e.arrows@gmail.com)
