@@ -74,7 +74,12 @@
 @export
 (defmacro create-table (table column-definitions &rest options)
   `(apply #'make-statement :create-table
-          ,(expand-expression table) ',column-definitions ',options))
+          ,(expand-expression table)
+          (list ,@(mapcar
+                   (lambda (column)
+                     `(make-column-definition-clause ',(car column) ,@(cdr column)))
+                   column-definitions))
+          ',options))
 
 @export
 (defmacro drop-table (table &key if-exists)

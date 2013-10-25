@@ -6,6 +6,7 @@
                 :find-constructor
                 :detect-and-convert)
   (:import-from :sxql.clause
+                :column-definition-clause
                 :make-column-definition-clause))
 (in-package :sxql.statement)
 
@@ -58,13 +59,9 @@
            (detect-and-convert table)
            (apply #'make-sql-list
                   (mapcar #'(lambda (column)
-                              (apply #'make-column-definition-clause
-                                     (detect-and-convert (car column))
-                                     (loop for (key val) on (cdr column) by #'cddr
-                                           if (and (eq key :type) (symbolp val))
-                                             append (list key (make-sql-keyword (string-upcase val)))
-                                           else
-                                             append (list key (detect-and-convert val)))))
+                              (if (typep column 'column-definition-clause)
+                                  column
+                                  (apply #'make-column-definition-clause column)))
                           column-definitions))
            options)))
 

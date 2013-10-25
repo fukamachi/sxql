@@ -63,9 +63,8 @@
   (apply #'%make-set=-clause args))
 
 @export
-@export-constructors
 (defstruct (column-definition-clause (:include sql-clause)
-                                     (:constructor make-column-definition-clause (column-name &key type not-null default auto-increment unique primary-key)))
+                                     (:constructor %make-column-definition-clause (column-name &key type not-null default auto-increment unique primary-key)))
   column-name
   type
   not-null
@@ -73,6 +72,16 @@
   auto-increment
   unique
   primary-key)
+
+@export
+(defun make-column-definition-clause (column-name &rest args &key type not-null default auto-increment unique primary-key)
+  (apply #'%make-column-definition-clause
+         (detect-and-convert column-name)
+         (loop for (key val) on args by #'cddr
+               if (and (eq key :type) (symbolp val))
+                 append (list key (make-sql-keyword (string-upcase val)))
+               else
+                 append (list key (detect-and-convert val)))))
 
 (defmethod yield ((clause column-definition-clause))
   (with-yield-binds
