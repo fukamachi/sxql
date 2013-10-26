@@ -5,7 +5,9 @@
         :sxql.sql-type
         :sxql.operator
         :sxql.clause
-        :sxql.compile))
+        :sxql.compile)
+  (:shadowing-import-from :t.sxql.prepare
+                          :is-error))
 (in-package :t.sxql.clause)
 
 (plan nil)

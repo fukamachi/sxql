@@ -78,6 +78,7 @@
 (defun sql-expression-p (object)
   (typep object 'sql-expression))
 
+@export
 (defun sql-expression-list-p (object)
   (every #'sql-expression-p object))
 

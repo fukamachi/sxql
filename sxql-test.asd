@@ -14,8 +14,10 @@
   :depends-on (:sxql
                :cl-test-more)
   :components ((:module "t"
+                :serial t
                 :components
-                ((:file "sql-type")
+                ((:file "prepare")
+                 (:file "sql-type")
                  (:file "operator")
                  (:file "clause")
                  (:file "statement")

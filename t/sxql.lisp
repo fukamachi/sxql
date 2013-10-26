@@ -9,7 +9,9 @@
         :sxql
         :cl-test-more)
   (:import-from :sxql.sql-type
-                :yield))
+                :yield)
+  (:shadowing-import-from :t.sxql.prepare
+                          :is-error))
 (in-package :t.sxql)
 
 (plan nil)

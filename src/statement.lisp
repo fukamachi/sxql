@@ -39,6 +39,9 @@
                     :package package))
 
 @export
+(defgeneric make-statement (statement-name &rest args))
+
+@export
 (defmethod make-statement (statement-name &rest args)
   (apply (find-make-statement statement-name #.*package*)
          (mapcar #'detect-and-convert args)))

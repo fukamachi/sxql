@@ -6,7 +6,9 @@
         :sxql.operator
         :sxql.clause
         :sxql.statement
-        :cl-test-more))
+        :cl-test-more)
+  (:shadowing-import-from :t.sxql.prepare
+                          :is-error))
 (in-package :t.sxql.statement)
 
 (plan nil)

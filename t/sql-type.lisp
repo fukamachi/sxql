@@ -3,7 +3,9 @@
   (:use :cl
         :sxql
         :sxql.sql-type
-        :cl-test-more))
+        :cl-test-more)
+  (:shadowing-import-from :t.sxql.prepare
+                          :is-error))
 (in-package :t.sxql.sql-type)
 
 (plan nil)

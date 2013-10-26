@@ -3,7 +3,10 @@
   (:use :cl
         :annot.class
         :sxql.sql-type
-        :sxql.operator))
+        :sxql.operator
+        :trivial-types)
+  (:import-from :sxql.operator
+                :=-op))
 (in-package :sxql.clause)
 
 (cl-syntax:use-syntax :annot)
@@ -75,6 +78,7 @@
 
 @export
 (defun make-column-definition-clause (column-name &rest args &key type not-null default auto-increment unique primary-key)
+  (declare (ignore type not-null default auto-increment unique primary-key))
   (apply #'%make-column-definition-clause
          (detect-and-convert column-name)
          (loop for (key val) on args by #'cddr
