@@ -41,7 +41,7 @@
     (t (mapcar #'expand-op expressions))))
 
 @export
-(defmacro select (field &rest clauses)
+(defmacro select (field &body clauses)
   (let ((clauses-g (gensym "CLAUSES")))
     `(let ((,clauses-g (list ,@clauses)))
        (check-type ,clauses-g sql-clause-list)
@@ -53,7 +53,7 @@
                                             `,field) ,clauses-g))))
 
 @export
-(defmacro insert-into (table &rest clauses)
+(defmacro insert-into (table &body clauses)
   (let ((clauses-g (gensym "CLAUSES")))
     `(let ((,clauses-g (list ,@clauses)))
        (check-type ,clauses-g sql-clause-list)
@@ -62,24 +62,29 @@
               ,clauses-g))))
 
 @export
-(defmacro update (table &rest clauses)
+(defmacro update (table &body clauses)
   `(make-statement :update
                    ,(expand-expression table) ,@clauses))
 
 @export
-(defmacro delete-from (table &rest clauses)
+(defmacro delete-from (table &body clauses)
   `(make-statement :delete-from
                    ,(expand-expression table) ,@clauses))
 
 @export
-(defmacro create-table (table column-definitions &rest options)
-  `(apply #'make-statement :create-table
-          ,(expand-expression table)
-          (list ,@(mapcar
-                   (lambda (column)
-                     `(make-column-definition-clause ',(car column) ,@(cdr column)))
-                   column-definitions))
-          ',options))
+(defmacro create-table (table column-definitions &body options)
+  `(make-statement :create-table
+                   ,(expand-expression table)
+                   (list ,@(if column-definitions
+                               (mapcar
+                                (lambda (column)
+                                  `(make-column-definition-clause ',(car column) ,@(cdr column)))
+                                column-definitions)
+                               nil))
+                   ,@(if (and (null (cdr options))
+                              (null (car options)))
+                         nil
+                         options)))
 
 @export
 (defmacro drop-table (table &key if-exists)

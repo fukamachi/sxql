@@ -28,7 +28,7 @@
 
 ## SQL Statements
 
-### select (field &rest clauses)
+### select (field &body clauses)
 
 Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
@@ -54,7 +54,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-STATEMENT: SELECT sex, COUNT(*) FROM person GROUP BY sex>
 ```
 
-### insert-into (table &rest clauses)
+### insert-into (table &body clauses)
 
 ```common-lisp
 (insert-into :person
@@ -64,7 +64,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = 'male', age = 25, name = 'Eitarow Fukamachi'>
 ```
 
-### update (table &rest clauses)
+### update (table &body clauses)
 
 ```common-lisp
 (update :person
@@ -73,7 +73,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-STATEMENT: UPDATE person SET age = 26 WHERE (name LIKE 'Eitarow %')>
 ```
 
-### delete-from (table &rest clauses)
+### delete-from (table &body clauses)
 
 ```common-lisp
 (delete-from :person
@@ -99,7 +99,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-OP: (SELECT name, birthday FROM fulltime UNION ALL SELECT name, birthday FROM parttime)>
 ```
 
-### create-table
+### create-table (table column-definitions &body options)
 
 ```common-lisp
 (create-table :enemy
@@ -121,7 +121,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;   ("None")
 ```
 
-### drop-table
+### drop-table (table &key if-exists)
 
 ```common-lisp
 (drop-table :enemy)
