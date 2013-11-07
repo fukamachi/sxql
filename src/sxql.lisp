@@ -44,7 +44,6 @@
 (defmacro select (field &body clauses)
   (let ((clauses-g (gensym "CLAUSES")))
     `(let ((,clauses-g (list ,@clauses)))
-       (check-type ,clauses-g sql-clause-list)
        (apply #'make-statement :select ,(if (listp field)
                                             (if (and (symbolp (car field))
                                                      (not (keywordp (car field))))
@@ -56,7 +55,6 @@
 (defmacro insert-into (table &body clauses)
   (let ((clauses-g (gensym "CLAUSES")))
     `(let ((,clauses-g (list ,@clauses)))
-       (check-type ,clauses-g sql-clause-list)
        (apply #'make-statement :insert-into
               ,(expand-expression table)
               ,clauses-g))))

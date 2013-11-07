@@ -44,7 +44,7 @@
 @export
 (defmethod make-statement (statement-name &rest args)
   (apply (find-make-statement statement-name #.*package*)
-         (mapcar #'detect-and-convert args)))
+         (remove nil (mapcar #'detect-and-convert args))))
 
 (defmethod make-statement ((statement-name (eql :select)) &rest args)
   (destructuring-bind (field &rest clauses) args
