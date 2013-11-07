@@ -140,4 +140,7 @@
 (defmethod yield ((clause set=-clause))
   (with-yield-binds
     (format nil "SET ~{~A = ~A~^, ~}"
-            (mapcar #'yield (set=-clause-args clause)))))
+            (mapcar #'(lambda (arg)
+                        (if arg
+                            (yield arg)
+                            "NULL")) (set=-clause-args clause)))))
