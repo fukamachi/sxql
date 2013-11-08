@@ -105,7 +105,7 @@
      (yield (make-op :as
                          (make-sql-symbol "table-name")
                          (make-sql-symbol "a"))))
-    (list "(`table-name` AS `a`)" nil)
+    (list "`table-name` AS `a`" nil)
     "AS")
 
 (is (multiple-value-list

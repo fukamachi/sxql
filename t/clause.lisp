@@ -29,7 +29,7 @@
 (is (multiple-value-list
      (yield (make-clause :from
                          (make-op :as :table-name :a))))
-    (list "FROM (`table-name` AS `a`)" nil))
+    (list "FROM `table-name` AS `a`" nil))
 
 (ok (make-clause :order-by (make-sql-symbol "a")))
 (is (multiple-value-list

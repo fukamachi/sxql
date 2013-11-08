@@ -137,6 +137,11 @@
 
 @export
 @export-constructors
+(defstruct (infix-splicing-op (:include infix-op)
+                              (:constructor make-infix-splicing-op (name left right))))
+
+@export
+@export-constructors
 (defstruct (infix-list-op (:include sql-op))
   (left nil :type sql-expression)
   (right nil :type proper-list))
@@ -259,6 +264,13 @@
 (defmethod yield ((op infix-op))
   (with-yield-binds
     (format nil "(~A ~A ~A)"
+            (yield (infix-op-left op))
+            (sql-op-name op)
+            (yield (infix-op-right op)))))
+
+(defmethod yield ((op infix-splicing-op))
+  (with-yield-binds
+    (format nil "~A ~A ~A"
             (yield (infix-op-left op))
             (sql-op-name op)
             (yield (infix-op-right op)))))

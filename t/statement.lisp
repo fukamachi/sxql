@@ -34,7 +34,7 @@
                             (make-sql-symbol "b"))
                            (make-clause :from (make-sql-symbol "table-name"))
                            (make-clause :where
-                                               (make-op := :name "Eitarow"))))
+                                        (make-op := :name "Eitarow"))))
     "SELECT (`a`, `b`) FROM `table-name` WHERE (`name` = ?)")
 
 (is (multiple-value-list

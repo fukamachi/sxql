@@ -26,6 +26,7 @@
                                      ((unary-op
                                        unary-postfix-op) '(var))
                                      ((infix-op
+                                       infix-splicing-op
                                        infix-list-op) '(left right))
                                      (conjunctive-op '(&rest expressions)))))
        ,@body)))
@@ -46,7 +47,7 @@
 (define-op (:> infix-op))
 (define-op (:<= infix-op))
 (define-op (:>= infix-op))
-(define-op (:as infix-op))
+(define-op (:as infix-splicing-op))
 (define-op (:in infix-list-op))
 (define-op (:not-in infix-list-op))
 (define-op (:like infix-op))
