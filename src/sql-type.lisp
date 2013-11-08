@@ -206,11 +206,18 @@
 (defgeneric yield (object))
 
 (defmethod yield ((symbol sql-symbol))
-  (let ((format-string (format nil "~~{~A~~A~:*~A~~^.~~}"
-                               (or *quote-character* ""))))
-    (values
-     (format nil format-string (split-sequence #\. (sql-symbol-name symbol)))
-     nil)))
+  (values
+   (loop for token in (split-sequence #\. (sql-symbol-name symbol))
+         if (string= token "*")
+           collect token into tokens
+         else
+           collect (format nil "~A~A~A"
+                           (or *quote-character* "")
+                           token
+                           (or *quote-character* "")) into tokens
+         finally
+            (return (format nil "~{~A~^.~}" tokens)))
+   nil))
 
 (defmethod yield ((keyword sql-keyword))
   (values

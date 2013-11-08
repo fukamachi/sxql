@@ -8,7 +8,7 @@
                           :is-error))
 (in-package :t.sxql.sql-type)
 
-(plan nil)
+(plan 28)
 
 (setf *quote-character* #\`)
 
@@ -39,6 +39,7 @@
 
 (ok (make-sql-symbol "column-name"))
 (ok (make-sql-symbol "table.column-name"))
+(ok (make-sql-symbol "table.*"))
 (is-error (make-sql-symbol 1) type-error)
 (is-error (make-sql-symbol 'null) type-error)
 (is-error (make-sql-symbol :null) type-error)
@@ -49,5 +50,7 @@
     (list "`column-name`" nil))
 (is (multiple-value-list (yield (make-sql-symbol "table.column-name")))
     (list "`table`.`column-name`" nil))
+(is (multiple-value-list (yield (make-sql-symbol "table.*")))
+    (list "`table`.*" nil))
 
 (finalize)
