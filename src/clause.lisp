@@ -42,7 +42,7 @@
 @export
 (defstruct (left-join-clause (:include statement-clause (name "LEFT JOIN"))
                              (:constructor %make-left-join-clause))
-  (:on nil :type (or null =-op)))
+  (on nil :type (or null =-op)))
 
 @export
 (defun make-left-join-clause (statement &key on)
