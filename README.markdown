@@ -188,6 +188,9 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ```common-lisp
 (left-join :person_config :on (:= :person.config_id :person_config.id))
 ;=> #<SXQL-CLAUSE: LEFT JOIN person_config ON (person.config_id = person_config.id)>
+
+(left-join :person_config :using :config_id)
+;=> #<SXQL-CLAUSE: LEFT JOIN person_config USING config_id>
 ```
 
 ## SQL Operators

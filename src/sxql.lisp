@@ -133,6 +133,7 @@
   `(make-clause :set= ,@args))
 
 @export
-(defmacro left-join (table &key on)
+(defmacro left-join (table &key on using)
   `(make-left-join-clause (detect-and-convert ,(expand-op table))
-                          :on ,(expand-op on)))
+                          :on ,(expand-op on)
+                          :using ',using))

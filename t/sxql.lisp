@@ -14,7 +14,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan nil)
+(plan 49)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -72,10 +72,22 @@
        "AS in field list")
 
 (is-mv (select (:name :age)
-               (from (:as :person :p))
-               (left-join :config :on (:= :p.config_id :config.id))
-               (limit 5))
+         (from (:as :person :p))
+         (left-join :config :on (:= :p.config_id :config.id))
+         (limit 5))
        '("SELECT `name`, `age` FROM `person` AS `p` LEFT JOIN `config` ON (`p`.`config_id` = `config`.`id`) LIMIT 5" nil)
+       "LEFT JOIN")
+
+(is-mv (select (:name :age)
+         (from (:as :person :p))
+         (left-join :config :using :config_id))
+       '("SELECT `name`, `age` FROM `person` AS `p` LEFT JOIN `config` USING `config_id`" nil)
+       "LEFT JOIN")
+
+(is-mv (select (:name :age)
+         (from (:as :person :p))
+         (left-join :config :using (:config_id :person_id)))
+       '("SELECT `name`, `age` FROM `person` AS `p` LEFT JOIN `config` USING (`config_id`, `person_id`)" nil)
        "LEFT JOIN")
 
 (is-mv (select :* (from (select :* (from :table)))

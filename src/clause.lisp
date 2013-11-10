@@ -42,15 +42,21 @@
 @export
 (defstruct (left-join-clause (:include statement-clause (name "LEFT JOIN"))
                              (:constructor %make-left-join-clause))
-  (on nil :type (or null =-op)))
+  (on nil :type (or null =-op))
+  (using nil :type (or null sql-symbol sql-list)))
 
 @export
-(defun make-left-join-clause (statement &key on)
+(defun make-left-join-clause (statement &key on using)
   (%make-left-join-clause
    :statement (if (typep statement 'sql-list)
                   (apply #'make-sql-expression-list (sql-list-elements statement))
                   statement)
-   :on on))
+   :on on
+   :using (typecase using
+            (null nil)
+            (list (apply #'make-sql-list
+                         (mapcar #'detect-and-convert using)))
+            (t (detect-and-convert using)))))
 
 @export
 (defstruct (set=-clause (:include sql-clause (name "SET"))
@@ -131,10 +137,13 @@
 (defmethod yield ((clause left-join-clause))
   (with-yield-binds
     (values
-     (format nil "LEFT JOIN ~A~:[~;~:* ON ~A~]"
+     (format nil "LEFT JOIN ~A~:[~;~:* ON ~A~]~:[~;~:* USING ~A~]"
              (yield (left-join-clause-statement clause))
              (if (left-join-clause-on clause)
                  (yield (left-join-clause-on clause))
+                 nil)
+             (if (left-join-clause-using clause)
+                 (yield (left-join-clause-using clause))
                  nil)))))
 
 (defmethod yield ((clause set=-clause))
