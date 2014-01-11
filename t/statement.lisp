@@ -57,7 +57,7 @@
                             (make-clause :set=
                                          (make-sql-symbol "a")
                                          (make-sql-variable 10)))))
-    '("INSERT INTO `table` SET `a` = ?" (10)))
+    '("INSERT INTO `table` (`a`) VALUES (?)" (10)))
 
 (is (multiple-value-list
      (yield (make-statement :update (make-sql-symbol "table")

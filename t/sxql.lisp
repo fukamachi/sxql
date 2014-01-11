@@ -138,7 +138,7 @@
 (is-mv (insert-into :person
                     (set= :name "Eitarow"
                           :sex "male"))
-       '("INSERT INTO `person` SET `name` = ?, `sex` = ?" ("Eitarow" "male"))
+       '("INSERT INTO `person` (`name`, `sex`) VALUES (?, ?)" ("Eitarow" "male"))
        "INSERT INTO")
 
 (is-mv (update :person
@@ -165,7 +165,7 @@
   (is-mv (set= :name (concatenate 'string name " Fukamachi")) '("SET `name` = ?" ("Eitarow Fukamachi")))
   (is-mv (insert-into table
                       (set= :name name))
-         '("INSERT INTO `person` SET `name` = ?" ("Eitarow")))
+         '("INSERT INTO `person` (`name`) VALUES (?)" ("Eitarow")))
   (is-mv (update table
                  (set= :name name))
          '("UPDATE `person` SET `name` = ?" ("Eitarow")))

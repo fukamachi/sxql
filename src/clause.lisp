@@ -146,10 +146,22 @@
                  (yield (left-join-clause-using clause))
                  nil)))))
 
+@export
+(defparameter *inside-insert-into* nil)
+
 (defmethod yield ((clause set=-clause))
-  (with-yield-binds
-    (format nil "SET ~{~A = ~A~^, ~}"
-            (mapcar #'(lambda (arg)
-                        (if arg
-                            (yield arg)
-                            "NULL")) (set=-clause-args clause)))))
+  (labels ((yield-arg (arg)
+             (if arg
+                 (yield arg)
+                 "NULL")))
+    (with-yield-binds
+      (if *inside-insert-into*
+          (apply #'format nil
+                 "(~{~A~^, ~}) VALUES (~{~A~^, ~})"
+                 (loop for (k v) on (set=-clause-args clause) by #'cddr
+                       collect (yield-arg k) into keys
+                       collect (yield-arg v) into values
+                       finally
+                          (return (list keys values))))
+          (format nil "SET ~{~A = ~A~^, ~}"
+                  (mapcar #'yield-arg (set=-clause-args clause)))))))

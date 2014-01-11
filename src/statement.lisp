@@ -7,7 +7,8 @@
                 :detect-and-convert)
   (:import-from :sxql.clause
                 :column-definition-clause
-                :make-column-definition-clause))
+                :make-column-definition-clause
+                :*inside-insert-into*))
 (in-package :sxql.statement)
 
 (cl-syntax:use-syntax :annot)
@@ -79,3 +80,7 @@
            (drop-table-statement-if-exists statement)
            (yield (drop-table-statement-table statement)))
    nil))
+
+(defmethod yield ((statement insert-into-statement))
+  (let ((*inside-insert-into* t))
+    (call-next-method)))
