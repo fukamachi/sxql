@@ -44,8 +44,8 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (select (:id :name)
   (from (:as :person :p))
   (left-join :person_config :on (:= :person.config_id :person_config.id))
-  (where (:and (:> age 20)
-               (:<= age 65)))
+  (where (:and (:> :age 20)
+               (:<= :age 65)))
   (order-by :age)
   (limit 5))
 ;=> #<SXQL-STATEMENT: SELECT id, name FROM (person AS p) LEFT JOIN person_config ON (person.config_id = person_config.id) WHERE ((age > 20) AND (age <= 65)) ORDER BY age LIMIT 5>
@@ -143,7 +143,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ### where
 
 ```common-lisp
-(where (:and (:> age 20) (:<= age 65)))
+(where (:and (:> :age 20) (:<= :age 65)))
 ;=> #<SXQL-CLAUSE: WHERE ((age > 20) AND (age <= 65))>
 
 (yield *)
