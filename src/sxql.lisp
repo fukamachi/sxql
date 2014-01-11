@@ -73,12 +73,14 @@
 (defmacro create-table (table column-definitions &body options)
   `(make-statement :create-table
                    ,(expand-expression table)
-                   (list ,@(if column-definitions
-                               (mapcar
-                                (lambda (column)
-                                  `(make-column-definition-clause ',(car column) ,@(cdr column)))
-                                column-definitions)
-                               nil))
+                   ,(if (listp (car column-definitions))
+                        `(list ,@(if column-definitions
+                                     (mapcar
+                                      (lambda (column)
+                                        `(make-column-definition-clause ',(car column) ,@(cdr column)))
+                                      column-definitions)
+                                     nil))
+                        `,column-definitions)
                    ,@(if (and (null (cdr options))
                               (null (car options)))
                          nil
