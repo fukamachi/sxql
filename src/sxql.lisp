@@ -21,6 +21,9 @@
   (:export :yield
            :sql-compile
            :add-child
+           :make-statement
+           :make-clause
+           :make-op
            :*use-placeholder*
            :*quote-character*))
 (in-package :sxql)
@@ -94,11 +97,11 @@
 
 @export
 (defun union-queries (&rest queries)
-  (apply #'sxql.operator:make-op :union queries))
+  (apply #'make-op :union queries))
 
 @export
 (defun union-all-queries (&rest queries)
-  (apply #'sxql.operator:make-op :union-all queries))
+  (apply #'make-op :union-all queries))
 
 ;;
 ;; Clauses
