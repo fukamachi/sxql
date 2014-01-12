@@ -191,6 +191,7 @@
 
 @export 'children
 @export
+@export-accessors
 (defstruct (sql-composed-statement (:include sql-statement))
   (children nil :type proper-list))
 

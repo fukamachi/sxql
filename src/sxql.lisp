@@ -20,6 +20,7 @@
                 :detect-and-convert)
   (:export :yield
            :sql-compile
+           :add-child
            :*use-placeholder*
            :*quote-character*))
 (in-package :sxql)
