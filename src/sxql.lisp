@@ -8,6 +8,9 @@
   (:use :cl
         :sxql.statement
         :sxql.clause)
+  (:shadow :primary-key
+           :foreign-key
+           :key)
   (:import-from :sxql.sql-type
                 :sql-clause-list
                 :yield
@@ -140,6 +143,37 @@
 
 @export
 (defmacro left-join (table &key on using)
-  `(make-left-join-clause (detect-and-convert ,(expand-op table))
-                          :on ,(expand-op on)
-                          :using ',using))
+  `(make-clause :left-join ,(expand-op table)
+                ,@(if on
+                      `(:on (make-op ,@on))
+                      nil)
+                ,@(if using
+                      `(:using ',using)
+                      nil)))
+
+(defun key-clause-expand (type key-args)
+  (if (cdr key-args)
+      `(make-clause ,type
+                    ,(car key-args)
+                    ',(cadr key-args))
+      `(make-clause ,type
+                    ',(car key-args))))
+
+@export
+(defun primary-key (&rest key-args)
+  (apply #'make-clause :primary-key key-args))
+
+@export
+(defun unique-key (&rest key-args)
+  (apply #'make-clause :unique-key key-args))
+
+@export
+(defun key (&rest key-args)
+  (apply #'make-clause :key key-args))
+
+@export
+(defun foreign-key (column-names &key references)
+  (make-clause :foreign-key
+               column-names
+               :references
+               references))

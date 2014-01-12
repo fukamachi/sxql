@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan nil)
+(plan 43)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -114,6 +114,36 @@
 ;(is-error (make-clause :set=) program-error)
 ;(is-error (make-clause :set= 'a 1 'b) program-error)
 ;(is-error (make-clause :set= '(a 1)) program-error)
+
+(is (multiple-value-list
+     (yield (make-clause :primary-key '(:id))))
+    (list "PRIMARY KEY (`id`)" nil))
+(is (multiple-value-list
+     (yield (make-clause :primary-key :id)))
+    (list "PRIMARY KEY (`id`)" nil))
+(is (multiple-value-list
+     (yield (make-clause :primary-key "primary_key_is_id"'(:id))))
+    (list "PRIMARY KEY 'primary_key_is_id' (`id`)" nil))
+(is (multiple-value-list
+     (yield (make-clause :unique-key '(:name :country))))
+    (list "UNIQUE KEY (`name`, `country`)" nil))
+(is (multiple-value-list
+     (yield (make-clause :unique-key "name_and_country_index" '(:name :country))))
+    (list "UNIQUE KEY 'name_and_country_index' (`name`, `country`)" nil))
+(is (multiple-value-list
+     (yield (make-clause :key '(:id))))
+    (list "KEY (`id`)" nil))
+(is (multiple-value-list
+     (yield (make-clause :key "id_is_unique" '(:id))))
+    (list "KEY 'id_is_unique' (`id`)" nil))
+
+(ok (sxql.clause::make-references-clause
+     (sxql.sql-type:make-sql-symbol "project")
+     (sxql.sql-type:make-sql-list (sxql.sql-type:make-sql-symbol "id"))))
+
+(is (multiple-value-list
+     (yield (make-clause :foreign-key '(:project_id) :references '(:project :id))))
+    (list "FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
 
 (is (multiple-value-list
      (yield

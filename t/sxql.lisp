@@ -14,7 +14,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 49)
+(plan 56)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -223,5 +223,25 @@
          (sql-compile (select :* (from :table) (where (:= :a 101)))))
        '("SELECT * FROM `table` WHERE (`a` = 101)" ())
        "Not use placeholder (integer)")
+
+(diag "keys")
+
+(is-mv (primary-key :id)
+       '("PRIMARY KEY (`id`)" nil))
+(is-mv (primary-key '(:id))
+       '("PRIMARY KEY (`id`)" nil))
+(is-mv (primary-key "id_index" '(:id))
+       '("PRIMARY KEY 'id_index' (`id`)" nil))
+(is-mv (unique-key "name_and_country_index" '(:name :country))
+       '("UNIQUE 'name_and_country_index' (`name`, `country`)" nil))
+
+(is-mv (foreign-key :project_id :references '(:project :id))
+       '("FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
+(is-mv (foreign-key '(:project_id) :references '(:project :id))
+       '("FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
+
+(let ((primary-key :id))
+  (is-mv (primary-key primary-key)
+         '("PRIMARY KEY (`id`)" nil)))
 
 (finalize)

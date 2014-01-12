@@ -48,10 +48,10 @@
 @export
 (defun make-left-join-clause (statement &key on using)
   (%make-left-join-clause
-   :statement (if (typep statement 'sql-list)
-                  (apply #'make-sql-expression-list (sql-list-elements statement))
-                  statement)
-   :on on
+   :statement (if (listp statement)
+                  (apply #'make-sql-expression-list statement)
+                  (detect-and-convert statement))
+   :on (detect-and-convert on)
    :using (typecase using
             (null nil)
             (list (apply #'make-sql-list
@@ -70,6 +70,81 @@
     ;; TODO: raise an error.
     )
   (apply #'%make-set=-clause args))
+
+@export
+(defstruct (key-clause (:include expression-clause (name "KEY"))
+                       (:constructor %make-key-clause (expression)))
+  (key-name nil :type (or null sql-variable))
+  (keys nil))
+
+(defun make-key-clause-for-all (fn &rest key-args)
+  (if (cdr key-args)
+      (destructuring-bind (key-name keys) key-args
+        (funcall fn
+                 (make-sql-splicing-expression-list
+                  (detect-and-convert key-name)
+                  (apply #'make-sql-list
+                         (mapcar #'detect-and-convert
+                                 (if (listp keys)
+                                     keys
+                                     (list keys)))))))
+      (let ((key-name (car key-args)))
+        (funcall fn
+                 (make-sql-splicing-expression-list
+                  (apply #'make-sql-list
+                         (mapcar #'detect-and-convert
+                                 (if (listp key-name)
+                                     key-name
+                                     (list key-name)))))))))
+
+(defun make-key-clause (&rest key-args)
+  (apply #'make-key-clause-for-all #'%make-key-clause key-args))
+
+(defmethod yield ((clause key-clause))
+  (let ((*use-placeholder* nil))
+    (call-next-method)))
+
+@export
+(defstruct (primary-key-clause (:include key-clause (name "PRIMARY KEY"))
+                               (:constructor %make-primary-key-clause (expression))))
+
+(defun make-primary-key-clause (&rest key-args)
+  (apply #'make-key-clause-for-all #'%make-primary-key-clause key-args))
+
+@export
+(defstruct (unique-key-clause (:include key-clause (name "UNIQUE"))
+                              (:constructor %make-unique-key-clause (expression))))
+
+(defun make-unique-key-clause (&rest key-args)
+  (apply #'make-key-clause-for-all #'%make-unique-key-clause key-args))
+
+@export
+(defstruct (references-clause (:include expression-clause (name "REFERENCES"))
+                              (:constructor make-references-clause (table-name column-names
+                                                                    &aux (expression
+                                                                          (make-sql-splicing-expression-list table-name column-names)))))
+  (table-name nil :type sql-symbol)
+  (column-names nil :type sql-list))
+
+@export
+(defstruct (foreign-key-clause (:include expression-clause (name "FOREIGN KEY"))
+                               (:constructor %make-foreign-key-clause (column-names references
+                                                                       &aux (expression
+                                                                             (make-sql-splicing-expression-list column-names references)))))
+  (column-names nil :type sql-list)
+  (references nil :type references-clause))
+
+@export
+(defun make-foreign-key-clause (column-names &key references)
+  (destructuring-bind (target-table-name &rest target-column-names) references
+    (%make-foreign-key-clause
+     (apply #'make-sql-list (mapcar #'detect-and-convert
+                                    (if (listp column-names)
+                                        column-names
+                                        (list column-names))))
+     (make-references-clause (detect-and-convert target-table-name)
+                             (apply #'make-sql-list (mapcar #'detect-and-convert
+                                                            target-column-names))))))
 
 @export
 (defstruct (column-definition-clause (:include sql-clause)
@@ -121,7 +196,13 @@
 @export
 (defun make-clause (clause-name &rest args)
   (apply (find-make-clause clause-name #.*package*)
-         (mapcar #'detect-and-convert args)))
+         (case clause-name
+           ((:left-join
+             :key
+             :primary-key
+             :unique-key
+             :foreign-key) args)
+           (T (mapcar #'detect-and-convert args)))))
 
 (defmethod yield ((clause limit-clause))
   (let ((*use-placeholder* nil))

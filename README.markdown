@@ -103,17 +103,17 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (create-table :enemy
-  ((name :type 'string
-         :primary-key t)
-   (age :type 'integer
-        :not-null t)
-   (address :type 'text
-            :not-null nil)
-   (fatal_weakness :type 'text
-                   :not-null t
-                   :default "None")
-   (identifying_color :type '(:char 20)
-                      :unique t)))
+    ((name :type 'string
+           :primary-key t)
+     (age :type 'integer
+          :not-null t)
+     (address :type 'text
+              :not-null nil)
+     (fatal_weakness :type 'text
+                     :not-null t
+                     :default "None")
+     (identifying_color :type '(:char 20)
+                        :unique t)))
 ;=> #<SXQL-STATEMENT: CREATE TABLE enemy (name STRING PRIMARY KEY, age INTEGER NOT NULL, address TEXT, fatal_weakness TEXT NOT NULL DEFAULT 'None', identifying_color CHAR(20) UNIQUE)>
 
 (yield *)
@@ -191,6 +191,46 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 (left-join :person_config :using :config_id)
 ;=> #<SXQL-CLAUSE: LEFT JOIN person_config USING config_id>
+```
+
+### primary-key
+
+```common-lisp
+(primary-key :id)
+;=> #<SXQL-CLAUSE: PRIMARY KEY (id)>
+
+(primary-key '(:id))
+;=> #<SXQL-CLAUSE: PRIMARY KEY (id)>
+
+(primary-key "id_index" '(:id))
+;=> #<SXQL-CLAUSE: PRIMARY KEY 'id_index' (id)>
+```
+
+### unique-key
+
+```common-lisp
+(unique-key '(:name :country))
+;=> #<SXQL-CLAUSE: UNIQUE (name, country)>
+
+(unique-key "name_and_country_index" '(:name :country))
+;=> #<SXQL-CLAUSE: UNIQUE 'name_and_country_index' (name, country)>
+```
+
+### key
+
+```common-lisp
+(key (:name :country))
+;=> #<SXQL-CLAUSE: KEY (name, country)>
+
+(key "name_and_country_index" '(:name :country))
+;=> #<SXQL-CLAUSE: KEY 'name_and_country_index' (name, country)>
+```
+
+### foreign-key
+
+```common-lisp
+(foreign-key '(:project_id) :references '(:project :id))
+;=> #<SXQL-CLAUSE: FOREIGN KEY (project_id) REFERENCES project (id)>
 ```
 
 ## SQL Operators

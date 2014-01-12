@@ -73,7 +73,7 @@
             (yield op))))
 
 @export
-(deftype sql-expression () '(or sql-atom sql-list sql-op))
+(deftype sql-expression () '(or sql-atom sql-list sql-op sql-clause))
 
 (defun sql-expression-p (object)
   (typep object 'sql-expression))
@@ -88,6 +88,11 @@
                                 (:predicate nil))
   (elements nil :type (and proper-list
                          (satisfies sql-expression-list-p))))
+
+@export
+@export-constructors
+(defstruct (sql-splicing-expression-list (:include sql-expression-list)
+                                         (:constructor make-sql-splicing-expression-list (&rest elements))))
 
 @export
 (defstruct sql-clause
@@ -251,6 +256,11 @@
 (defmethod yield ((list sql-expression-list))
   (with-yield-binds
     (format nil "(~{~A~^ ~})"
+            (mapcar #'yield (sql-expression-list-elements list)))))
+
+(defmethod yield ((list sql-splicing-expression-list))
+  (with-yield-binds
+    (format nil "~{~A~^ ~}"
             (mapcar #'yield (sql-expression-list-elements list)))))
 
 (defmethod yield ((op unary-op))
