@@ -168,7 +168,7 @@
   (apply #'make-clause :unique-key key-args))
 
 @export
-(defun key (&rest key-args)
+(defun index-key (&rest key-args)
   (apply #'make-clause :key key-args))
 
 @export

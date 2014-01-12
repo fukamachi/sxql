@@ -216,13 +216,13 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-CLAUSE: UNIQUE 'name_and_country_index' (name, country)>
 ```
 
-### key
+### index-key
 
 ```common-lisp
-(key (:name :country))
+(index-key (:name :country))
 ;=> #<SXQL-CLAUSE: KEY (name, country)>
 
-(key "name_and_country_index" '(:name :country))
+(index-key "name_and_country_index" '(:name :country))
 ;=> #<SXQL-CLAUSE: KEY 'name_and_country_index' (name, country)>
 ```
 
