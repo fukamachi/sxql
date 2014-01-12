@@ -65,15 +65,16 @@
 
 (defmethod make-statement ((statement-name (eql :create-table)) &rest args)
   (destructuring-bind (table column-definitions &rest options) args
-    (apply #'make-create-table-statement
-           (detect-and-convert table)
-           (apply #'make-sql-list
-                  (mapcar #'(lambda (column)
-                              (if (typep column 'column-definition-clause)
-                                  column
-                                  (apply #'make-column-definition-clause column)))
-                          column-definitions))
-           options)))
+    (make-create-table-statement
+     (detect-and-convert table)
+     (apply #'make-sql-list
+            (append
+             (mapcar #'(lambda (column)
+                         (if (typep column 'column-definition-clause)
+                             column
+                             (apply #'make-column-definition-clause column)))
+                     column-definitions)
+             options)))))
 
 (defmethod make-statement ((statement-name (eql :drop-table)) &rest args)
   (destructuring-bind (table &key if-exists) args
