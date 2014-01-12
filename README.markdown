@@ -140,6 +140,23 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-STATEMENT: ALTER TABLE tweet ADD COLUMN id BIGINT AUTO_INCREMENT PRIMARY KEY FIRST, ADD COLUMN updated_at TIMESTAMP>
 ```
 
+### create-index (index-name &key unique using on)
+
+```common-lisp
+(create-index "index_name"
+              :unique t
+              :using :btee
+              :on '(:table :column1 :column2))
+;=> #<SXQL-STATEMENT: CREATE UNIQUE INDEX 'index_name' USING BTEE ON table (column1, column2)>
+```
+
+### drop-index (index-name &key if-exists)
+
+```common-lisp
+(drop-index "index_name" :if-exists t)
+;=> #<SXQL-STATEMENT: DROP INDEX IF EXISTS 'index_name'>
+```
+
 ## SQL Clauses
 
 ### from

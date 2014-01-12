@@ -111,6 +111,16 @@
 (defun union-all-queries (&rest queries)
   (apply #'make-op :union-all queries))
 
+@export
+(defun create-index (index-name &rest args &key unique using on)
+  (declare (ignore unique using on))
+  (apply #'make-statement :create-index index-name
+         args))
+
+@export
+(defun drop-index (index-name &key if-exists)
+  (make-statement :drop-index index-name :if-exists if-exists))
+
 ;;
 ;; Clauses
 

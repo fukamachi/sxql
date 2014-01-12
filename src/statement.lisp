@@ -48,6 +48,19 @@
   (table nil :type sql-symbol)
   (children nil))
 
+(defstruct (create-index-statement (:include sql-statement (name "CREATE INDEX"))
+                                   (:constructor make-create-index-statement (index-name table-name columns &key unique using)))
+  (index-name nil :type sql-variable)
+  (table-name nil :type sql-symbol)
+  (columns nil :type sql-list)
+  (unique nil :type boolean)
+  (using nil :type (or null sql-keyword)))
+
+(defstruct (drop-index-statement (:include sql-statement (name "DROP INDEX"))
+                                 (:constructor make-drop-index-statement (index-name &key if-exists)))
+  (index-name nil :type sql-variable)
+  (if-exists nil :type boolean))
+
 (defun find-make-statement (statement-name &optional (package *package*))
   (find-constructor statement-name #.(string :-statement)
                     :package package))
@@ -88,6 +101,20 @@
     (make-drop-table-statement (detect-and-convert table)
                                :if-exists if-exists)))
 
+(defmethod make-statement ((statement-name (eql :create-index)) &rest args)
+  (destructuring-bind (index-name  &key unique using on) args
+    (make-create-index-statement (detect-and-convert index-name)
+                                 (detect-and-convert (car on))
+                                 (apply #'make-sql-list
+                                        (mapcar #'detect-and-convert (cdr on)))
+                                 :unique unique
+                                 :using (make-sql-keyword (string using)))))
+
+(defmethod make-statement ((statement-name (eql :drop-index)) &rest args)
+  (destructuring-bind (index-name &key if-exists) args
+    (make-drop-index-statement (detect-and-convert index-name)
+                               :if-exists if-exists)))
+
 (defmethod yield ((statement drop-table-statement))
   (values
    (format nil "DROP TABLE~:[~; IF EXISTS~] ~A"
@@ -105,3 +132,22 @@
 (defmethod yield ((statement insert-into-statement))
   (let ((*inside-insert-into* t))
     (call-next-method)))
+
+(defmethod yield ((statement create-index-statement))
+  (values
+   (format nil "CREATE~:[~; UNIQUE~] INDEX ~A~:[~; USING ~:*~A~] ON ~A ~A"
+           (create-index-statement-unique statement)
+           (let ((*use-placeholder* nil))
+             (yield (create-index-statement-index-name statement)))
+           (yield (create-index-statement-using statement))
+           (yield (create-index-statement-table-name statement))
+           (yield (create-index-statement-columns statement)))
+   nil))
+
+(defmethod yield ((statement drop-index-statement))
+  (values
+   (format nil "DROP INDEX~:[~; IF EXISTS~] ~A"
+           (drop-index-statement-if-exists statement)
+           (let ((*use-placeholder* nil))
+             (yield (drop-index-statement-index-name statement))))
+   nil))

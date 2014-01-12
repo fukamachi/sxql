@@ -11,7 +11,7 @@
                           :is-error))
 (in-package :t.sxql.statement)
 
-(plan 16)
+(plan 18)
 
 (diag "statement")
 
@@ -103,6 +103,19 @@
               (make-clause :add-column :updated_at
                            :type 'timestamp))))
     '("ALTER TABLE `tweet` ADD COLUMN `id` BIGINT AUTO_INCREMENT PRIMARY KEY FIRST, ADD COLUMN `updated_at` TIMESTAMP" nil))
+
+(is (multiple-value-list
+     (yield (make-statement :create-index "index_name"
+                            :unique t
+                            :using :btree
+                            :on '(:table :column1 :column2))))
+    '("CREATE UNIQUE INDEX 'index_name' USING BTREE ON `table` (`column1`, `column2`)" nil)
+    "CREATE UNIQUE INDEX")
+
+(is (multiple-value-list
+     (yield (make-statement :drop-index "index_name" :if-exists t)))
+    '("DROP INDEX IF EXISTS 'index_name'" nil)
+    "DROP INDEX")
 
 (diag "sql-compile statement")
 

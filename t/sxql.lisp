@@ -14,7 +14,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 56)
+(plan 58)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -212,6 +212,17 @@
 (let ((table-name :enemy))
   (is-mv (drop-table table-name :if-exists t)
          '("DROP TABLE IF EXISTS `enemy`" ())))
+
+(is-mv (create-index "index_name"
+                     :unique t
+                     :using :btree
+                     :on '(:table :column1 :column2))
+       '("CREATE UNIQUE INDEX 'index_name' USING BTREE ON `table` (`column1`, `column2`)" nil)
+       "CREATE UNIQUE INDEX")
+
+(is-mv (drop-index "index_name" :if-exists t)
+       '("DROP INDEX IF EXISTS 'index_name'" nil)
+       "DROP INDEX")
 
 (diag "placeholder")
 
