@@ -41,6 +41,13 @@
   (table nil :type sql-symbol)
   (if-exists nil :type boolean))
 
+(defstruct (alter-table-statement (:include sql-statement (name "ALTER TABLE"))
+                                  (:constructor make-alter-table-statement (table &rest children
+                                                                            &aux (children
+                                                                                  (apply #'make-sql-splicing-list children)))))
+  (table nil :type sql-symbol)
+  (children nil))
+
 (defun find-make-statement (statement-name &optional (package *package*))
   (find-constructor statement-name #.(string :-statement)
                     :package package))
@@ -86,6 +93,13 @@
    (format nil "DROP TABLE~:[~; IF EXISTS~] ~A"
            (drop-table-statement-if-exists statement)
            (yield (drop-table-statement-table statement)))
+   nil))
+
+(defmethod yield ((statement alter-table-statement))
+  (values
+   (format nil "ALTER TABLE ~A ~A"
+           (yield (alter-table-statement-table statement))
+           (yield (alter-table-statement-children statement)))
    nil))
 
 (defmethod yield ((statement insert-into-statement))

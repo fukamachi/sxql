@@ -11,7 +11,7 @@
                           :is-error))
 (in-package :t.sxql.statement)
 
-(plan 15)
+(plan 16)
 
 (diag "statement")
 
@@ -92,6 +92,17 @@
                                   :unique t)))))
     '("CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)" ("None"))
     "CREATE TABLE")
+
+(is (multiple-value-list
+     (yield (make-statement :alter-table :tweet
+              (make-clause :add-column :id
+                           :type 'bigint
+                           :primary-key t
+                           :auto-increment t
+                           :first t)
+              (make-clause :add-column :updated_at
+                           :type 'timestamp))))
+    '("ALTER TABLE `tweet` ADD COLUMN `id` BIGINT AUTO_INCREMENT PRIMARY KEY FIRST, ADD COLUMN `updated_at` TIMESTAMP" nil))
 
 (diag "sql-compile statement")
 

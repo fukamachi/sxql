@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 43)
+(plan 47)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -144,6 +144,32 @@
 (is (multiple-value-list
      (yield (make-clause :foreign-key '(:project_id) :references '(:project :id))))
     (list "FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
+
+(is (multiple-value-list
+     (yield (make-clause :add-column :updated_at
+                         :type 'integer
+                         :default 0
+                         :not-null t
+                         :after :created_at)))
+    (list "ADD COLUMN `updated_at` INTEGER NOT NULL DEFAULT ? AFTER `created_at`"
+          '(0)))
+
+(is (multiple-value-list
+     (yield (make-clause :modify-column
+                         :updated_at
+                         :type 'datetime
+                         :not-null t)))
+    (list "MODIFY COLUMN `updated_at` DATETIME NOT NULL" nil))
+
+(is (multiple-value-list
+     (yield (make-clause :change-column
+                         :updated_at :updated_on)))
+    (list "CHANGE COLUMN `updated_at` `updated_on`" nil))
+
+(is (multiple-value-list
+     (yield (make-clause :drop-column
+                         :updated_on)))
+    (list "DROP COLUMN `updated_on`" nil))
 
 (is (multiple-value-list
      (yield

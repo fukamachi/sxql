@@ -99,6 +99,11 @@
                    ,(expand-expression table) :if-exists ,if-exists))
 
 @export
+(defmacro alter-table (table &body clauses)
+  `(make-statement :alter-table
+                   ,(expand-expression table) ,@clauses))
+
+@export
 (defun union-queries (&rest queries)
   (apply #'make-op :union queries))
 
@@ -177,3 +182,22 @@
                column-names
                :references
                references))
+
+@export
+(defun add-column (column-name &rest args)
+  (apply #'make-clause :add-column column-name args))
+
+@export
+(defun modify-column (column-name &rest args)
+  (apply #'make-clause :modify-column column-name args))
+
+@export
+(defun drop-column (column-name)
+  (make-clause :drop-column column-name))
+
+@export
+(defun change-column (old-column-name new-column-name &rest args)
+  (apply #'make-clause
+         :change-column
+         old-column-name new-column-name
+         args))

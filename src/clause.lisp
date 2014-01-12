@@ -146,6 +146,68 @@
                              (apply #'make-sql-list (mapcar #'detect-and-convert
                                                             target-column-names))))))
 
+(defstruct (column-modifier-clause (:include expression-clause)
+                                   (:constructor nil))
+  (column-definition nil :type column-definition-clause)
+  (after nil :type (or sql-symbol null))
+  (first nil :type boolean))
+
+(defun make-column-modifier-clause (fn old-column-name column-name &rest args
+                                    &key type not-null default auto-increment unique primary-key
+                                      after first)
+  (declare (ignore type not-null default auto-increment unique primary-key))
+  (let ((args (list (apply #'make-column-definition-clause column-name
+                           (loop for (k v) on args by #'cddr
+                                 unless (or (eq k :after) (eq k :first))
+                                   append (list k v)))
+                    :after (detect-and-convert after)
+                    :first first)))
+    (apply fn
+           (if old-column-name
+               (cons (detect-and-convert old-column-name) args)
+               args))))
+
+(defmethod yield ((clause column-modifier-clause))
+  (with-yield-binds
+    (format nil "~A~:[~; AFTER ~:*~A~]~:[~; FIRST~]"
+            (call-next-method)
+            (and (column-modifier-clause-after clause)
+                 (yield (column-modifier-clause-after clause)))
+            (column-modifier-clause-first clause))))
+
+(defstruct (add-column-clause (:include column-modifier-clause (name "ADD COLUMN"))
+                              (:constructor %make-add-column-clause (column-definition
+                                                                     &key after first
+                                                                     &aux (expression
+                                                                           (make-sql-splicing-expression-list column-definition))))))
+
+(defun make-add-column-clause (&rest args)
+  (apply #'make-column-modifier-clause #'%make-add-column-clause
+         nil args))
+
+(defstruct (modify-column-clause (:include column-modifier-clause (name "MODIFY COLUMN"))
+                                 (:constructor %make-modify-column-clause (column-definition
+                                                                           &key after first
+                                                                           &aux (expression
+                                                                                 (make-sql-splicing-expression-list column-definition))))))
+
+(defun make-modify-column-clause (&rest args)
+  (apply #'make-column-modifier-clause #'%make-modify-column-clause
+         nil args))
+
+(defstruct (change-column-clause (:include column-modifier-clause (name "CHANGE COLUMN"))
+                                 (:constructor %make-change-column-clause (old-column-name column-definition
+                                                                           &key after first
+                                                                           &aux (expression
+                                                                                 (make-sql-splicing-expression-list old-column-name column-definition))))))
+
+(defun make-change-column-clause (old-column-name &rest args)
+  (apply #'make-column-modifier-clause #'%make-change-column-clause
+         old-column-name args))
+
+(defstruct (drop-column-clause (:include expression-clause (name "DROP COLUMN"))
+                               (:constructor make-drop-column-clause (expression))))
+
 @export
 (defstruct (column-definition-clause (:include sql-clause)
                                      (:constructor %make-column-definition-clause (column-name &key type not-null default auto-increment unique primary-key)))
@@ -201,7 +263,10 @@
              :key
              :primary-key
              :unique-key
-             :foreign-key) args)
+             :foreign-key
+             :add-column
+             :modify-column
+             :change-column) args)
            (T (mapcar #'detect-and-convert args)))))
 
 (defmethod yield ((clause limit-clause))

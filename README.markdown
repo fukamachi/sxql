@@ -131,6 +131,15 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-STATEMENT: DROP TABLE IF EXISTS enemy>
 ```
 
+### alter-table (table &body clauses)
+
+```common-lisp
+(alter-table :tweet
+  (add-column :id :type 'bigint :primary-key t :auto-increment t :first t)
+  (add-column :updated_at :type 'timestamp))
+;=> #<SXQL-STATEMENT: ALTER TABLE tweet ADD COLUMN id BIGINT AUTO_INCREMENT PRIMARY KEY FIRST, ADD COLUMN updated_at TIMESTAMP>
+```
+
 ## SQL Clauses
 
 ### from
@@ -231,6 +240,34 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ```common-lisp
 (foreign-key '(:project_id) :references '(:project :id))
 ;=> #<SXQL-CLAUSE: FOREIGN KEY (project_id) REFERENCES project (id)>
+```
+
+### add-column
+
+```common-lisp
+(add-column :updated_at :type 'integer :default 0 :not-null t :after :created_at)
+;=> #<SXQL-CLAUSE: ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0 AFTER created_at>
+```
+
+### modify-column
+
+```common-lisp
+(modify-column :updated_at :type 'datetime :not-null t)
+;=> #<SXQL-CLAUSE: MODIFY COLUMN updated_at DATETIME NOT NULL>
+```
+
+### change-column
+
+```common-lisp
+(change-column :updated_at :updated_on)
+;=> #<SXQL-CLAUSE: CHANGE COLUMN updated_at updated_on>
+```
+
+### drop-column
+
+```common-lisp
+(drop-column :updated_on)
+;=> #<SXQL-CLAUSE: DROP COLUMN updated_on>
 ```
 
 ## SQL Operators
