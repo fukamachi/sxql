@@ -126,10 +126,10 @@
     (list "PRIMARY KEY 'primary_key_is_id' (`id`)" nil))
 (is (multiple-value-list
      (yield (make-clause :unique-key '(:name :country))))
-    (list "UNIQUE KEY (`name`, `country`)" nil))
+    (list "UNIQUE (`name`, `country`)" nil))
 (is (multiple-value-list
      (yield (make-clause :unique-key "name_and_country_index" '(:name :country))))
-    (list "UNIQUE KEY 'name_and_country_index' (`name`, `country`)" nil))
+    (list "UNIQUE 'name_and_country_index' (`name`, `country`)" nil))
 (is (multiple-value-list
      (yield (make-clause :key '(:id))))
     (list "KEY (`id`)" nil))
