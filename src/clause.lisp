@@ -195,6 +195,28 @@
   (apply #'make-column-modifier-clause #'%make-modify-column-clause
          nil args))
 
+(defstruct (alter-column-clause (:include sql-clause (name "ALTER COLUMN"))
+                                (:constructor make-alter-column-clause (column-name
+                                                                         &key type set-default drop-default not-null)))
+  "Generates an ALTER COLUMN clause. This is PostgreSQL version of MODIFY COLUMN."
+  column-name type set-default drop-default
+  (not-null :unspecified))
+
+(defmethod yield ((clause alter-column-clause))
+  (with-yield-binds
+    (format nil "ALTER COLUMN ~A~:[~; TYPE ~:*~A~]~:[~; SET DEFAULT ~:*~A~]~:[~; DROP DEFAULT~]~A"
+            (yield (alter-column-clause-column-name clause))
+            (and (alter-column-clause-type clause)
+                 (let ((*use-placeholder* nil))
+                   (yield (alter-column-clause-type clause))))
+            (and (alter-column-clause-set-default clause)
+                 (yield (alter-column-clause-set-default clause)))
+            (alter-column-clause-drop-default clause)
+            (cond
+              ((eq (alter-column-clause-not-null clause) :unspecified) "")
+              ((alter-column-clause-not-null clause) " SET NOT NULL")
+              (T " DROP NOT NULL")))))
+
 (defstruct (change-column-clause (:include column-modifier-clause (name "CHANGE COLUMN"))
                                  (:constructor %make-change-column-clause (old-column-name column-definition
                                                                            &key after first
@@ -256,7 +278,7 @@
                     :package package))
 
 @export
-(defun make-clause (clause-name &rest args)
+(defmethod make-clause (clause-name &rest args)
   (apply (find-make-clause clause-name #.*package*)
          (case clause-name
            ((:left-join
@@ -266,8 +288,20 @@
              :foreign-key
              :add-column
              :modify-column
+             :alter-column
              :change-column) args)
            (T (mapcar #'detect-and-convert args)))))
+
+(defmethod make-clause ((clause-name (eql :alter-column)) &rest args)
+  (destructuring-bind (column-name &key type set-default drop-default (not-null :unspecified)) args
+    (make-alter-column-clause (detect-and-convert column-name)
+                              :type (cond
+                                      ((and type (symbolp type))
+                                       (make-sql-keyword type))
+                                      (type (detect-and-convert type)))
+                              :set-default (detect-and-convert set-default)
+                              :drop-default drop-default
+                              :not-null not-null)))
 
 (defmethod yield ((clause limit-clause))
   (let ((*use-placeholder* nil))

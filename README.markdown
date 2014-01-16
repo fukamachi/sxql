@@ -273,6 +273,22 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-CLAUSE: MODIFY COLUMN updated_at DATETIME NOT NULL>
 ```
 
+### alter-column
+
+```common-lisp
+(alter-column :user :type '(:varchar 64))
+;=> #<SXQL-CLAUSE: ALTER COLUMN user TYPE VARCHAR(64)>
+
+(alter-column :id :set-default 1)
+;=> #<SXQL-CLAUSE: ALTER COLUMN id SET DEFAULT 1>
+
+(alter-column :id :drop-default t)
+;=> #<SXQL-CLAUSE: ALTER COLUMN id DROP DEFAULT>
+
+(alter-column :profile :not-null t)
+;=> #<SXQL-CLAUSE: ALTER COLUMN profile SET NOT NULL>
+```
+
 ### change-column
 
 ```common-lisp

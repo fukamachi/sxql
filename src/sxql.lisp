@@ -202,6 +202,10 @@
   (apply #'make-clause :modify-column column-name args))
 
 @export
+(defun alter-column (column-name &rest args)
+  (apply #'make-clause :alter-column column-name args))
+
+@export
 (defun drop-column (column-name)
   (make-clause :drop-column column-name))
 
