@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 47)
+(plan 50)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -162,9 +162,20 @@
     (list "MODIFY COLUMN `updated_at` DATETIME NOT NULL" nil))
 
 (is (multiple-value-list
-     (yield (make-clause :change-column
-                         :updated_at :updated_on)))
-    (list "CHANGE COLUMN `updated_at` `updated_on`" nil))
+     (yield (make-clause :alter-column :user :type '(:varchar 64))))
+    (list "ALTER COLUMN `user` TYPE VARCHAR(64)" nil))
+
+(is (multiple-value-list
+     (yield (make-clause :alter-column :id :set-default 1)))
+    (list "ALTER COLUMN `id` SET DEFAULT ?" '(1)))
+
+(is (multiple-value-list
+     (yield (make-clause :alter-column :id :drop-default t)))
+    (list "ALTER COLUMN `id` DROP DEFAULT" nil))
+
+(is (multiple-value-list
+     (yield (make-clause :alter-column :profile :not-null t)))
+    (list "ALTER COLUMN `profile` SET NOT NULL" nil))
 
 (is (multiple-value-list
      (yield (make-clause :drop-column
