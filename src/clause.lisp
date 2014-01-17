@@ -274,18 +274,18 @@
                                                               target-column-names)))))))
 
 (defmethod make-clause ((clause-name (eql :add-column)) &rest args)
-  (apply #'make-column-modifier-clause #'%make-add-column-clause
+  (apply #'make-column-modifier-clause #'make-add-column-clause
          nil args))
 
 (defmethod make-clause ((clause-name (eql :modify-column)) &rest args)
-  (apply #'make-column-modifier-clause #'%make-modify-column-clause
+  (apply #'make-column-modifier-clause #'make-modify-column-clause
          nil args))
 
 (defmethod make-clause ((clause-name (eql :alter-column)) &rest args)
   (apply #'make-alter-column-clause args))
 
 (defmethod make-clause ((clause-name (eql :change-column)) &rest args)
-  (apply #'make-column-modifier-clause #'%make-change-column-clause
+  (apply #'make-column-modifier-clause #'make-change-column-clause
          args))
 
 (defmethod make-clause ((clause-name (eql :alter-column)) &rest args)

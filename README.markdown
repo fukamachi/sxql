@@ -62,6 +62,12 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
         :age 25
         :name "Eitarow Fukamachi"))
 ;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = 'male', age = 25, name = 'Eitarow Fukamachi'>
+
+(insert-into :person
+  (:id :name)
+  (select (:id :name)
+    (from :person_tmp)))
+;=> #<SXQL-STATEMENT: INSERT INTO person (id, name) SELECT id, name FROM person_tmp>
 ```
 
 ### update (table &body clauses)

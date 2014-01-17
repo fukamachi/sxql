@@ -14,7 +14,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 58)
+(plan 59)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -140,6 +140,11 @@
                           :sex "male"))
        '("INSERT INTO `person` (`name`, `sex`) VALUES (?, ?)" ("Eitarow" "male"))
        "INSERT INTO")
+
+(is-mv (insert-into :person (:name :sex)
+         (select (:name :sex) (from :person_tmp)))
+       '("INSERT INTO `person` (`name`, `sex`) SELECT `name`, `sex` FROM `person_tmp`" nil)
+       "INSERT INTO ... SELECT")
 
 (is-mv (update :person
                (set= :name "Eitarow Fukamachi"

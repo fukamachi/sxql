@@ -83,6 +83,18 @@
                (detect-and-convert field))
            clauses)))
 
+(defmethod make-statement ((statement-name (eql :insert-into)) &rest args)
+  (destructuring-bind (table-name &rest restargs) args
+    (apply #'make-insert-into-statement
+           (if (listp (car restargs))
+               (list*
+                (detect-and-convert table-name)
+                (apply #'make-sql-list
+                       (mapcar #'detect-and-convert (car restargs)))
+                (mapcar #'detect-and-convert
+                        (cdr restargs)))
+               (mapcar #'detect-and-convert args)))))
+
 (defmethod make-statement ((statement-name (eql :create-table)) &rest args)
   (destructuring-bind (table column-definitions &rest options) args
     (make-create-table-statement

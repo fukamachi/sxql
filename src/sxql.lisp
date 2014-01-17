@@ -60,11 +60,12 @@
 
 @export
 (defmacro insert-into (table &body clauses)
-  (let ((clauses-g (gensym "CLAUSES")))
-    `(let ((,clauses-g (list ,@clauses)))
-       (apply #'make-statement :insert-into
-              ,(expand-expression table)
-              ,clauses-g))))
+  `(make-statement :insert-into
+                   ,(expand-expression table)
+                   ,@(if (and (listp (car clauses))
+                              (keywordp (caar clauses)))
+                         `(',(car clauses) ,@(cdr clauses))
+                         clauses)))
 
 @export
 (defmacro update (table &body clauses)
