@@ -281,9 +281,6 @@
   (apply #'make-column-modifier-clause #'make-modify-column-clause
          nil args))
 
-(defmethod make-clause ((clause-name (eql :alter-column)) &rest args)
-  (apply #'make-alter-column-clause args))
-
 (defmethod make-clause ((clause-name (eql :change-column)) &rest args)
   (apply #'make-column-modifier-clause #'make-change-column-clause
          args))
@@ -293,7 +290,7 @@
     (make-alter-column-clause (detect-and-convert column-name)
                               :type (cond
                                       ((and type (symbolp type))
-                                       (make-sql-keyword type))
+                                       (make-sql-keyword (string-upcase type)))
                                       (type (detect-and-convert type)))
                               :set-default (detect-and-convert set-default)
                               :drop-default drop-default
