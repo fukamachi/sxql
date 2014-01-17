@@ -215,3 +215,7 @@
          :change-column
          old-column-name new-column-name
          args))
+
+@export
+(defun rename-to (new-table-name)
+  (make-clause :rename-to new-table-name))

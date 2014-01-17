@@ -303,6 +303,17 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-CLAUSE: DROP COLUMN updated_on>
 ```
 
+### rename-to
+
+```common-lisp
+(rename-to :users)
+;=> #<SXQL-CLAUSE: RENAME TO `users`>
+
+(alter-table :user
+  (rename-to :users))
+;=> #<SXQL-STATEMENT: ALTER TABLE `user` RENAME TO `users`>
+```
+
 ## SQL Operators
 
 * :not

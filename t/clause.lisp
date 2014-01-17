@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 50)
+(plan 51)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -181,6 +181,10 @@
      (yield (make-clause :drop-column
                          :updated_on)))
     (list "DROP COLUMN `updated_on`" nil))
+
+(is (multiple-value-list
+     (yield (make-clause :rename-to :users)))
+    (list "RENAME TO `users`" nil))
 
 (is (multiple-value-list
      (yield

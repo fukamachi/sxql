@@ -181,6 +181,9 @@
                                                                           &aux (expression
                                                                                 (make-sql-splicing-expression-list old-column-name column-definition))))))
 
+(defstruct (rename-to-clause (:include expression-clause (name "RENAME TO"))
+                             (:constructor make-rename-to-clause (expression))))
+
 (defstruct (drop-column-clause (:include expression-clause (name "DROP COLUMN"))
                                (:constructor make-drop-column-clause (expression))))
 
