@@ -230,6 +230,12 @@
       (when (column-definition-clause-primary-key clause)
         (write-string " PRIMARY KEY" s)))))
 
+(defstruct (add-primary-key-clause (:include expression-clause (name "ADD PRIAMRY KEY"))
+                                   (:constructor make-add-primary-key-clause (&rest expression
+                                                                              &aux (expression
+                                                                                    (apply #'make-sql-list
+                                                                                           expression))))))
+
 (defun find-make-clause (clause-name &optional (package *package*))
   (find-constructor clause-name #.(string :-clause)
                     :package package))

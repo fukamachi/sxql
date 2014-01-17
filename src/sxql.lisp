@@ -220,3 +220,7 @@
 @export
 (defun rename-to (new-table-name)
   (make-clause :rename-to new-table-name))
+
+@export
+(defun add-primary-key (&rest column-names)
+  (apply #'make-clause :add-primary-key column-names))

@@ -309,6 +309,13 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-CLAUSE: DROP COLUMN updated_on>
 ```
 
+### add-primary-key
+
+```common-lisp
+(add-primary-key :id :name)
+;=> #<SXQL-CLAUSE: ADD PRIMARY KEY (id, name)>
+```
+
 ### rename-to
 
 ```common-lisp
