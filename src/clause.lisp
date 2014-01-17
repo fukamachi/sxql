@@ -41,22 +41,9 @@
 
 @export
 (defstruct (left-join-clause (:include statement-clause (name "LEFT JOIN"))
-                             (:constructor %make-left-join-clause))
+                             (:constructor make-left-join-clause))
   (on nil :type (or null =-op))
   (using nil :type (or null sql-symbol sql-list)))
-
-@export
-(defun make-left-join-clause (statement &key on using)
-  (%make-left-join-clause
-   :statement (if (listp statement)
-                  (apply #'make-sql-expression-list statement)
-                  (detect-and-convert statement))
-   :on (detect-and-convert on)
-   :using (typecase using
-            (null nil)
-            (list (apply #'make-sql-list
-                         (mapcar #'detect-and-convert using)))
-            (t (detect-and-convert using)))))
 
 @export
 (defstruct (set=-clause (:include sql-clause (name "SET"))
@@ -73,7 +60,7 @@
 
 @export
 (defstruct (key-clause (:include expression-clause (name "KEY"))
-                       (:constructor %make-key-clause (expression)))
+                       (:constructor make-key-clause (expression)))
   (key-name nil :type (or null sql-variable))
   (keys nil))
 
@@ -97,26 +84,17 @@
                                      key-name
                                      (list key-name)))))))))
 
-(defun make-key-clause (&rest key-args)
-  (apply #'make-key-clause-for-all #'%make-key-clause key-args))
-
 (defmethod yield ((clause key-clause))
   (let ((*use-placeholder* nil))
     (call-next-method)))
 
 @export
 (defstruct (primary-key-clause (:include key-clause (name "PRIMARY KEY"))
-                               (:constructor %make-primary-key-clause (expression))))
-
-(defun make-primary-key-clause (&rest key-args)
-  (apply #'make-key-clause-for-all #'%make-primary-key-clause key-args))
+                               (:constructor make-primary-key-clause (expression))))
 
 @export
 (defstruct (unique-key-clause (:include key-clause (name "UNIQUE"))
-                              (:constructor %make-unique-key-clause (expression))))
-
-(defun make-unique-key-clause (&rest key-args)
-  (apply #'make-key-clause-for-all #'%make-unique-key-clause key-args))
+                              (:constructor make-unique-key-clause (expression))))
 
 @export
 (defstruct (references-clause (:include expression-clause (name "REFERENCES"))
@@ -128,23 +106,11 @@
 
 @export
 (defstruct (foreign-key-clause (:include expression-clause (name "FOREIGN KEY"))
-                               (:constructor %make-foreign-key-clause (column-names references
-                                                                       &aux (expression
-                                                                             (make-sql-splicing-expression-list column-names references)))))
+                               (:constructor make-foreign-key-clause (column-names references
+                                                                      &aux (expression
+                                                                            (make-sql-splicing-expression-list column-names references)))))
   (column-names nil :type sql-list)
   (references nil :type references-clause))
-
-@export
-(defun make-foreign-key-clause (column-names &key references)
-  (destructuring-bind (target-table-name &rest target-column-names) references
-    (%make-foreign-key-clause
-     (apply #'make-sql-list (mapcar #'detect-and-convert
-                                    (if (listp column-names)
-                                        column-names
-                                        (list column-names))))
-     (make-references-clause (detect-and-convert target-table-name)
-                             (apply #'make-sql-list (mapcar #'detect-and-convert
-                                                            target-column-names))))))
 
 (defstruct (column-modifier-clause (:include expression-clause)
                                    (:constructor nil))
@@ -176,28 +142,20 @@
             (column-modifier-clause-first clause))))
 
 (defstruct (add-column-clause (:include column-modifier-clause (name "ADD COLUMN"))
-                              (:constructor %make-add-column-clause (column-definition
-                                                                     &key after first
-                                                                     &aux (expression
-                                                                           (make-sql-splicing-expression-list column-definition))))))
-
-(defun make-add-column-clause (&rest args)
-  (apply #'make-column-modifier-clause #'%make-add-column-clause
-         nil args))
+                              (:constructor make-add-column-clause (column-definition
+                                                                    &key after first
+                                                                    &aux (expression
+                                                                          (make-sql-splicing-expression-list column-definition))))))
 
 (defstruct (modify-column-clause (:include column-modifier-clause (name "MODIFY COLUMN"))
-                                 (:constructor %make-modify-column-clause (column-definition
-                                                                           &key after first
-                                                                           &aux (expression
-                                                                                 (make-sql-splicing-expression-list column-definition))))))
-
-(defun make-modify-column-clause (&rest args)
-  (apply #'make-column-modifier-clause #'%make-modify-column-clause
-         nil args))
+                                 (:constructor make-modify-column-clause (column-definition
+                                                                          &key after first
+                                                                          &aux (expression
+                                                                                (make-sql-splicing-expression-list column-definition))))))
 
 (defstruct (alter-column-clause (:include sql-clause (name "ALTER COLUMN"))
                                 (:constructor make-alter-column-clause (column-name
-                                                                         &key type set-default drop-default not-null)))
+                                                                        &key type set-default drop-default not-null)))
   "Generates an ALTER COLUMN clause. This is PostgreSQL version of MODIFY COLUMN."
   column-name type set-default drop-default
   (not-null :unspecified))
@@ -218,14 +176,10 @@
               (T " DROP NOT NULL")))))
 
 (defstruct (change-column-clause (:include column-modifier-clause (name "CHANGE COLUMN"))
-                                 (:constructor %make-change-column-clause (old-column-name column-definition
-                                                                           &key after first
-                                                                           &aux (expression
-                                                                                 (make-sql-splicing-expression-list old-column-name column-definition))))))
-
-(defun make-change-column-clause (old-column-name &rest args)
-  (apply #'make-column-modifier-clause #'%make-change-column-clause
-         old-column-name args))
+                                 (:constructor make-change-column-clause (old-column-name column-definition
+                                                                          &key after first
+                                                                          &aux (expression
+                                                                                (make-sql-splicing-expression-list old-column-name column-definition))))))
 
 (defstruct (drop-column-clause (:include expression-clause (name "DROP COLUMN"))
                                (:constructor make-drop-column-clause (expression))))
@@ -280,17 +234,56 @@
 @export
 (defmethod make-clause (clause-name &rest args)
   (apply (find-make-clause clause-name #.*package*)
-         (case clause-name
-           ((:left-join
-             :key
-             :primary-key
-             :unique-key
-             :foreign-key
-             :add-column
-             :modify-column
-             :alter-column
-             :change-column) args)
-           (T (mapcar #'detect-and-convert args)))))
+         (mapcar #'detect-and-convert args)))
+
+(defmethod make-clause ((clause-name (eql :left-join)) &rest args)
+  (destructuring-bind (statement &key on using) args
+    (make-left-join-clause
+     :statement (if (listp statement)
+                    (apply #'make-sql-expression-list statement)
+                    (detect-and-convert statement))
+     :on (detect-and-convert on)
+     :using (typecase using
+              (null nil)
+              (list (apply #'make-sql-list
+                           (mapcar #'detect-and-convert using)))
+              (t (detect-and-convert using))))))
+
+(defmethod make-clause ((clause-name (eql :key)) &rest args)
+  (apply #'make-key-clause-for-all #'make-key-clause args))
+
+(defmethod make-clause ((clause-name (eql :primary-key)) &rest args)
+  (apply #'make-key-clause-for-all #'make-primary-key-clause args))
+
+(defmethod make-clause ((clause-name (eql :unique-key)) &rest args)
+  (apply #'make-key-clause-for-all #'make-unique-key-clause args))
+
+(defmethod make-clause ((clause-name (eql :foreign-key)) &rest args)
+  (destructuring-bind (column-names &key references) args
+    (destructuring-bind (target-table-name &rest target-column-names) references
+      (make-foreign-key-clause
+       (apply #'make-sql-list (mapcar #'detect-and-convert
+                                      (if (listp column-names)
+                                          column-names
+                                          (list column-names))))
+       (make-references-clause (detect-and-convert target-table-name)
+                               (apply #'make-sql-list (mapcar #'detect-and-convert
+                                                              target-column-names)))))))
+
+(defmethod make-clause ((clause-name (eql :add-column)) &rest args)
+  (apply #'make-column-modifier-clause #'%make-add-column-clause
+         nil args))
+
+(defmethod make-clause ((clause-name (eql :modify-column)) &rest args)
+  (apply #'make-column-modifier-clause #'%make-modify-column-clause
+         nil args))
+
+(defmethod make-clause ((clause-name (eql :alter-column)) &rest args)
+  (apply #'make-alter-column-clause args))
+
+(defmethod make-clause ((clause-name (eql :change-column)) &rest args)
+  (apply #'make-column-modifier-clause #'%make-change-column-clause
+         args))
 
 (defmethod make-clause ((clause-name (eql :alter-column)) &rest args)
   (destructuring-bind (column-name &key type set-default drop-default (not-null :unspecified)) args
