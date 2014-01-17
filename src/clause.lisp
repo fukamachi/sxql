@@ -204,8 +204,8 @@
   (apply #'%make-column-definition-clause
          (detect-and-convert column-name)
          (loop for (key val) on args by #'cddr
-               if (and (eq key :type) (symbolp val))
-                 append (list key (make-sql-keyword (string-upcase val)))
+               if (eq key :type)
+                 append (list key (make-sql-column-type-from-list val))
                else
                  append (list key (detect-and-convert val)))))
 
@@ -288,10 +288,8 @@
 (defmethod make-clause ((clause-name (eql :alter-column)) &rest args)
   (destructuring-bind (column-name &key type set-default drop-default (not-null :unspecified)) args
     (make-alter-column-clause (detect-and-convert column-name)
-                              :type (cond
-                                      ((and type (symbolp type))
-                                       (make-sql-keyword (string-upcase type)))
-                                      (type (detect-and-convert type)))
+                              :type (and type
+                                         (make-sql-column-type-from-list type))
                               :set-default (detect-and-convert set-default)
                               :drop-default drop-default
                               :not-null not-null)))
@@ -338,3 +336,17 @@
                           (return (list keys values))))
           (format nil "SET ~{~A = ~A~^, ~}"
                   (mapcar #'yield-arg (set=-clause-args clause)))))))
+
+(defun make-sql-column-type-from-list (val)
+  (let ((unsignedp (and (listp val)
+                        (cdr val)
+                        (eq (car (last val)) :unsigned))))
+    (if (listp val)
+        (make-sql-column-type
+         (car val)
+         :unsigned unsignedp
+         :args (mapcar #'detect-and-convert
+                       (if unsignedp
+                           (butlast (cdr val))
+                           (cdr val))))
+        (make-type-keyword val))))

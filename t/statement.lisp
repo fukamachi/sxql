@@ -96,13 +96,13 @@
 (is (multiple-value-list
      (yield (make-statement :alter-table :tweet
               (make-clause :add-column :id
-                           :type 'bigint
+                           :type '(:bigint 20 :unsigned)
                            :primary-key t
                            :auto-increment t
                            :first t)
               (make-clause :add-column :updated_at
                            :type 'timestamp))))
-    '("ALTER TABLE `tweet` ADD COLUMN `id` BIGINT AUTO_INCREMENT PRIMARY KEY FIRST, ADD COLUMN `updated_at` TIMESTAMP" nil))
+    '("ALTER TABLE `tweet` ADD COLUMN `id` BIGINT(20) UNSIGNED AUTO_INCREMENT PRIMARY KEY FIRST, ADD COLUMN `updated_at` TIMESTAMP" nil))
 
 (is (multiple-value-list
      (yield (make-statement :create-index "index_name"
