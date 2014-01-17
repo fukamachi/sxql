@@ -119,8 +119,8 @@
          args))
 
 @export
-(defun drop-index (index-name &key if-exists)
-  (make-statement :drop-index index-name :if-exists if-exists))
+(defun drop-index (index-name &key if-exists on)
+  (make-statement :drop-index index-name :if-exists if-exists :on on))
 
 ;;
 ;; Clauses

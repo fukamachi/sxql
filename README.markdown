@@ -153,14 +153,14 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
               :unique t
               :using :btee
               :on '(:table :column1 :column2))
-;=> #<SXQL-STATEMENT: CREATE UNIQUE INDEX 'index_name' USING BTEE ON table (column1, column2)>
+;=> #<SXQL-STATEMENT: CREATE UNIQUE INDEX index_name USING BTEE ON table (column1, column2)>
 ```
 
-### drop-index (index-name &key if-exists)
+### drop-index (index-name &key if-exists on)
 
 ```common-lisp
-(drop-index "index_name" :if-exists t)
-;=> #<SXQL-STATEMENT: DROP INDEX IF EXISTS 'index_name'>
+(drop-index "index_name" :if-exists t :on :person)
+;=> #<SXQL-STATEMENT: DROP INDEX IF EXISTS index_name ON person>
 ```
 
 ## SQL Clauses
