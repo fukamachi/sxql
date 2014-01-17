@@ -224,3 +224,7 @@
 @export
 (defun add-primary-key (&rest column-names)
   (apply #'make-clause :add-primary-key column-names))
+
+@export
+(defun drop-primary-key ()
+  (make-clause :drop-primary-key))

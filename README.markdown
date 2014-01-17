@@ -316,6 +316,13 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-CLAUSE: ADD PRIMARY KEY (id, name)>
 ```
 
+### drop-primary-key
+
+```common-lisp
+(drop-primary-key)
+;=> #<SXQL-CLAUSE: DROP PRIMARY KEY>
+```
+
 ### rename-to
 
 ```common-lisp

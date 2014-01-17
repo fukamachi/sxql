@@ -236,6 +236,15 @@
                                                                                     (apply #'make-sql-list
                                                                                            expression))))))
 
+(defstruct (drop-primary-key-clause (:include sql-clause (name "DROP PRIMARY KEY"))
+                                    (:constructor make-drop-primary-key-clause ())))
+
+(defmethod yield ((clause drop-primary-key-clause))
+  (declare (ignore clause))
+  (values
+   "DROP PRIMARY KEY"
+   nil))
+
 (defun find-make-clause (clause-name &optional (package *package*))
   (find-constructor clause-name #.(string :-clause)
                     :package package))
