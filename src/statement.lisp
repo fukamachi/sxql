@@ -34,7 +34,9 @@
                                   (:constructor make-delete-from-statement (&rest children))))
 
 (defstruct (create-table-statement (:include sql-composed-statement (name "CREATE TABLE"))
-                                   (:constructor make-create-table-statement (&rest children))))
+                                   (:constructor make-create-table-statement (table &key if-not-exists children
+                                                                              &aux (children (list table children)))))
+  (if-not-exists nil :type boolean))
 
 (defstruct (drop-table-statement (:include sql-statement (name "DROP TABLE"))
                                  (:constructor make-drop-table-statement (table &key if-exists)))
@@ -97,17 +99,22 @@
                (mapcar #'detect-and-convert args)))))
 
 (defmethod make-statement ((statement-name (eql :create-table)) &rest args)
-  (destructuring-bind (table column-definitions &rest options) args
-    (make-create-table-statement
-     (detect-and-convert table)
-     (apply #'make-sql-list
-            (append
-             (mapcar #'(lambda (column)
-                         (if (typep column 'column-definition-clause)
-                             column
-                             (apply #'make-column-definition-clause column)))
-                     column-definitions)
-             options)))))
+  (destructuring-bind (table-and-args column-definitions &rest options) args
+    (let ((table-and-args (if (listp table-and-args)
+                              table-and-args
+                              (list table-and-args))))
+      (make-create-table-statement
+       (detect-and-convert (car table-and-args))
+       :if-not-exists (getf (cdr table-and-args) :if-not-exists)
+       :children
+       (apply #'make-sql-list
+              (append
+               (mapcar #'(lambda (column)
+                           (if (typep column 'column-definition-clause)
+                               column
+                               (apply #'make-column-definition-clause column)))
+                       column-definitions)
+               options))))))
 
 (defmethod make-statement ((statement-name (eql :drop-table)) &rest args)
   (destructuring-bind (table &key if-exists) args
@@ -129,6 +136,13 @@
     (make-drop-index-statement (make-sql-symbol index-name)
                                :if-exists if-exists
                                :on (detect-and-convert on))))
+
+(defmethod yield ((statement create-table-statement))
+  (with-yield-binds
+    (format nil "~A~:[~; IF NOT EXISTS~] ~{~A~^ ~}"
+            (sql-statement-name statement)
+            (create-table-statement-if-not-exists statement)
+            (mapcar #'yield (sql-composed-statement-children statement)))))
 
 (defmethod yield ((statement drop-table-statement))
   (values

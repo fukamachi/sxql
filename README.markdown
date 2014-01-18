@@ -125,6 +125,20 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (yield *)
 ;=> "CREATE TABLE enemy (name STRING PRIMARY KEY, age INTEGER NOT NULL, address TEXT, fatal_weakness TEXT NOT NULL DEFAULT ?, identifying_color CHAR(20) UNIQUE)"
 ;   ("None")
+
+(create-table (:enemy :if-not-exists t)
+    ((name :type 'string
+           :primary-key t)
+     (age :type 'integer
+          :not-null t)
+     (address :type 'text
+              :not-null nil)
+     (fatal_weakness :type 'text
+                     :not-null t
+                     :default "None")
+     (identifying_color :type '(:char 20)
+                        :unique t)))
+;=> #<SXQL-STATEMENT: CREATE TABLE IF NOT EXISTS enemy (name STRING PRIMARY KEY, age INTEGER NOT NULL, address TEXT, fatal_weakness TEXT NOT NULL DEFAULT 'None', identifying_color CHAR(20) UNIQUE)>
 ```
 
 ### drop-table (table &key if-exists)

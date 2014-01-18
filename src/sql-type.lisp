@@ -133,6 +133,7 @@
         (satisfies sql-clause-list-p)))
 
 @export
+@export-accessors
 (defstruct sql-statement
   (name "" :type string))
 

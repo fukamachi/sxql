@@ -80,7 +80,7 @@
 @export
 (defmacro create-table (table column-definitions &body options)
   `(make-statement :create-table
-                   ,(expand-expression table)
+                   ',(expand-expression table)
                    ,(if (listp (car column-definitions))
                         `(list ,@(if column-definitions
                                      (mapcar

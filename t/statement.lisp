@@ -94,6 +94,40 @@
     "CREATE TABLE")
 
 (is (multiple-value-list
+     (yield (make-statement :create-table
+             '(:enemy)
+             '((:name :type string
+                      :primary-key t)
+               (:age :type integer
+                     :not-null t)
+               (:address :type text
+                         :not-null nil)
+               (:fatal_weakness :type text
+                                :not-null t
+                                :default "None")
+               (:identifying_color :type (:char 20)
+                                  :unique t)))))
+    '("CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)" ("None"))
+    "CREATE TABLE")
+
+(is (multiple-value-list
+     (yield (make-statement :create-table
+             '(:enemy :if-not-exists t)
+             '((:name :type string
+                      :primary-key t)
+               (:age :type integer
+                     :not-null t)
+               (:address :type text
+                         :not-null nil)
+               (:fatal_weakness :type text
+                                :not-null t
+                                :default "None")
+               (:identifying_color :type (:char 20)
+                                  :unique t)))))
+    '("CREATE TABLE IF NOT EXISTS `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)" ("None"))
+    "CREATE TABLE IF NOT EXISTS")
+
+(is (multiple-value-list
      (yield (make-statement :alter-table :tweet
               (make-clause :add-column :id
                            :type '(:bigint 20 :unsigned)
