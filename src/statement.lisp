@@ -35,7 +35,7 @@
 
 (defstruct (create-table-statement (:include sql-composed-statement (name "CREATE TABLE"))
                                    (:constructor make-create-table-statement (table &key if-not-exists children
-                                                                              &aux (children (list table children)))))
+                                                                              &aux (children (cons table children)))))
   (if-not-exists nil :type boolean))
 
 (defstruct (drop-table-statement (:include sql-statement (name "DROP TABLE"))
@@ -107,14 +107,14 @@
        (detect-and-convert (car table-and-args))
        :if-not-exists (getf (cdr table-and-args) :if-not-exists)
        :children
-       (apply #'make-sql-list
-              (append
-               (mapcar #'(lambda (column)
-                           (if (typep column 'column-definition-clause)
-                               column
-                               (apply #'make-column-definition-clause column)))
-                       column-definitions)
-               options))))))
+       (list (apply #'make-sql-list
+                    (append
+                     (mapcar #'(lambda (column)
+                                 (if (typep column 'column-definition-clause)
+                                     column
+                                     (apply #'make-column-definition-clause column)))
+                             column-definitions)
+                     options)))))))
 
 (defmethod make-statement ((statement-name (eql :drop-table)) &rest args)
   (destructuring-bind (table &key if-exists) args
