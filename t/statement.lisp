@@ -11,7 +11,7 @@
                           :is-error))
 (in-package :t.sxql.statement)
 
-(plan 18)
+(plan 20)
 
 (diag "statement")
 
@@ -143,12 +143,12 @@
                             :unique t
                             :using :btree
                             :on '(:table :column1 :column2))))
-    '("CREATE UNIQUE INDEX 'index_name' USING BTREE ON `table` (`column1`, `column2`)" nil)
+    '("CREATE UNIQUE INDEX `index_name` USING BTREE ON `table` (`column1`, `column2`)" nil)
     "CREATE UNIQUE INDEX")
 
 (is (multiple-value-list
      (yield (make-statement :drop-index "index_name" :if-exists t)))
-    '("DROP INDEX IF EXISTS 'index_name'" nil)
+    '("DROP INDEX IF EXISTS `index_name`" nil)
     "DROP INDEX")
 
 (diag "sql-compile statement")
