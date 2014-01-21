@@ -231,10 +231,7 @@
         (write-string " PRIMARY KEY" s)))))
 
 (defstruct (add-primary-key-clause (:include expression-clause (name "ADD PRIAMRY KEY"))
-                                   (:constructor make-add-primary-key-clause (&rest expression
-                                                                              &aux (expression
-                                                                                    (apply #'make-sql-list
-                                                                                           expression))))))
+                                   (:constructor make-add-primary-key-clause (expression))))
 
 (defstruct (drop-primary-key-clause (:include sql-clause (name "DROP PRIMARY KEY"))
                                     (:constructor make-drop-primary-key-clause ())))
@@ -308,6 +305,9 @@
                               :set-default (detect-and-convert set-default)
                               :drop-default drop-default
                               :not-null not-null)))
+
+(defmethod make-clause ((clause-name (eql :add-primary-key)) &rest args)
+  (make-add-primary-key-clause (apply #'make-sql-list args)))
 
 (defmethod yield ((clause limit-clause))
   (let ((*use-placeholder* nil))
