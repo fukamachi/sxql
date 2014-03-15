@@ -158,14 +158,31 @@
   (apply #'make-clause :set= args))
 
 @export
-(defmacro left-join (table &key on using)
-  `(make-clause :left-join ,(expand-op table)
+(defmacro join (table &key (kind :inner) on using)
+  `(make-clause :join ,(expand-op table)
+                :kind ,kind
                 ,@(if on
                       `(:on (make-op ,@on))
                       nil)
                 ,@(if using
                       `(:using ',using)
                       nil)))
+
+@export
+(defmacro inner-join (table &key on using)
+  `(join ,table :kind :inner :on ,on :using ,using))
+
+@export
+(defmacro left-join (table &key on using)
+  `(join ,table :kind :left :on ,on :using ,using))
+
+@export
+(defmacro right-join (table &key on using)
+  `(join ,table :kind :right :on ,on :using ,using))
+
+@export
+(defmacro full-join (table &key on using)
+  `(join ,table :kind :full :on ,on :using ,using))
 
 (defun key-clause-expand (type key-args)
   (if (cdr key-args)

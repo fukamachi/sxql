@@ -40,8 +40,12 @@
                             (:constructor make-group-by-clause (&rest expressions))))
 
 @export
-(defstruct (left-join-clause (:include statement-clause (name "LEFT JOIN"))
-                             (:constructor make-left-join-clause))
+(defstruct (join-clause (:include statement-clause)
+                        (:constructor make-join-clause))
+  (kind :inner :type (or (eql :inner)
+                         (eql :left)
+                         (eql :right)
+                         (eql :full)))
   (on nil :type (or null =-op))
   (using nil :type (or null sql-symbol sql-list)))
 
@@ -251,12 +255,14 @@
   (apply (find-make-clause clause-name #.*package*)
          (mapcar #'detect-and-convert args)))
 
-(defmethod make-clause ((clause-name (eql :left-join)) &rest args)
-  (destructuring-bind (statement &key on using) args
-    (make-left-join-clause
+(defmethod make-clause ((clause-name (eql :join)) &rest args)
+  (destructuring-bind (statement &key kind on using) args
+    (make-join-clause
      :statement (if (listp statement)
                     (apply #'make-sql-expression-list statement)
                     (detect-and-convert statement))
+     :name (format nil "~A-JOIN" kind)
+     :kind kind
      :on (detect-and-convert on)
      :using (typecase using
               (null nil)
@@ -320,16 +326,17 @@
              (yield (offset-clause-offset clause)))
      nil)))
 
-(defmethod yield ((clause left-join-clause))
+(defmethod yield ((clause join-clause))
   (with-yield-binds
     (values
-     (format nil "LEFT JOIN ~A~:[~;~:* ON ~A~]~:[~;~:* USING ~A~]"
-             (yield (left-join-clause-statement clause))
-             (if (left-join-clause-on clause)
-                 (yield (left-join-clause-on clause))
+     (format nil "~A JOIN ~A~:[~;~:* ON ~A~]~:[~;~:* USING ~A~]"
+             (join-clause-kind clause)
+             (yield (join-clause-statement clause))
+             (if (join-clause-on clause)
+                 (yield (join-clause-on clause))
                  nil)
-             (if (left-join-clause-using clause)
-                 (yield (left-join-clause-using clause))
+             (if (join-clause-using clause)
+                 (yield (join-clause-using clause))
                  nil)))))
 
 @export
