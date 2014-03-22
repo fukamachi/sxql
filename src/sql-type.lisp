@@ -37,7 +37,7 @@
 @export-constructors
 (defstruct (sql-variable (:include sql-atom)
                          (:constructor make-sql-variable (value)))
-  (value nil :type (or string number)))
+  (value nil :type (or string number (vector (unsigned-byte 8)))))
 
 @export
 @export-constructors

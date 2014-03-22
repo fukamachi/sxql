@@ -95,8 +95,10 @@
 @export
 (defun detect-and-convert (object)
   (etypecase object
-    (number (make-sql-variable object))
-    (string (make-sql-variable object))
+    ((or number
+         string
+         (vector (unsigned-byte 8)))
+     (make-sql-variable object))
     (boolean object)
     (symbol
      (let ((name (symbol-name object)))
