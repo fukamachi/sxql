@@ -229,6 +229,17 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;   NIL
 ```
 
+### offset
+
+```common-lisp
+(offset 0)
+;=> #<SXQL-CLAUSE: OFFSET 0>
+
+(yield *)
+;=> "OFFSET 0"
+;   NIL
+```
+
 ### inner-join, left-join, right-join, full-join
 
 ```common-lisp
