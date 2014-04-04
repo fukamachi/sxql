@@ -220,7 +220,7 @@
        (yield (column-definition-clause-column-name clause)) s)
       (when (column-definition-clause-type clause)
         (let ((*use-placeholder* nil))
-          (format s " ~:@(~A~)"
+          (format s " ~A"
                   (yield (column-definition-clause-type clause)))))
       (when (column-definition-clause-not-null clause)
         (write-string " NOT NULL" s))

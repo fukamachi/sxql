@@ -200,7 +200,7 @@
      (yield
       (sxql.clause::make-column-definition-clause
        (make-sql-symbol "id")
-       :type (make-sql-keyword "bigint")
+       :type (make-sql-keyword "BIGINT")
        :primary-key t
        :auto-increment t)))
     '("`id` BIGINT AUTO_INCREMENT PRIMARY KEY" nil)
@@ -210,7 +210,7 @@
      (yield
       (sxql.clause::make-column-definition-clause
        (make-sql-symbol "email")
-       :type (make-sql-keyword "text")
+       :type (make-sql-keyword "TEXT")
        :not-null t
        :unique t)))
     '("`email` TEXT NOT NULL UNIQUE" nil)
