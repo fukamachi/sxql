@@ -20,9 +20,7 @@
   statement)
 
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
-                             (:constructor make-select-statement
-                                 (fields &rest statements
-                                  &aux (children (list* fields statements))))))
+                             (:constructor make-select-statement (&rest children))))
 
 (defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
                                   (:constructor make-insert-into-statement (&rest children))))
@@ -75,16 +73,6 @@
 (defmethod make-statement (statement-name &rest args)
   (apply (find-make-statement statement-name #.*package*)
          (remove nil (mapcar #'detect-and-convert args))))
-
-(defmethod make-statement ((statement-name (eql :select)) &rest args)
-  (destructuring-bind (field &rest clauses) args
-    (apply #'call-next-method
-           statement-name
-           (if (listp field)
-               (apply #'make-sql-splicing-list
-                      (mapcar #'detect-and-convert field))
-               (detect-and-convert field))
-           clauses)))
 
 (defmethod make-statement ((statement-name (eql :insert-into)) &rest args)
   (destructuring-bind (table-name &rest restargs) args

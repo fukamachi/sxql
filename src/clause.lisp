@@ -12,6 +12,12 @@
 (cl-syntax:use-syntax :annot)
 
 @export
+(defstruct (fields-clause (:include statement-clause (name ""))
+                          (:constructor make-fields-clause (&rest fields
+                                                            &aux (statement
+                                                                  (apply #'make-sql-splicing-list fields))))))
+
+@export
 (defstruct (from-clause (:include statement-clause (name "FROM"))
                         (:constructor make-from-clause (statement))))
 

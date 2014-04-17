@@ -179,6 +179,19 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ## SQL Clauses
 
+### fields
+
+```common-lisp
+(fields :id)
+;=> #<SXQL-CLAUSE: id>
+
+(fields (:count :id))
+;=> #<SXQL-CLAUSE: COUNT(id)>
+
+(fields :id (:count :id))
+;=> #<SXQL-CLAUSE: `id`, SUM(`amount`)>
+```
+
 ### from
 
 ```common-lisp

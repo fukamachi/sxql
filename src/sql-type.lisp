@@ -356,8 +356,9 @@
 (defmethod yield ((clause statement-clause))
   (with-yield-binds
     (format nil (if (sql-statement-p (statement-clause-statement clause))
-                  "~A (~A)"
-                  "~A ~A")
+                  "~:[~A ~;~*~](~A)"
+                  "~:[~A ~;~*~]~A")
+            (string= (sql-clause-name clause) "")
             (sql-clause-name clause)
             (yield (statement-clause-statement clause)))))
 

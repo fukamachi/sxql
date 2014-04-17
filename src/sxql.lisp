@@ -7,7 +7,8 @@
 (defpackage sxql
   (:use :cl
         :sxql.statement
-        :sxql.clause)
+        :sxql.clause
+        :optima)
   (:shadow :primary-key
            :foreign-key
            :key)
@@ -47,16 +48,28 @@
      expressions)
     (t (mapcar #'expand-op expressions))))
 
+(defun convert-if-fields-clause (clause)
+  (match clause
+    ((or (list* (type keyword) _)
+         (list* (list* (type keyword) _) _))
+     (apply #'make-clause :fields clause))
+    ((type keyword) (fields clause))
+    (otherwise clause)))
+
 @export
-(defmacro select (field &body clauses)
-  (let ((clauses-g (gensym "CLAUSES")))
-    `(let ((,clauses-g (list ,@clauses)))
-       (apply #'make-statement :select ,(if (listp field)
-                                            (if (and (symbolp (car field))
-                                                     (not (keywordp (car field))))
-                                                field
-                                                `(list ,@(mapcar #'expand-op field)))
-                                            `,field) ,clauses-g))))
+(defmacro select (fields &body clauses)
+  `(make-statement :select
+                   ,(match fields
+                      ((or (list* (type keyword) _)
+                           (list* (list* (type keyword) _) _))
+                       `(make-clause :fields
+                                     ,@(mapcar #'expand-op fields)))
+                      ((type keyword) `(fields ,fields))
+                      ((or (type symbol)
+                           (list* (type symbol) _))
+                       `(convert-if-fields-clause ,fields))
+                      (otherwise fields))
+                   ,@clauses))
 
 @export
 (defmacro insert-into (table &body clauses)
@@ -124,6 +137,11 @@
 
 ;;
 ;; Clauses
+
+@export
+(defmacro fields (&rest fields)
+  `(make-clause :fields ,@(mapcar (lambda (field)
+                                    (expand-op field)) fields)))
 
 @export
 (defmacro from (statement)
