@@ -17,6 +17,11 @@
                                                             &aux (statement
                                                                   (apply #'make-sql-splicing-list fields))))))
 
+(defmethod yield ((object fields-clause))
+  (if (sxql.sql-type::sql-splicing-list-elements (fields-clause-statement object))
+      (call-next-method)
+      (values "*" nil)))
+
 @export
 (defstruct (from-clause (:include statement-clause (name "FROM"))
                         (:constructor make-from-clause (statement))))
@@ -378,3 +383,21 @@
                            (butlast (cdr val))
                            (cdr val))))
         (make-type-keyword val))))
+
+
+;;
+;; Merging clauses
+
+@export
+(defgeneric merge-clauses (clause-a clause-b))
+
+(defmethod merge-clauses ((clause-a fields-clause) (clause-b fields-clause))
+  (apply #'make-fields-clause
+         (append
+          (sxql.sql-type::sql-splicing-list-elements (fields-clause-statement clause-a))
+          (sxql.sql-type::sql-splicing-list-elements (fields-clause-statement clause-b)))))
+
+(defmethod merge-clauses ((clause-a where-clause) (clause-b where-clause))
+  (make-where-clause (sxql.operator:make-op :and
+                                            (where-clause-expression clause-a)
+                                            (where-clause-expression clause-b))))

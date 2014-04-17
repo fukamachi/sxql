@@ -1,14 +1,24 @@
 (in-package :cl-user)
 (defpackage sxql.statement
   (:use :cl
-        :sxql.sql-type)
+        :sxql.sql-type
+        :iterate)
   (:import-from :sxql.operator
                 :find-constructor
                 :detect-and-convert)
   (:import-from :sxql.clause
                 :column-definition-clause
                 :make-column-definition-clause
-                :*inside-insert-into*))
+                :*inside-insert-into*
+                :merge-clauses
+                :make-fields-clause
+                :fields-clause
+                :from-clause
+                :join-clause
+                :where-clause
+                :group-by-clause
+                :order-by-clause
+                :limit-clause))
 (in-package :sxql.statement)
 
 (cl-syntax:use-syntax :annot)
@@ -73,6 +83,58 @@
 (defmethod make-statement (statement-name &rest args)
   (apply (find-make-statement statement-name #.*package*)
          (remove nil (mapcar #'detect-and-convert args))))
+
+(defparameter *select-clause-priority*
+  (let ((hash (make-hash-table :test 'eq)))
+    (iter
+      (for i from 0)
+      (for clause in '(fields-clause
+                       from-clause
+                       join-clause
+                       where-clause
+                       group-by-clause
+                       order-by-clause
+                       limit-clause))
+      (setf (gethash clause hash) i))
+    hash))
+
+(defparameter *merge-clause-type* '(or fields-clause where-clause))
+(defparameter *multiple-allowed-clause-type* 'join-clause)
+
+(defun merging-children (children)
+  (flet ((find-same-type (object seq)
+           (remove (type-of object)
+                   seq
+                   :key #'type-of
+                   :test-not #'eq)))
+    (let ((hash (make-hash-table :test 'eq)))
+      (iter (for child = (pop children))
+        (if (typep child *merge-clause-type*)
+            (unless (gethash (type-of child) hash)
+              (collect
+                  (reduce #'merge-clauses
+                          (cons child (find-same-type child children))
+                          :from-end t)))
+            (progn
+              (when (and (gethash (type-of child) hash)
+                         (not (typep child 'join-clause)))
+                (error "Multiple ~A is not allowed." (type-of child)))
+              (collect child)))
+        (while children)
+        (setf (gethash (type-of child) hash) t)))))
+
+(defmethod make-statement ((statement-name (eql :select)) &rest args)
+  (when (select-statement-p (car args))
+    (setf args
+          (merging-children
+           (append (select-statement-children (car args))
+                   (cdr args)))))
+  (unless (typep (car args) 'fields-clause)
+    (push (sxql.clause::make-fields-clause) args))
+  (apply #'call-next-method statement-name
+         (sort args #'<
+               :key (lambda (x)
+                      (gethash (type-of x) *select-clause-priority* 100)))))
 
 (defmethod make-statement ((statement-name (eql :insert-into)) &rest args)
   (destructuring-bind (table-name &rest restargs) args
