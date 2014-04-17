@@ -110,7 +110,8 @@
      (if (keywordp (car object))
          (apply #'make-op object)
          (mapcar #'detect-and-convert object)))
-    (structure-object object)))
+    (structure-object object)
+    (standard-object (make-sql-variable (princ-to-string object)))))
 
 (defmethod yield ((op is-null-op))
   (yield
