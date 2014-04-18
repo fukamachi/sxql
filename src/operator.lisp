@@ -102,8 +102,7 @@
     (boolean object)
     (symbol
      (let ((name (symbol-name object)))
-       (if (or (string= name "*")
-               (string-equal name "null"))
+       (if (string-equal name "null")
            (make-sql-keyword name)
            (make-sql-symbol (string-downcase object)))))
     (list
