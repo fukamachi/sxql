@@ -1,14 +1,23 @@
 (in-package :cl-user)
 (defpackage sxql.statement
   (:use :cl
-        :sxql.sql-type)
+        :sxql.sql-type
+        :iterate)
   (:import-from :sxql.operator
                 :find-constructor
                 :detect-and-convert)
   (:import-from :sxql.clause
                 :column-definition-clause
                 :make-column-definition-clause
-                :*inside-insert-into*))
+                :*inside-insert-into*
+                :fields-clause
+                :from-clause
+                :join-clause
+                :where-clause
+                :group-by-clause
+                :order-by-clause
+                :limit-clause
+                :offset-clause))
 (in-package :sxql.statement)
 
 (cl-syntax:use-syntax :annot)
@@ -20,7 +29,33 @@
   statement)
 
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
-                             (:constructor make-select-statement (&rest children))))
+                             (:constructor make-select-statement (&key
+                                                                    fields-clause
+                                                                    from-clause
+                                                                    join-clause
+                                                                    where-clause
+                                                                    group-by-clause
+                                                                    order-by-clause
+                                                                    limit-clause
+                                                                    offset-clause
+                                                                  &aux (children
+                                                                        (append
+                                                                         fields-clause
+                                                                         from-clause
+                                                                         join-clause
+                                                                         where-clause
+                                                                         group-by-clause
+                                                                         order-by-clause
+                                                                         limit-clause
+                                                                         offset-clause)))))
+  (fields-clause nil)
+  (from-clause nil)
+  (join-clause nil)
+  (where-clause nil)
+  (group-by-clause nil)
+  (order-by-clause nil)
+  (limit-clause nil)
+  (offset-clause nil))
 
 (defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
                                   (:constructor make-insert-into-statement (&rest children))))
@@ -73,6 +108,20 @@
 (defmethod make-statement (statement-name &rest args)
   (apply (find-make-statement statement-name #.*package*)
          (remove nil (mapcar #'detect-and-convert args))))
+
+(deftype multiple-allowed-clause () 'join-clause)
+(defmethod make-statement ((statement-name (eql :select)) &rest args)
+  (let ((grouping-hash (make-hash-table :test 'eq)))
+    (iter (for clause in args)
+      (push clause (gethash (type-of clause) grouping-hash)))
+    (apply (find-make-statement statement-name #.*package*)
+           (iter (for (type clauses) in-hashtable grouping-hash)
+             (let ((type-key (intern (symbol-name type) :keyword)))
+               (when (and (cdr clauses)
+                          (not (typep type 'multiple-allowed-clause)))
+                 (error "Multiple ~S is not allowed." type))
+               (collect type-key)
+               (collect (nreverse clauses)))))))
 
 (defmethod make-statement ((statement-name (eql :insert-into)) &rest args)
   (destructuring-bind (table-name &rest restargs) args

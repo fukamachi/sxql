@@ -17,6 +17,7 @@
   :author "Eitarow Fukamachi"
   :license "BSD 3-Clause"
   :depends-on (:optima
+               :iterate
                :cl-syntax-annot
                :trivial-types
                :split-sequence)
