@@ -22,12 +22,6 @@
 
 (cl-syntax:use-syntax :annot)
 
-@export
-(defmethod add-child ((statement sql-composed-statement) child)
-  (rplacd (last (sql-composed-statement-children statement))
-          (list child))
-  statement)
-
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
                              (:constructor make-select-statement (&key
                                                                     fields-clause

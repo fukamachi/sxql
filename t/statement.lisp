@@ -11,7 +11,7 @@
                           :is-error))
 (in-package :t.sxql.statement)
 
-(plan 20)
+(plan 18)
 
 (diag "statement")
 
@@ -179,16 +179,5 @@
     (ok union-stmt)
     (is (multiple-value-list (yield union-stmt))
         '("(SELECT * FROM `table-name` WHERE (`age` < ?) UNION SELECT * FROM `table-2`)" (20)))))
-
-(let ((stmt (sxql:make-statement :select :* (sxql:make-clause :from :table))))
-  (is (multiple-value-list (yield stmt))
-      '("SELECT * FROM `table`" nil))
-
-  (ok (add-child stmt
-                 (make-clause :where
-                              (make-op := :name "Eitarow"))))
-
-  (is (multiple-value-list (yield stmt))
-      '("SELECT * FROM `table` WHERE (`name` = ?)" ("Eitarow"))))
 
 (finalize)

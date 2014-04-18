@@ -24,7 +24,6 @@
                 :detect-and-convert)
   (:export :yield
            :sql-compile
-           :add-child
            :make-statement
            :make-clause
            :make-op
