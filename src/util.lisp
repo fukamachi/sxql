@@ -7,12 +7,14 @@
 (in-package :sxql.util)
 
 (defun group-by (key sequence &key (test 'eql))
-  (let ((hash (make-hash-table :test test)))
+  (let ((hash (make-hash-table :test test))
+        (keys '()))
     (iter (for item in sequence)
+      (push (funcall key item) keys)
       (push item (gethash (funcall key item) hash)))
-    (iter (for (k v) in-hashtable hash)
-      (collect k)
-      (collect (nreverse v)))))
+    (iter (for key in (delete-duplicates (nreverse keys) :test test :from-end t))
+      (collect key)
+      (collect (nreverse (gethash key hash))))))
 
 (defun subdivide (sequence chunk-size)
   "Split `sequence` into subsequences of size `chunk-size`."

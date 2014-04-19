@@ -6,7 +6,7 @@
         :cl-test-more))
 (in-package :t.sxql.composed-statement)
 
-(plan 5)
+(plan 6)
 
 (is (multiple-value-list
      (yield (compose-statements
@@ -56,5 +56,22 @@
                (left-join (:as :user_config :config)
                           :on (:= :config.user_id :user.id))))))
     '("SELECT `user`.*, `config`.* FROM `user` LEFT JOIN `user_config` AS `config` ON (`config`.`user_id` = `user`.`id`) WHERE (`user`.`is_active` = ?) LIMIT 1" (1)))
+
+(defstruct custom-clause)
+
+(defmethod yield ((clause custom-clause))
+  "CUSTOM CLOUSE")
+
+(is (multiple-value-list
+     (yield (compose-statements
+             (select :*
+               (from :user)
+               (make-custom-clause)
+               (where (:= :is_active 1))
+               (limit 1))
+             (select :config.*
+               (left-join (:as :user_config :config)
+                          :on (:= :config.user_id :user.id))))))
+    '("SELECT `user`.*, `config`.* FROM `user` CUSTOM CLOUSE LEFT JOIN `user_config` AS `config` ON (`config`.`user_id` = `user`.`id`) WHERE (`user`.`is_active` = ?) LIMIT 1" (1)))
 
 (finalize)

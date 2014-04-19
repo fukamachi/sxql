@@ -71,12 +71,12 @@
 
 (defgeneric merging-yield (clause-a clause-b &key table-name-a table-name-b))
 
-(defmethod merging-yield ((clause-a null) (clause-b sql-clause) &key table-name-a table-name-b)
+(defmethod merging-yield ((clause-a null) clause-b &key table-name-a table-name-b)
   (declare (ignore clause-a table-name-a))
   (with-table-name table-name-b
     (yield clause-b)))
 
-(defmethod merging-yield ((clause-a string) (clause-b sql-clause) &key table-name-a table-name-b)
+(defmethod merging-yield ((clause-a string) clause-b &key table-name-a table-name-b)
   (declare (ignore table-name-a))
   (format nil "~A~A~A"
           clause-a
@@ -134,9 +134,11 @@
                                             (when (typep child 'join-clause)
                                               (setf has-join-clause-p t))
                                             (collect (make-scoped-clause child stmt))))))
-                             #'<
+                             (lambda (a b)
+                               (and a b
+                                   (< a b)))
                              :key (lambda (type)
-                                    (gethash type *clause-priority* 100)))))
+                                    (gethash type *clause-priority*)))))
       (with-yield-binds
         (format nil "~A ~{~A~^ ~}"
                 (sql-statement-name (car (composed-statement-statements statement)))

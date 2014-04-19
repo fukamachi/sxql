@@ -27,7 +27,9 @@
 
 @export
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
-                             (:constructor make-select-statement (&key
+                             (:constructor make-select-statement (&rest
+                                                                    clauses
+                                                                  &key
                                                                     fields-clause
                                                                     from-clause
                                                                     join-clause
@@ -36,16 +38,10 @@
                                                                     order-by-clause
                                                                     limit-clause
                                                                     offset-clause
+                                                                  &allow-other-keys
                                                                   &aux (children
-                                                                        (append
-                                                                         fields-clause
-                                                                         from-clause
-                                                                         join-clause
-                                                                         where-clause
-                                                                         group-by-clause
-                                                                         order-by-clause
-                                                                         limit-clause
-                                                                         offset-clause)))))
+                                                                        (iter (for (k clause) on clauses :by #'cddr)
+                                                                          (appending clause))))))
   (fields-clause nil)
   (from-clause nil)
   (join-clause nil)
@@ -121,15 +117,10 @@
 
 (deftype multiple-allowed-clause () 'join-clause)
 
-(deftype select-statement-clause-type ()
-  '(or fields-clause from-clause join-clause where-clause group-by-clause order-by-clause limit-clause offset-clause))
-
 (defmethod make-statement ((statement-name (eql :select)) &rest args)
   (apply #'make-select-statement
          (iter (for (type clauses) on (group-by #'type-of
                                                 args :test 'eq) :by #'cddr)
-           (unless (subtypep type 'select-statement-clause-type)
-             (error "~S is not allowed in SELECT-STATEMENT." type))
            (let ((type-key (intern (symbol-name type) :keyword)))
              (when (and (cdr clauses)
                         (not (typep type 'multiple-allowed-clause)))
