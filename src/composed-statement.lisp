@@ -172,7 +172,16 @@
 
 @export
 (defun compose-statements (statement &rest statements)
-  (mapc (lambda (stmt)
-          (check-type stmt select-statement))
-        (cons statement statements))
-  (apply #'make-composed-statement statement statements))
+  (let ((statements (cons statement statements)))
+    (mapc (lambda (stmt)
+            (check-type stmt (or select-statement
+                                 composed-statement)))
+          statements)
+
+    (apply #'make-composed-statement
+           (mapcan
+            (lambda (stmt)
+              (if (composed-statement-p stmt)
+                  (composed-statement-statements stmt)
+                  (list stmt)))
+            statements))))
