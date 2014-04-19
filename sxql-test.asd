@@ -21,5 +21,6 @@
                  (:file "operator")
                  (:file "clause")
                  (:file "statement")
+                 (:file "composed-statement")
                  (:file "sxql"))))
   :perform (load-op :after (op c) (asdf:clear-system c)))

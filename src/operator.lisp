@@ -1,7 +1,9 @@
 (in-package :cl-user)
 (defpackage sxql.operator
   (:use :cl
-        :sxql.sql-type))
+        :sxql.sql-type)
+  (:import-from :sxql.sql-type
+                :sql-statement-p))
 (in-package :sxql.operator)
 
 (cl-syntax:use-syntax :annot)
@@ -132,3 +134,12 @@
              (sql-variable (let ((*use-placeholder* nil))
                              (sql-variable-value (raw-op-var raw))))))
    nil))
+
+(defmethod yield ((op as-op))
+  (with-yield-binds
+    (format nil "~A AS ~A"
+            (if (sql-statement-p (as-op-left op))
+                (yield (make-sql-list (as-op-left op)))
+                (yield (as-op-left op)))
+            (with-table-name nil
+              (yield (as-op-right op))))))

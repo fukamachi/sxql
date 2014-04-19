@@ -12,16 +12,20 @@
                 :*inside-insert-into*
                 :fields-clause
                 :from-clause
+                :from-clause-table-name
                 :join-clause
                 :where-clause
                 :group-by-clause
                 :order-by-clause
                 :limit-clause
-                :offset-clause))
+                :offset-clause)
+  (:import-from :sxql.util
+                :group-by))
 (in-package :sxql.statement)
 
 (cl-syntax:use-syntax :annot)
 
+@export
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
                              (:constructor make-select-statement (&key
                                                                     fields-clause
@@ -51,25 +55,35 @@
   (limit-clause nil)
   (offset-clause nil))
 
+(defun select-statement-table-name (select)
+  (when (select-statement-from-clause select)
+    (from-clause-table-name (car (select-statement-from-clause select)))))
+
+@export
 (defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
                                   (:constructor make-insert-into-statement (&rest children))))
 
+@export
 (defstruct (update-statement (:include sql-composed-statement (name "UPDATE"))
                              (:constructor make-update-statement (&rest children))))
 
+@export
 (defstruct (delete-from-statement (:include sql-composed-statement (name "DELETE FROM"))
                                   (:constructor make-delete-from-statement (&rest children))))
 
+@export
 (defstruct (create-table-statement (:include sql-composed-statement (name "CREATE TABLE"))
                                    (:constructor make-create-table-statement (table &key if-not-exists children
                                                                               &aux (children (cons table children)))))
   (if-not-exists nil :type boolean))
 
+@export
 (defstruct (drop-table-statement (:include sql-statement (name "DROP TABLE"))
                                  (:constructor make-drop-table-statement (table &key if-exists)))
   (table nil :type sql-symbol)
   (if-exists nil :type boolean))
 
+@export
 (defstruct (alter-table-statement (:include sql-statement (name "ALTER TABLE"))
                                   (:constructor make-alter-table-statement (table &rest children
                                                                             &aux (children
@@ -77,6 +91,7 @@
   (table nil :type sql-symbol)
   (children nil))
 
+@export
 (defstruct (create-index-statement (:include sql-statement (name "CREATE INDEX"))
                                    (:constructor make-create-index-statement (index-name table-name columns &key unique using)))
   (index-name nil :type sql-symbol)
@@ -85,6 +100,7 @@
   (unique nil :type boolean)
   (using nil :type (or null sql-keyword)))
 
+@export
 (defstruct (drop-index-statement (:include sql-statement (name "DROP INDEX"))
                                  (:constructor make-drop-index-statement (index-name &key if-exists on)))
   (index-name nil :type sql-symbol)
@@ -104,18 +120,22 @@
          (remove nil (mapcar #'detect-and-convert args))))
 
 (deftype multiple-allowed-clause () 'join-clause)
+
+(deftype select-statement-clause-type ()
+  '(or fields-clause from-clause join-clause where-clause group-by-clause order-by-clause limit-clause offset-clause))
+
 (defmethod make-statement ((statement-name (eql :select)) &rest args)
-  (let ((grouping-hash (make-hash-table :test 'eq)))
-    (iter (for clause in args)
-      (push clause (gethash (type-of clause) grouping-hash)))
-    (apply (find-make-statement statement-name #.*package*)
-           (iter (for (type clauses) in-hashtable grouping-hash)
-             (let ((type-key (intern (symbol-name type) :keyword)))
-               (when (and (cdr clauses)
-                          (not (typep type 'multiple-allowed-clause)))
-                 (error "Multiple ~S is not allowed." type))
-               (collect type-key)
-               (collect (nreverse clauses)))))))
+  (apply #'make-select-statement
+         (iter (for (type clauses) on (group-by #'type-of
+                                                args :test 'eq) :by #'cddr)
+           (unless (subtypep type 'select-statement-clause-type)
+             (error "~S is not allowed in SELECT-STATEMENT." type))
+           (let ((type-key (intern (symbol-name type) :keyword)))
+             (when (and (cdr clauses)
+                        (not (typep type 'multiple-allowed-clause)))
+               (error "Multiple ~S is not allowed." type))
+             (collect type-key)
+             (collect clauses)))))
 
 (defmethod make-statement ((statement-name (eql :insert-into)) &rest args)
   (destructuring-bind (table-name &rest restargs) args

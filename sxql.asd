@@ -20,15 +20,18 @@
                :iterate
                :cl-syntax-annot
                :trivial-types
-               :split-sequence)
+               :split-sequence
+               :alexandria)
   :components ((:module "src"
                 :components
-                ((:file "sxql" :depends-on ("statement" "clause" "operator" "compile"))
+                ((:file "sxql" :depends-on ("statement" "clause" "operator" "compile" "composed-statement"))
                  (:file "compile" :depends-on ("sql-type"))
                  (:file "sql-type")
                  (:file "operator" :depends-on ("sql-type"))
                  (:file "clause" :depends-on ("operator"))
-                 (:file "statement" :depends-on ("operator" "clause")))))
+                 (:file "statement" :depends-on ("operator" "clause" "util"))
+                 (:file "composed-statement" :depends-on ("sql-type" "operator" "clause" "statement" "util"))
+                 (:file "util"))))
   :description "A SQL generator"
   :long-description
   #.(with-open-file (stream (merge-pathnames

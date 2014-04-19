@@ -16,41 +16,37 @@
 (diag "statement")
 
 (ok (make-statement :select
-                    (make-sql-keyword "*")
+                    (make-clause :fields :*)
                     (make-clause :from (make-sql-symbol "table-name"))
                     (make-clause :where
                                  (make-op := :name "Eitarow"))))
 
 (is (yield (make-statement :select
-                           (make-sql-keyword "*")
+                           (make-clause :fields :*)
                            (make-clause :from (make-sql-symbol "table-name"))
                            (make-clause :where
                                         (make-op := :name "Eitarow"))))
     "SELECT * FROM `table-name` WHERE (`name` = ?)")
 
 (is (yield (make-statement :select
-                           (make-sql-list
-                            (make-sql-symbol "a")
-                            (make-sql-symbol "b"))
+                           (make-clause :fields :a :b)
                            (make-clause :from (make-sql-symbol "table-name"))
                            (make-clause :where
                                         (make-op := :name "Eitarow"))))
-    "SELECT (`a`, `b`) FROM `table-name` WHERE (`name` = ?)")
+    "SELECT `a`, `b` FROM `table-name` WHERE (`name` = ?)")
 
 (is (multiple-value-list
-     (yield (make-statement :select (make-op :+ 1 1))))
+     (yield (make-statement :select (make-clause :fields (make-op :+ 1 1)))))
     (list "SELECT (? + ?)" '(1 1)))
 
 (is (multiple-value-list
      (yield (make-statement :select
-                            (make-sql-list
-                             (make-sql-symbol "a")
-                             (make-sql-variable 1))
+                            (make-clause :fields :a 1)
                             (make-clause :from
                                          (make-sql-symbol "table"))
                             (make-clause :order-by
                                          (make-sql-symbol "a")))))
-    (list "SELECT (`a`, ?) FROM `table` ORDER BY `a`" '(1)))
+    (list "SELECT `a`, ? FROM `table` ORDER BY `a`" '(1)))
 
 (is (multiple-value-list
      (yield (make-statement :insert-into (make-sql-symbol "table")
@@ -161,7 +157,7 @@
 
 (let ((stmt (sql-compile
              (make-statement :select
-                             (make-sql-keyword "*")
+                             (make-clause :fields :*)
                              (make-clause :from (make-sql-symbol "table-name"))
                              (make-clause :where
                                           (make-op :<
@@ -174,7 +170,7 @@
 
   (let ((union-stmt
           (make-op :union stmt (make-statement :select
-                                               (make-sql-keyword "*")
+                                               (make-clause :fields :*)
                                                (make-clause :from (make-sql-symbol "table-2"))))))
     (ok union-stmt)
     (is (multiple-value-list (yield union-stmt))

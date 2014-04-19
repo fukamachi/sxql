@@ -240,19 +240,29 @@
 @export
 (defgeneric yield (object))
 
+(defparameter *table-name-scope* nil)
+@export
+(defmacro with-table-name (table-name &body body)
+  `(let ((*table-name-scope* ,table-name))
+     ,@body))
+
 (defmethod yield ((symbol sql-symbol))
-  (values
-   (loop for token in (split-sequence #\. (sql-symbol-name symbol))
-         if (string= token "*")
-           collect token into tokens
-         else
-           collect (format nil "~A~A~A"
-                           (or *quote-character* "")
-                           token
-                           (or *quote-character* "")) into tokens
-         finally
-            (return (format nil "~{~A~^.~}" tokens)))
-   nil))
+  (let ((tokens (split-sequence #\. (sql-symbol-name symbol))))
+    (when (and *table-name-scope*
+               (null (cdr tokens)))
+      (push *table-name-scope* tokens))
+    (values
+     (loop for token in tokens
+           if (string= token "*")
+             collect token into tokens
+           else
+             collect (format nil "~A~A~A"
+                             (or *quote-character* "")
+                             token
+                             (or *quote-character* "")) into tokens
+           finally
+              (return (format nil "~{~A~^.~}" tokens)))
+     nil)))
 
 (defmethod yield ((keyword sql-keyword))
   (values

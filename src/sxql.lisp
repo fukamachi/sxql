@@ -7,6 +7,7 @@
 (defpackage sxql
   (:use :cl
         :sxql.statement
+        :sxql.composed-statement
         :sxql.clause
         :optima)
   (:shadow :primary-key
@@ -21,14 +22,27 @@
                 :sql-compile)
   (:import-from :sxql.operator
                 :make-op
-                :detect-and-convert)
+                :detect-and-convert
+                :union-op
+                :union-all-op)
   (:export :yield
            :sql-compile
            :make-statement
            :make-clause
            :make-op
+           :compose-statements
            :*use-placeholder*
-           :*quote-character*))
+           :*quote-character*
+
+           :select-statement
+           :insert-into-statement
+           :update-statement
+           :delete-from-statement
+           :create-table-statement
+           :drop-table-statement
+           :alter-table-statement
+           :create-index-statement
+           :drop-index-statement))
 (in-package :sxql)
 
 (cl-syntax:use-syntax :annot)
@@ -262,3 +276,15 @@
 @export
 (defun drop-primary-key ()
   (make-clause :drop-primary-key))
+
+
+;;
+;; Types
+
+@export
+(deftype select-statement-designator ()
+  '(or
+    select-statement
+    composed-statement
+    union-op
+    union-all-op))

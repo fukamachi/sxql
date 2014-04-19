@@ -5,8 +5,12 @@
         :sxql.sql-type
         :sxql.operator
         :trivial-types)
+  (:import-from :sxql.sql-type
+                :sql-symbol-name)
   (:import-from :sxql.operator
-                :=-op))
+                :=-op
+                :as-op
+                :as-op-right))
 (in-package :sxql.clause)
 
 (cl-syntax:use-syntax :annot)
@@ -20,6 +24,13 @@
 @export
 (defstruct (from-clause (:include statement-clause (name "FROM"))
                         (:constructor make-from-clause (statement))))
+
+@export
+(defun from-clause-table-name (from)
+  (let ((statement (from-clause-statement from)))
+    (typecase statement
+      (sql-symbol (sql-symbol-name statement))
+      (as-op (sql-symbol-name (as-op-right statement))))))
 
 @export
 (defstruct (where-clause (:include expression-clause (name "WHERE"))
