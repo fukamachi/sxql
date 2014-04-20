@@ -190,7 +190,7 @@
                                                 args :test 'eq) :by #'cddr)
            (let ((type-key (intern (symbol-name type) :keyword)))
              (when (and (cdr clauses)
-                        (not (typep type 'multiple-allowed-clause)))
+                        (not (subtypep type 'multiple-allowed-clause)))
                (error "Multiple ~S is not allowed." type))
              (collect type-key)
              (collect clauses)))))
