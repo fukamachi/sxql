@@ -10,7 +10,6 @@
                 :sql-symbol
                 :sql-symbol-name
                 :sql-statement-name
-                :sql-composed-statement-children
                 :sql-splicing-list-elements
                 :expression-clause-expression
                 :expression-list-clause-expressions)
@@ -30,6 +29,9 @@
   (:import-from :sxql.statement
                 :select-statement
                 :select-statement-table-name
+                :select-statement-clause-order
+                :compute-select-statement-children
+                :sort-clause-types
                 :make-statement)
   (:import-from :sxql.util
                 :group-by
@@ -39,20 +41,6 @@
 (in-package :sxql.composed-statement)
 
 (cl-syntax:use-syntax :annot)
-
-(defparameter *clause-priority*
-  (let ((hash (make-hash-table :test 'eq)))
-    (iter
-      (for i from 0)
-      (for clause in '(fields-clause
-                       from-clause
-                       join-clause
-                       where-clause
-                       group-by-clause
-                       order-by-clause
-                       limit-clause))
-      (setf (gethash clause hash) i))
-    hash))
 
 (defparameter *clause-delimiters*
   '((fields-clause . ", ")
@@ -126,11 +114,14 @@
                         pred
                         :key (compose key #'car)))))
     (let* ((has-join-clause-p nil)
+           (clause-orders (sort-clause-types
+                           (iter (for stmt in (composed-statement-statements statement))
+                             (appending (select-statement-clause-order stmt)))))
            (grouped-clauses (sort-plist-by-key
                              (group-by #'scoped-clause-type
                                        (iter (for stmt in (composed-statement-statements statement))
                                          (appending
-                                          (iter (for child in (sql-composed-statement-children stmt))
+                                          (iter (for child in (compute-select-statement-children stmt))
                                             (when (typep child 'join-clause)
                                               (setf has-join-clause-p t))
                                             (collect (make-scoped-clause child stmt))))))
@@ -138,7 +129,7 @@
                                (and a b
                                    (< a b)))
                              :key (lambda (type)
-                                    (gethash type *clause-priority*)))))
+                                    (position type clause-orders)))))
       (with-yield-binds
         (format nil "~A ~{~A~^ ~}"
                 (sql-statement-name (car (composed-statement-statements statement)))

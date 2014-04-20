@@ -27,6 +27,7 @@
                 :union-all-op)
   (:export :yield
            :sql-compile
+           :add-child
            :make-statement
            :make-clause
            :make-op

@@ -1,6 +1,7 @@
 (in-package :cl-user)
 (defpackage sxql.statement
   (:use :cl
+        :annot.class
         :sxql.sql-type
         :iterate)
   (:import-from :sxql.operator
@@ -20,12 +21,47 @@
                 :limit-clause
                 :offset-clause)
   (:import-from :sxql.util
-                :group-by))
+                :group-by
+                :subdivide)
+  (:import-from :alexandria
+                :compose
+                :when-let))
 (in-package :sxql.statement)
 
 (cl-syntax:use-syntax :annot)
 
 @export
+(defmethod add-child ((statement sql-composed-statement) child)
+  (rplacd (last (slot-value statement (type-of child)))
+          child)
+  statement)
+
+(defparameter *clause-priority*
+  (let ((hash (make-hash-table :test 'eq)))
+    (iter
+      (for i from 0)
+      (for clause in '(fields-clause
+                       from-clause
+                       join-clause
+                       where-clause
+                       group-by-clause
+                       order-by-clause
+                       limit-clause
+                       offset-clause))
+      (setf (gethash clause hash) i))
+    hash))
+
+@export
+(defun sort-clause-types (types)
+  (sort types
+        (lambda (a b)
+          (and a b
+               (< a b)))
+        :key (lambda (type)
+               (gethash type *clause-priority*))))
+
+@export
+@export-accessors
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
                              (:constructor make-select-statement (&rest
                                                                     clauses
@@ -38,10 +74,16 @@
                                                                     order-by-clause
                                                                     limit-clause
                                                                     offset-clause
-                                                                  &allow-other-keys
-                                                                  &aux (children
-                                                                        (iter (for (k clause) on clauses :by #'cddr)
-                                                                          (appending clause))))))
+                                                                  &aux
+                                                                    (clause-order
+                                                                     (sort-clause-types
+                                                                      (delete-duplicates
+                                                                       (iter (for (type clause) on clauses by #'cddr)
+                                                                         (collect (type-of (car clause))))
+                                                                       :from-end t
+                                                                       :test #'eq))))))
+  clause-order
+
   (fields-clause nil)
   (from-clause nil)
   (join-clause nil)
@@ -51,9 +93,34 @@
   (limit-clause nil)
   (offset-clause nil))
 
+@export
+(defun compute-select-statement-children (select-statement)
+  (iter (for (type . score)
+             in (sort
+                 (iter (for type in '(fields-clause
+                                      from-clause
+                                      join-clause
+                                      where-clause
+                                      group-by-clause
+                                      order-by-clause
+                                      limit-clause
+                                      offset-clause))
+                   (collect (cons type
+                                  (or (position type (select-statement-clause-order select-statement)
+                                                :test #'eq)
+                                      100))))
+                 #'<
+                 :key #'cdr))
+    (appending (slot-value select-statement type))))
+
+(defmethod yield :before ((statement select-statement))
+  (setf (select-statement-children statement)
+        (compute-select-statement-children statement)))
+
+@export
 (defun select-statement-table-name (select)
-  (when (select-statement-from-clause select)
-    (from-clause-table-name (car (select-statement-from-clause select)))))
+  (when-let ((from (select-statement-from-clause select)))
+    (from-clause-table-name (car from))))
 
 @export
 (defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
