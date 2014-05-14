@@ -251,7 +251,7 @@
       (when (column-definition-clause-primary-key clause)
         (write-string " PRIMARY KEY" s)))))
 
-(defstruct (add-primary-key-clause (:include expression-clause (name "ADD PRIAMRY KEY"))
+(defstruct (add-primary-key-clause (:include expression-clause (name "ADD PRIMARY KEY"))
                                    (:constructor make-add-primary-key-clause (expression))))
 
 (defstruct (drop-primary-key-clause (:include sql-clause (name "DROP PRIMARY KEY"))
