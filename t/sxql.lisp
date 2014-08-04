@@ -1,8 +1,3 @@
-#|
-  This file is a part of sxql project.
-  Copyright (c) 2013 Eitarow Fukamachi (e.arrows@gmail.com)
-|#
-
 (in-package :cl-user)
 (defpackage t.sxql
   (:use :cl
@@ -136,9 +131,9 @@
   (is-mv (offset limit) '("OFFSET 10" ())))
 
 (is-mv (insert-into :person
-                    (set= :name "Eitarow"
+                    (set= :name "Eitaro"
                           :sex "male"))
-       '("INSERT INTO `person` (`name`, `sex`) VALUES (?, ?)" ("Eitarow" "male"))
+       '("INSERT INTO `person` (`name`, `sex`) VALUES (?, ?)" ("Eitaro" "male"))
        "INSERT INTO")
 
 (is-mv (insert-into :person (:name :sex)
@@ -147,13 +142,13 @@
        "INSERT INTO ... SELECT")
 
 (is-mv (update :person
-               (set= :name "Eitarow Fukamachi"
+               (set= :name "Eitaro Fukamachi"
                      :sex "male")
                (where (:> :age 20))
                (order-by :id)
                (limit 5))
        '("UPDATE `person` SET `name` = ?, `sex` = ? WHERE (`age` > ?) ORDER BY `id` LIMIT 5"
-         ("Eitarow Fukamachi" "male" 20))
+         ("Eitaro Fukamachi" "male" 20))
        "UPDATE")
 
 (is-mv (delete-from :person
@@ -165,17 +160,17 @@
        "DELETE FROM")
 
 (let ((table :person)
-      (name "Eitarow"))
-  (is-mv (set= :name name) '("SET `name` = ?" ("Eitarow")))
-  (is-mv (set= :name (concatenate 'string name " Fukamachi")) '("SET `name` = ?" ("Eitarow Fukamachi")))
+      (name "Eitaro"))
+  (is-mv (set= :name name) '("SET `name` = ?" ("Eitaro")))
+  (is-mv (set= :name (concatenate 'string name " Fukamachi")) '("SET `name` = ?" ("Eitaro Fukamachi")))
   (is-mv (insert-into table
                       (set= :name name))
-         '("INSERT INTO `person` (`name`) VALUES (?)" ("Eitarow")))
+         '("INSERT INTO `person` (`name`) VALUES (?)" ("Eitaro")))
   (is-mv (update table
                  (set= :name name))
-         '("UPDATE `person` SET `name` = ?" ("Eitarow")))
+         '("UPDATE `person` SET `name` = ?" ("Eitaro")))
   (is-mv (delete-from table (where (:= :name name)))
-         '("DELETE FROM `person` WHERE (`name` = ?)" ("Eitarow"))))
+         '("DELETE FROM `person` WHERE (`name` = ?)" ("Eitaro"))))
 
 (is-mv (union-queries
         (select :* (from :table-1) (where (:= :a 10)))

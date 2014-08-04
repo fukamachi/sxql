@@ -1,8 +1,3 @@
-#|
-  This file is a part of sxql project.
-  Copyright (c) 2013 Eitarow Fukamachi (e.arrows@gmail.com)
-|#
-
 (in-package :cl-user)
 (defpackage sxql
   (:use :cl

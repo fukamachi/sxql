@@ -60,8 +60,8 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (insert-into :person
   (set= :sex "male"
         :age 25
-        :name "Eitarow Fukamachi"))
-;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = 'male', age = 25, name = 'Eitarow Fukamachi'>
+        :name "Eitaro Fukamachi"))
+;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = 'male', age = 25, name = 'Eitaro Fukamachi'>
 
 (insert-into :person
   (:id :name)
@@ -75,16 +75,16 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ```common-lisp
 (update :person
   (set= :age 26)
-  (where (:like :name "Eitarow %")))
-;=> #<SXQL-STATEMENT: UPDATE person SET age = 26 WHERE (name LIKE 'Eitarow %')>
+  (where (:like :name "Eitaro %")))
+;=> #<SXQL-STATEMENT: UPDATE person SET age = 26 WHERE (name LIKE 'Eitaro %')>
 ```
 
 ### delete-from (table &body clauses)
 
 ```common-lisp
 (delete-from :person
-  (where (:= :name "Eitarow Fukamachi")))
-;=> #<SXQL-STATEMENT: DELETE FROM person WHERE (name = 'Eitarow Fukamachi')>
+  (where (:= :name "Eitaro Fukamachi")))
+;=> #<SXQL-STATEMENT: DELETE FROM person WHERE (name = 'Eitaro Fukamachi')>
 ```
 
 ### union-queies (&rest statements)
@@ -414,11 +414,11 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ## Author
 
-* Eitarow Fukamachi (e.arrows@gmail.com)
+* Eitaro Fukamachi (e.arrows@gmail.com)
 
 ## Copyright
 
-Copyright (c) 2013 Eitarow Fukamachi (e.arrows@gmail.com)
+Copyright (c) 2013-2014 Eitaro Fukamachi (e.arrows@gmail.com)
 
 # License
 

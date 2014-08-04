@@ -19,20 +19,20 @@
                     (make-clause :fields :*)
                     (make-clause :from (make-sql-symbol "table-name"))
                     (make-clause :where
-                                 (make-op := :name "Eitarow"))))
+                                 (make-op := :name "Eitaro"))))
 
 (is (yield (make-statement :select
                            (make-clause :fields :*)
                            (make-clause :from (make-sql-symbol "table-name"))
                            (make-clause :where
-                                        (make-op := :name "Eitarow"))))
+                                        (make-op := :name "Eitaro"))))
     "SELECT * FROM `table-name` WHERE (`name` = ?)")
 
 (is (yield (make-statement :select
                            (make-clause :fields :a :b)
                            (make-clause :from (make-sql-symbol "table-name"))
                            (make-clause :where
-                                        (make-op := :name "Eitarow"))))
+                                        (make-op := :name "Eitaro"))))
     "SELECT `a`, `b` FROM `table-name` WHERE (`name` = ?)")
 
 (is (multiple-value-list

@@ -1,10 +1,10 @@
 #|
   This file is a part of sxql project.
-  Copyright (c) 2013 Eitarow Fukamachi (e.arrows@gmail.com)
+  Copyright (c) 2013-2014 Eitaro Fukamachi (e.arrows@gmail.com)
 |#
 
 #|
-  Author: Eitarow Fukamachi (e.arrows@gmail.com)
+  Author: Eitaro Fukamachi (e.arrows@gmail.com)
 |#
 
 (in-package :cl-user)
@@ -14,7 +14,7 @@
 
 (defsystem sxql
   :version "0.0.1"
-  :author "Eitarow Fukamachi"
+  :author "Eitaro Fukamachi"
   :license "BSD 3-Clause"
   :depends-on (:optima
                :iterate

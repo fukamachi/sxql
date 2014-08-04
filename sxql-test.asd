@@ -1,6 +1,6 @@
 #|
   This file is a part of sxql project.
-  Copyright (c) 2013 Eitarow Fukamachi (e.arrows@gmail.com)
+  Copyright (c) 2013-2014 Eitaro Fukamachi (e.arrows@gmail.com)
 |#
 
 (in-package :cl-user)
@@ -9,7 +9,7 @@
 (in-package :sxql-test-asd)
 
 (defsystem sxql-test
-  :author "Eitarow Fukamachi"
+  :author "Eitaro Fukamachi"
   :license "BSD 3-Clause"
   :depends-on (:sxql
                :cl-test-more)
