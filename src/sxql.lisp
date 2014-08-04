@@ -48,27 +48,20 @@
 
 (cl-syntax:use-syntax :annot)
 
-(defun expand-op (object)
-  (if (and (listp object)
-           (keywordp (car object)))
-      `(make-op ,(car object) ,@(mapcar #'expand-op (cdr object)))
-      object))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun expand-op (object)
+    (if (and (listp object)
+             (keywordp (car object)))
+        `(make-op ,(car object) ,@(mapcar #'expand-op (cdr object)))
+        object))
 
-(defun expand-expression (expressions)
-  (cond
-    ((not (listp expressions)) expressions)
-    ((and (symbolp (car expressions))
-          (not (keywordp (car expressions))))
-     expressions)
-    (t (mapcar #'expand-op expressions))))
-
-(defun convert-if-fields-clause (clause)
-  (match clause
-    ((or (list* (type keyword) _)
-         (list* (list* (type keyword) _) _))
-     (apply #'make-clause :fields clause))
-    ((type keyword) (fields clause))
-    (otherwise clause)))
+  (defun expand-expression (expressions)
+    (cond
+      ((not (listp expressions)) expressions)
+      ((and (symbolp (car expressions))
+            (not (keywordp (car expressions))))
+       expressions)
+      (t (mapcar #'expand-op expressions)))))
 
 @export
 (defmacro select (fields &body clauses)
@@ -156,6 +149,14 @@
 (defmacro fields (&rest fields)
   `(make-clause :fields ,@(mapcar (lambda (field)
                                     (expand-op field)) fields)))
+
+(defun convert-if-fields-clause (clause)
+  (match clause
+    ((or (list* (type keyword) _)
+         (list* (list* (type keyword) _) _))
+     (apply #'make-clause :fields clause))
+    ((type keyword) (fields clause))
+    (otherwise clause)))
 
 @export
 (defmacro from (statement)
