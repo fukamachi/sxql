@@ -11,6 +11,7 @@
                 :sql-symbol-name
                 :sql-statement-name
                 :sql-splicing-list-elements
+                :statement-clause-statement
                 :expression-clause-expression
                 :expression-list-clause-expressions)
   (:import-from :sxql.operator
@@ -44,12 +45,15 @@
 
 (defparameter *clause-delimiters*
   '((fields-clause . ", ")
+    (from-clause . ", ")
     (where-clause . " AND ")
     (order-by-clause . ", ")))
 
 (defgeneric yield-only-contents (clause)
   (:method (clause)
     (yield clause))
+  (:method ((clause from-clause))
+    (yield (statement-clause-statement clause)))
   (:method ((clause where-clause))
     (yield (expression-clause-expression clause)))
   (:method ((clause order-by-clause))
