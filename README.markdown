@@ -197,6 +197,12 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ```common-lisp
 (from :person)
 ;=> #<SXQL-CLAUSE: FROM person>
+
+(from :person :person_config)
+;=> #<SXQL-CLAUSE: FROM person, person_config>
+
+(from (select :* (from :person) (where (:= :is_active 1))))
+;=> #<SXQL-CLAUSE: FROM (SELECT * FROM person WHERE (is_active = 1))>
 ```
 
 ### where
