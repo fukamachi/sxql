@@ -32,8 +32,9 @@
 
 @export
 (defmethod add-child ((statement sql-composed-statement) child)
-  (rplacd (last (slot-value statement (type-of child)))
-          child)
+  (let ((slot-name (type-of child)))
+    (setf (slot-value statement slot-name)
+          (nconc (slot-value statement slot-name) (list child))))
   statement)
 
 (defparameter *clause-priority*
