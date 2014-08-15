@@ -23,7 +23,9 @@
 
 @export
 (defstruct (from-clause (:include statement-clause (name "FROM"))
-                        (:constructor make-from-clause (statement))))
+                        (:constructor make-from-clause (&rest tables
+                                                        &aux (statement
+                                                              (apply #'make-sql-splicing-list tables))))))
 
 @export
 (defun from-clause-table-name (from)

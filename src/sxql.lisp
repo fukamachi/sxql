@@ -142,8 +142,7 @@
 
 @export
 (defmacro fields (&rest fields)
-  `(make-clause :fields ,@(mapcar (lambda (field)
-                                    (expand-op field)) fields)))
+  `(make-clause :fields ,@(mapcar #'expand-op fields)))
 
 (defun convert-if-fields-clause (clause)
   (match clause
@@ -154,8 +153,8 @@
     (otherwise clause)))
 
 @export
-(defmacro from (statement)
-  `(make-clause :from ,(expand-op statement)))
+(defmacro from (&rest statements)
+  `(make-clause :from ,@(mapcar #'expand-op statements)))
 
 @export
 (defmacro where (expression)
