@@ -6,7 +6,8 @@
         :sxql.operator
         :trivial-types)
   (:import-from :sxql.sql-type
-                :sql-symbol-name)
+                :sql-symbol-name
+                :sql-list-elements)
   (:import-from :sxql.operator
                 :=-op
                 :as-op
@@ -29,10 +30,12 @@
 
 @export
 (defun from-clause-table-name (from)
-  (let ((statement (from-clause-statement from)))
-    (typecase statement
-      (sql-symbol (sql-symbol-name statement))
-      (as-op (sql-symbol-name (as-op-right statement))))))
+  (let ((statements (sql-list-elements (from-clause-statement from))))
+    (when (cdr statements)
+      (error "Cannot tell the table name from the FROM clause that has multiple table names."))
+    (etypecase (car statements)
+      (sql-symbol (sql-symbol-name (car statements)))
+      (as-op (sql-symbol-name (as-op-right (car statements)))))))
 
 @export
 (defstruct (where-clause (:include expression-clause (name "WHERE"))
