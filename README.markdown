@@ -188,8 +188,8 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (fields (:count :id))
 ;=> #<SXQL-CLAUSE: COUNT(id)>
 
-(fields :id (:count :id))
-;=> #<SXQL-CLAUSE: `id`, SUM(`amount`)>
+(fields :id (:sum :amount))
+;=> #<SXQL-CLAUSE: id, SUM(amount)>
 ```
 
 ### from
