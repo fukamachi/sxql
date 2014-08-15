@@ -289,7 +289,10 @@
 (defmethod yield ((list sql-splicing-list))
   (with-yield-binds
     (format nil "~{~A~^, ~}"
-            (mapcar #'yield
+            (mapcar (lambda (element)
+                      (if (sql-statement-p element)
+                          (format nil "(~A)" (yield element))
+                          (yield element)))
                     (sql-list-elements list)))))
 
 (defmethod yield ((list sql-expression-list))
