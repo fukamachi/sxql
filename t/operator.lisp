@@ -55,7 +55,7 @@
 
 (is (multiple-value-list
      (yield (make-op :distinct :age)))
-    (list "(DISTINCT `age`)" nil))
+    (list "DISTINCT `age`" nil))
 
 (diag "infix-op")
 

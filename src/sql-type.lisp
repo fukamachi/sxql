@@ -155,6 +155,11 @@
   (var nil :type sql-expression))
 
 @export
+@export-constructors
+(defstruct (unary-splicing-op (:include unary-op)
+                              (:constructor make-unary-splicing-op (name var))))
+
+@export
 (defstruct (unary-postfix-op (:include unary-op)))
 
 @export 'left @export 'right
@@ -309,6 +314,14 @@
   (multiple-value-bind (var binds)
       (yield (unary-op-var op))
     (values (format nil "(~A ~A)"
+                    (sql-op-name op)
+                    var)
+            binds)))
+
+(defmethod yield ((op unary-splicing-op))
+  (multiple-value-bind (var binds)
+      (yield (unary-op-var op))
+    (values (format nil "~A ~A"
                     (sql-op-name op)
                     var)
             binds)))

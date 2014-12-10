@@ -24,8 +24,9 @@
                                                                   #.(string :make-)
                                                                   (symbol-name op-name)
                                                                   #.(string :-op)))
-                                  ,(case struct-type
+                                  ,(ecase struct-type
                                      ((unary-op
+                                       unary-splicing-op
                                        unary-postfix-op) '(var))
                                      ((infix-op
                                        infix-splicing-op
@@ -38,7 +39,7 @@
 (define-op (:not-null unary-op))
 (define-op (:desc unary-postfix-op))
 (define-op (:asc unary-postfix-op))
-(define-op (:distinct unary-op))
+(define-op (:distinct unary-splicing-op))
 (defstruct (on-op (:include sql-op (name "ON"))
                   (:constructor make-on-op (var)))
   (var nil :type =-op))

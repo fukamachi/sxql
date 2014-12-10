@@ -60,7 +60,7 @@
        '("SELECT (COUNT(*)) FROM `person` GROUP BY `country`" nil)
        "group by")
 (is-mv (select ((:distinct :age)) (from :person))
-       '("SELECT (DISTINCT `age`) FROM `person`" nil)
+       '("SELECT DISTINCT `age` FROM `person`" nil)
        "DISTINCT")
 (is-mv (select (:id (:as (:count :*) :count)) (from :person) (group-by :name))
        '("SELECT `id`, COUNT(*) AS `count` FROM `person` GROUP BY `name`" nil)
