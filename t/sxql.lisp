@@ -9,7 +9,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 63)
+(plan 64)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -289,6 +289,12 @@
 (is-mv (from :table)
        '("FROM `table`" nil))
 
+(is-mv (from :|Table|)
+       '("FROM `Table`" nil))
+
+;; 20141231 - m@ahungry.com - These above tests now pass, but all caps will fail
+;; There likely isn't an easy work around, but I think all cap table names is rare
+;; enough that it won't matter (maybe downcase can be something configured)
 (is-mv (from :|TABLE|)
        '("FROM `TABLE`" nil))
 

@@ -95,6 +95,15 @@
   (apply (find-make-op op-name #.*package*)
          (mapcar #'detect-and-convert args)))
 
+(defun has-lower-case-letters-p (symbol)
+  "Take in a symbol, convert to string, look for presences of lower
+case letters."
+  (let* ((string (symbol-name symbol))
+         (chars (loop for i from 0 to (1- (length string)) collect (char string i))))
+    (flet ((upper-or-alpha (c)
+             (or (upper-case-p c) (not (alpha-char-p c)))))
+      (remove-if #'upper-or-alpha chars))))
+
 @export
 (defun detect-and-convert (object)
   (etypecase object
@@ -104,10 +113,13 @@
      (make-sql-variable object))
     (boolean object)
     (symbol
-     (let ((name (symbol-name object)))
+     (let ((name (symbol-name object))
+           (string-fn (if (has-lower-case-letters-p object) ;; Only downcase all caps
+                          #'string
+                          #'string-downcase)))
        (if (string-equal name "null")
            (make-sql-keyword name)
-           (make-sql-symbol (string-downcase object)))))
+           (make-sql-symbol (funcall string-fn object)))))
     (list
      (if (keywordp (car object))
          (apply #'make-op object)
