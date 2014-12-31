@@ -9,7 +9,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 61)
+(plan 63)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -284,5 +284,12 @@
 (let ((primary-key :id))
   (is-mv (primary-key primary-key)
          '("PRIMARY KEY (`id`)" nil)))
+
+;; 20141231 - m@ahungry.com - Add tests to illustrate case sensitivity issue
+(is-mv (from :table)
+       '("FROM `table`" nil))
+
+(is-mv (from :|TABLE|)
+       '("FROM `TABLE`" nil))
 
 (finalize)
