@@ -98,11 +98,9 @@
 (defun has-lower-case-letters-p (symbol)
   "Take in a symbol, convert to string, look for presences of lower
 case letters."
-  (let* ((string (symbol-name symbol))
-         (chars (loop for i from 0 to (1- (length string)) collect (char string i))))
-    (flet ((upper-or-alpha (c)
-             (or (upper-case-p c) (not (alpha-char-p c)))))
-      (remove-if #'upper-or-alpha chars))))
+  (flet ((upper-or-not-alpha (c)
+           (or (upper-case-p c) (not (alpha-char-p c)))))
+    (not (every #'upper-or-not-alpha (symbol-name symbol)))))
 
 @export
 (defun detect-and-convert (object)
