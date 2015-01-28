@@ -12,7 +12,7 @@
   :author "Eitaro Fukamachi"
   :license "BSD 3-Clause"
   :depends-on (:sxql
-               :cl-test-more)
+               :prove)
   :components ((:module "t"
                 :serial t
                 :components

@@ -3,7 +3,7 @@
   (:use :cl
         :sxql
         :sxql.sql-type
-        :cl-test-more)
+        :prove)
   (:shadowing-import-from :t.sxql.prepare
                           :is-error))
 (in-package :t.sxql.sql-type)

@@ -4,7 +4,7 @@
         :sxql
         :sxql.sql-type
         :sxql.operator
-        :cl-test-more)
+        :prove)
   (:shadowing-import-from :t.sxql.prepare
                           :is-error))
 (in-package :t.sxql.operator)

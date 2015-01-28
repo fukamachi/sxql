@@ -2,7 +2,7 @@
 (defpackage t.sxql
   (:use :cl
         :sxql
-        :cl-test-more)
+        :prove)
   (:import-from :sxql.sql-type
                 :yield)
   (:shadowing-import-from :t.sxql.prepare

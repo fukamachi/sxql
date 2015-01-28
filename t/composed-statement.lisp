@@ -3,7 +3,7 @@
   (:use :cl
         :sxql
         :sxql.composed-statement
-        :cl-test-more))
+        :prove))
 (in-package :t.sxql.composed-statement)
 
 (plan 6)

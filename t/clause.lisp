@@ -1,7 +1,7 @@
 (in-package :cl-user)
 (defpackage t.sxql.clause
   (:use :cl
-        :cl-test-more
+        :prove
         :sxql.sql-type
         :sxql.operator
         :sxql.clause
