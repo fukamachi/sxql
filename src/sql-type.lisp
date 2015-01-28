@@ -361,8 +361,10 @@
 
 (defmethod yield ((op conjunctive-op))
   (with-yield-binds
-    (format nil (format nil "(~~{~~A~~^ ~A ~~})" (sql-op-name op))
-            (mapcar #'yield (conjunctive-op-expressions op)))))
+    (if (cdr (conjunctive-op-expressions op))
+        (format nil (format nil "(~~{~~A~~^ ~A ~~})" (sql-op-name op))
+                (mapcar #'yield (conjunctive-op-expressions op)))
+        (yield (car (conjunctive-op-expressions op))))))
 
 (defmethod yield ((op function-op))
   (with-yield-binds
