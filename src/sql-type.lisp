@@ -74,11 +74,11 @@
 
 @export
 @export-constructors
-(defstruct (sql-column-type (:constructor make-sql-column-type (name &key unsigned args
+(defstruct (sql-column-type (:constructor make-sql-column-type (name &key args attrs
                                                                 &aux (name (make-type-keyword name)))))
   (name nil)
   (args nil :type list)
-  (unsigned nil :type boolean))
+  (attrs nil :type list))
 
 @export
 (defun make-type-keyword (type)
@@ -90,13 +90,10 @@
 (defmethod yield ((type sql-column-type))
   (let ((*use-placeholder* nil)
         (args (sql-column-type-args type)))
-    (if args
-        (format nil "~A(~{~A~^, ~})~:[~; UNSIGNED~]"
-                (yield (sql-column-type-name type))
-                (mapcar #'yield args)
-                (sql-column-type-unsigned type))
-        (values (yield (sql-column-type-name type))
-                nil))))
+    (format nil "~A~:[~;~:*(~{~A~^, ~})~]~{ ~A~}"
+            (yield (sql-column-type-name type))
+            (mapcar #'yield args)
+            (mapcar #'yield (sql-column-type-attrs type)))))
 
 @export
 (deftype sql-expression () '(or sql-atom sql-list sql-op sql-clause))

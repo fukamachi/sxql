@@ -137,7 +137,7 @@
 (is (multiple-value-list
      (yield (make-statement :alter-table :tweet
               (make-clause :add-column :status
-                           :type '(:enum "temporary" "registered" "banned")))))
+                           :type '(:enum ("temporary" "registered" "banned"))))))
     '("ALTER TABLE `tweet` ADD COLUMN `status` ENUM('temporary', 'registered', 'banned')" nil))
 
 (is (multiple-value-list

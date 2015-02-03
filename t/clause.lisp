@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 51)
+(plan 55)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -144,6 +144,15 @@
 (is (multiple-value-list
      (yield (make-clause :foreign-key '(:project_id) :references '(:project :id))))
     (list "FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
+
+(is (yield (sxql.clause::make-sql-column-type-from-list '(:integer)))
+    "INTEGER")
+(is (yield (sxql.clause::make-sql-column-type-from-list '(:integer 11)))
+    "INTEGER(11)")
+(is (yield (sxql.clause::make-sql-column-type-from-list '(:integer 11 :unsigned)))
+    "INTEGER(11) UNSIGNED")
+(is (yield (sxql.clause::make-sql-column-type-from-list '(:integer nil :unsigned)))
+    "INTEGER UNSIGNED")
 
 (is (multiple-value-list
      (yield (make-clause :add-column :updated_at

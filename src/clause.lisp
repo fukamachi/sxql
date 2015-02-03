@@ -382,15 +382,13 @@
                   (mapcar #'yield-arg (set=-clause-args clause)))))))
 
 (defun make-sql-column-type-from-list (val)
-  (let ((unsignedp (and (listp val)
-                        (cdr val)
-                        (eq (car (last val)) :unsigned))))
-    (if (listp val)
-        (make-sql-column-type
-         (car val)
-         :unsigned unsignedp
-         :args (mapcar #'detect-and-convert
-                       (if unsignedp
-                           (butlast (cdr val))
-                           (cdr val))))
-        (make-type-keyword val))))
+  (destructuring-bind (type &optional args &rest attrs)
+      (if (listp val)
+          val
+          (list val))
+    (make-sql-column-type
+     type
+     :args (mapcar #'detect-and-convert (if (listp args)
+                                            args
+                                            (list args)))
+     :attrs (mapcar #'make-type-keyword attrs))))
