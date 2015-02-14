@@ -55,8 +55,11 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (select (:sex (:count :*)) (from :person) (group-by :sex))
 ;=> #<SXQL-STATEMENT: SELECT sex, COUNT(*) FROM person GROUP BY sex>
 
-(select (:sex (:as (:count :*) :num)) (from :person) (group-by :sex) (order-by (:desc :num)))
-#<SXQL-STATEMENT: SELECT sex, COUNT(*) AS num FROM person GROUP BY sex ORDER BY num DESC>
+(select (:sex (:as (:count :*) :num)) 
+  (from :person)
+	(group-by :sex)
+	(order-by (:desc :num)))
+;=> #<SXQL-STATEMENT: SELECT sex, COUNT(*) AS num FROM person GROUP BY sex ORDER BY num DESC>
 ```
 
 ### insert-into (table &body clauses)
