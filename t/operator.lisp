@@ -225,4 +225,33 @@
        (yield (make-op :* op (make-op :- 10 2) op)))
       '("((? + ? + ?) * (? - ?) * (? + ? + ?))" (1 2 3 10 2 1 2 3))))
 
+(diag "subquery")
+(is (multiple-value-list
+     (yield (make-op :=
+                     :id
+                     (select :id (from :users)))))
+    (list "(`id` = (SELECT `id` FROM `users`))" NIL)
+    "=")
+
+(is (multiple-value-list
+     (yield (make-op :!=
+                     :id
+                     (select :id (from :users)))))
+    (list "(`id` != (SELECT `id` FROM `users`))" NIL)
+    "=")
+
+(is (multiple-value-list
+     (yield (make-op :in
+                     :id
+                     (select :id (from :users)))))
+    (list "(`id` IN (SELECT `id` FROM `users`))" NIL)
+    "IN")
+
+(is (multiple-value-list
+     (yield (make-op :not-in
+                     :id
+                     (select :id (from :users)))))
+    (list "(`id` NOT IN (SELECT `id` FROM `users`))" NIL)
+    "NOT IN")
+
 (finalize)
