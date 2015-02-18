@@ -45,4 +45,4 @@
                                :fill-pointer t)))
           (setf (fill-pointer seq) (read-sequence seq stream))
           seq)))
-  :in-order-to ((test-op (load-op sxql-test))))
+  :in-order-to ((test-op (test-op sxql-test))))

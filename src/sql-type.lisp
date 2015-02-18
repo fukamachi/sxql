@@ -180,7 +180,8 @@
 @export-constructors
 (defstruct (infix-list-op (:include sql-op))
   (left nil :type sql-expression)
-  (right nil :type proper-list))
+  (right nil :type (or proper-list
+                       sql-statement)))
 
 @export 'expressions
 @export
@@ -336,7 +337,9 @@
     (format nil "(~A ~A ~A)"
             (yield (infix-op-left op))
             (sql-op-name op)
-            (yield (infix-op-right op)))))
+            (if (sql-statement-p (infix-op-right op))
+                (format nil "(~A)" (yield (infix-op-right op)))
+                (yield (infix-op-right op))))))
 
 (defmethod yield ((op infix-splicing-op))
   (with-yield-binds
@@ -354,7 +357,9 @@
     (format nil "(~A ~A ~A)"
             (yield (infix-list-op-left op))
             (sql-op-name op)
-            (yield (apply #'make-sql-list (infix-list-op-right op))))))
+            (if (sql-statement-p (infix-list-op-right op))
+                (format nil "(~A)" (yield (infix-list-op-right op)))
+                (yield (apply #'make-sql-list (infix-list-op-right op)))))))
 
 (defmethod yield ((op conjunctive-op))
   (with-yield-binds
