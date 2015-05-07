@@ -159,16 +159,26 @@ case letters."
             (with-table-name nil
               (yield (as-op-right op))))))
 
+(defmacro yield-for-union-ops (keyword)
+  `(multiple-value-bind (statements others)
+      (loop for obj in (conjunctive-op-expressions op)
+            if (sql-statement-p obj)
+              collecting obj into statements
+            else
+              collecting obj into others
+            finally (return (values statements others)))
+     (with-yield-binds
+       (format nil (if *inside-select*
+                       "(~{~A~^ ~})"
+                       "~{~A~^ ~}")
+               (append (list (format nil ,(format nil "~~{(~~A)~~^ ~a ~~}" keyword)
+                                     (mapcar #'yield statements)))
+                       (when others
+                         (list (format nil "~{~A~^ ~}"
+                                       (mapcar #'yield others)))))))))
+
 (defmethod yield ((op union-op))
-  (with-yield-binds
-    (format nil (if *inside-select*
-                    "(~{(~A)~^ UNION ~})"
-                    "~{(~A)~^ UNION ~}")
-            (mapcar #'yield (conjunctive-op-expressions op)))))
+  (yield-for-union-ops "UNION"))
 
 (defmethod yield ((op union-all-op))
-  (with-yield-binds
-    (format nil (if *inside-select*
-                    "(~{(~A)~^ UNION ALL ~})"
-                    "~{(~A)~^ UNION ALL ~}")
-            (mapcar #'yield (conjunctive-op-expressions op)))))
+  (yield-for-union-ops "UNION ALL"))
