@@ -5,6 +5,7 @@
         :sxql.sql-type
         :iterate)
   (:import-from :sxql.operator
+                :*inside-select*
                 :find-constructor
                 :detect-and-convert)
   (:import-from :sxql.clause
@@ -113,6 +114,10 @@
                  #'<
                  :key #'cdr))
     (appending (slot-value select-statement type))))
+
+(defmethod yield ((statement select-statement))
+  (let ((*inside-select* t))
+    (call-next-method)))
 
 (defmethod yield :before ((statement select-statement))
   (setf (select-statement-children statement)

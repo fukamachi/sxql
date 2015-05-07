@@ -3,10 +3,14 @@
   (:use :cl
         :sxql.sql-type)
   (:import-from :sxql.sql-type
-                :sql-statement-p))
+                :sql-statement-p
+                :conjunctive-op-expressions))
 (in-package :sxql.operator)
 
 (cl-syntax:use-syntax :annot)
+
+@export
+(defparameter *inside-select* nil)
 
 (defmacro define-op ((op-name struct-type &key sql-op-name include-slots) &body body)
   (check-type op-name symbol)
@@ -154,3 +158,17 @@ case letters."
                 (yield (as-op-left op)))
             (with-table-name nil
               (yield (as-op-right op))))))
+
+(defmethod yield ((op union-op))
+  (with-yield-binds
+    (format nil (if *inside-select*
+                    "(~{(~A)~^ UNION ~})"
+                    "~{(~A)~^ UNION ~}")
+            (mapcar #'yield (conjunctive-op-expressions op)))))
+
+(defmethod yield ((op union-all-op))
+  (with-yield-binds
+    (format nil (if *inside-select*
+                    "(~{(~A)~^ UNION ALL ~})"
+                    "~{(~A)~^ UNION ALL ~}")
+            (mapcar #'yield (conjunctive-op-expressions op)))))
