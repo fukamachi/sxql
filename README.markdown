@@ -21,10 +21,10 @@
 ;=> #<SXQL-COMPILED: SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC [18, 65]>
 
 (union-queries * (select (:id :name :sex) (from '(:as animal a))))
-;=> #<SXQL-OP: (SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC UNION SELECT id, name, sex FROM (animal AS a))>
+;=> #<SXQL-OP: (SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC) UNION (SELECT id, name, sex FROM (animal AS a))>
 
 (yield *)
-;=> "(SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC UNION SELECT id, name, sex FROM (animal AS a))"
+;=> "(SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC) UNION (SELECT id, name, sex FROM (animal AS a))"
 ;   (18 65)
 ```
 
@@ -101,7 +101,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (union-queries
  (select (:name :birthday) (from :fulltime))
  (select (:name :birthday) (from :parttime)))
-;=> #<SXQL-OP: (SELECT name, birthday FROM fulltime UNION SELECT name, birthday FROM parttime)>
+;=> #<SXQL-OP: (SELECT name, birthday FROM fulltime) UNION (SELECT name, birthday FROM parttime)>
 ```
 
 ### union-all-queries (&rest statements)
@@ -110,7 +110,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 (union-all-queries
  (select (:name :birthday) (from :fulltime))
  (select (:name :birthday) (from :parttime)))
-;=> #<SXQL-OP: (SELECT name, birthday FROM fulltime UNION ALL SELECT name, birthday FROM parttime)>
+;=> #<SXQL-OP: (SELECT name, birthday FROM fulltime) UNION ALL (SELECT name, birthday FROM parttime)>
 ```
 
 ### create-table (table column-definitions &body options)

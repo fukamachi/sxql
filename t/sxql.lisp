@@ -175,14 +175,14 @@
 (is-mv (union-queries
         (select :* (from :table-1) (where (:= :a 10)))
         (select :* (from :table-2) (where (:> :b 100))))
-       '("(SELECT * FROM `table-1` WHERE (`a` = ?) UNION SELECT * FROM `table-2` WHERE (`b` > ?))"
+       '("(SELECT * FROM `table-1` WHERE (`a` = ?)) UNION (SELECT * FROM `table-2` WHERE (`b` > ?))"
          (10 100))
        "UNION")
 
 (is-mv (union-all-queries
         (select :* (from :table-1) (where (:= :a 10)))
         (select :* (from :table-2) (where (:> :b 100))))
-       '("(SELECT * FROM `table-1` WHERE (`a` = ?) UNION ALL SELECT * FROM `table-2` WHERE (`b` > ?))"
+       '("(SELECT * FROM `table-1` WHERE (`a` = ?)) UNION ALL (SELECT * FROM `table-2` WHERE (`b` > ?))"
          (10 100))
        "UNION ALL")
 

@@ -207,6 +207,44 @@
     (list "(? + ? + (? * (? - ?)) + (`a` / ?) + (? % ? % ?))"
           '(1 3 100 0.8 0.3 10 100 3 3)))
 
+(is (multiple-value-list
+     (yield (make-op :union
+                     (select :* (from :table1))
+                     (select :* (from :table2))
+                     (order-by :column1)
+                     (limit 1))))
+    (list "(SELECT * FROM `table1`) UNION (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1"
+          nil))
+
+(let ((*inside-select* t))
+  (is (multiple-value-list
+       (yield (make-op :union
+                       (select :* (from :table1))
+                       (select :* (from :table2))
+                       (order-by :column1)
+                       (limit 1))))
+      (list "((SELECT * FROM `table1`) UNION (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1)"
+            nil)))
+
+(is (multiple-value-list
+     (yield (make-op :union-all
+                     (select :* (from :table1))
+                     (select :* (from :table2))
+                     (order-by :column1)
+                     (limit 1))))
+    (list "(SELECT * FROM `table1`) UNION ALL (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1"
+          nil))
+
+(let ((*inside-select* t))
+  (is (multiple-value-list
+       (yield (make-op :union-all
+                       (select :* (from :table1))
+                       (select :* (from :table2))
+                       (order-by :column1)
+                       (limit 1))))
+      (list "((SELECT * FROM `table1`) UNION ALL (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1)"
+            nil)))
+
 (diag "function-op")
 
 (ok (make-op :count :*))
