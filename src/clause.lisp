@@ -62,6 +62,10 @@
                             (:constructor make-group-by-clause (&rest expressions))))
 
 @export
+(defstruct (having-clause (:include expression-clause (name "HAVING"))
+                          (:constructor make-having-clause (expression))))
+
+@export
 (defstruct (join-clause (:include statement-clause)
                         (:constructor make-join-clause))
   (kind :inner :type (or (eql :inner)

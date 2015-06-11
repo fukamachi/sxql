@@ -77,6 +77,12 @@
                    (make-op :+ (make-sql-symbol "a") (make-sql-variable 1)))))
     (list "GROUP BY (`a` + ?)" '(1)))
 
+(is (multiple-value-list
+     (yield
+      (make-clause :having
+                   (make-op :>= (make-sql-symbol "hoge") (make-sql-variable 88)))))
+    (list "HAVING (`hoge` >= ?)" '(88)))
+
 (ok (make-clause :limit (make-sql-variable 1)) "LIMIT")
 (ok (make-clause :limit (make-sql-variable 0) (make-sql-variable 10)))
 (is (multiple-value-list

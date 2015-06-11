@@ -18,6 +18,7 @@
                 :join-clause
                 :where-clause
                 :group-by-clause
+                :having-clause
                 :order-by-clause
                 :limit-clause
                 :offset-clause)
@@ -47,6 +48,7 @@
                        join-clause
                        where-clause
                        group-by-clause
+                       having-clause
                        order-by-clause
                        limit-clause
                        offset-clause))
@@ -73,6 +75,7 @@
                                                                     join-clause
                                                                     where-clause
                                                                     group-by-clause
+                                                                    having-clause
                                                                     order-by-clause
                                                                     limit-clause
                                                                     offset-clause
@@ -91,6 +94,7 @@
   (join-clause nil)
   (where-clause nil)
   (group-by-clause nil)
+  (having-clause nil)
   (order-by-clause nil)
   (limit-clause nil)
   (offset-clause nil))
@@ -104,6 +108,7 @@
                                       join-clause
                                       where-clause
                                       group-by-clause
+                                      having-clause
                                       order-by-clause
                                       limit-clause
                                       offset-clause))

@@ -173,6 +173,14 @@
   `(apply #'make-clause :group-by ',expressions))
 
 @export
+(defmacro having (expression)
+  `(make-clause :having
+                ,(if (and (listp expression)
+                          (keywordp (car expression)))
+                     (expand-op expression)
+                     `,expression)))
+
+@export
 (defun limit (count1 &optional count2)
   (apply #'make-clause :limit `(,count1 ,@(and count2 (list count2)))))
 
