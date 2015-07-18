@@ -72,7 +72,7 @@
                          (eql :left)
                          (eql :right)
                          (eql :full)))
-  (on nil :type (or null =-op))
+  (on nil :type (or null sql-expression))
   (using nil :type (or null sql-symbol sql-list)))
 
 @export

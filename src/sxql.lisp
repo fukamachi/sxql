@@ -197,7 +197,10 @@
   `(make-clause :join ,(expand-op table)
                 :kind ,kind
                 ,@(if on
-                      `(:on (make-op ,@on))
+                      `(:on ,(if (and (listp on)
+                                      (keywordp (car on)))
+                                 (expand-op on)
+                                 `,on))
                       nil)
                 ,@(if using
                       `(:using ',using)
