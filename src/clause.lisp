@@ -272,6 +272,27 @@
    "DROP PRIMARY KEY"
    nil))
 
+(defstruct (on-duplicate-key-update-clause (:include sql-clause (name "ON DUPLICATE KEY UPDATE"))
+                                           (:constructor %make-on-duplicate-key-update-clause (&rest args)))
+  (args nil :type (and proper-list
+                     (satisfies sql-expression-list-p))))
+
+(defun make-on-duplicate-key-update-clause (&rest args)
+  (unless (and (cdr args)
+               (= (mod (length args) 2) 0))
+    ;; TODO: raise an error.
+    )
+  (apply #'%make-on-duplicate-key-update-clause args))
+
+(defmethod yield ((clause on-duplicate-key-update-clause))
+  (labels ((yield-arg (arg)
+             (if arg
+                 (yield arg)
+                 "NULL")))
+    (with-yield-binds
+      (format nil "ON DUPLICATE KEY UPDATE ~{~A = ~A~^, ~}"
+              (mapcar #'yield-arg (on-duplicate-key-update-clause-args clause))))))
+
 (defun find-make-clause (clause-name &optional (package *package*))
   (find-constructor clause-name #.(string :-clause)
                     :package package))

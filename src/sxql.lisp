@@ -284,6 +284,10 @@
 (defun drop-primary-key ()
   (make-clause :drop-primary-key))
 
+@export
+(defmacro on-duplicate-key-update (&rest args)
+  `(make-clause :on-duplicate-key-update ,@(mapcar #'expand-op args)))
+
 
 ;;
 ;; Types
