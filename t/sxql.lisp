@@ -9,7 +9,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 64)
+(plan 65)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -157,6 +157,13 @@
                (limit 5))
        '("UPDATE `person` SET `name` = ?, `sex` = ? WHERE (`age` > ?) ORDER BY `id` LIMIT 5"
          ("Eitaro Fukamachi" "male" 20))
+       "UPDATE")
+
+(is-mv (update :person
+         (set= :age (:+ :age 1))
+         (where (:like :name "Eitaro %")))
+       '("UPDATE `person` SET `age` = (`age` + ?) WHERE (`name` LIKE ?)"
+         (1 "Eitaro %"))
        "UPDATE")
 
 (is-mv (delete-from :person

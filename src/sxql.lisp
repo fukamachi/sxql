@@ -189,8 +189,8 @@
   (make-clause :offset offset))
 
 @export
-(defun set= (&rest args)
-  (apply #'make-clause :set= args))
+(defmacro set= (&rest args)
+  `(make-clause :set= ,@(mapcar #'expand-op args)))
 
 @export
 (defmacro join (table &key (kind :inner) on using)
