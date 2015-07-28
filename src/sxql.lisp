@@ -189,8 +189,8 @@
   (make-clause :offset offset))
 
 @export
-(defun set= (&rest args)
-  (apply #'make-clause :set= args))
+(defmacro set= (&rest args)
+  `(make-clause :set= ,@(mapcar #'expand-op args)))
 
 @export
 (defmacro join (table &key (kind :inner) on using)
@@ -283,6 +283,10 @@
 @export
 (defun drop-primary-key ()
   (make-clause :drop-primary-key))
+
+@export
+(defmacro on-duplicate-key-update (&rest args)
+  `(make-clause :on-duplicate-key-update ,@(mapcar #'expand-op args)))
 
 
 ;;

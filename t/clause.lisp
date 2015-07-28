@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 55)
+(plan 57)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -230,6 +230,12 @@
        :unique t)))
     '("`email` TEXT NOT NULL UNIQUE" nil)
     "column-definition")
+
+(is (multiple-value-list
+     (yield
+      (make-clause :on-duplicate-key-update :a 1 :b 2)))
+    '("ON DUPLICATE KEY UPDATE `a` = ?, `b` = ?" (1 2))
+    "on-duplicate-key-update")
 
 (diag "sql-compile clause")
 

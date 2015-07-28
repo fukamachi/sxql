@@ -9,7 +9,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 63)
+(plan 65)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -141,6 +141,14 @@
        '("INSERT INTO `person` (`name`, `sex`) SELECT `name`, `sex` FROM `person_tmp`" nil)
        "INSERT INTO ... SELECT")
 
+(is-mv (insert-into :person
+         (set= :sex "male"
+               :age 25
+               :name "Eitaro Fukamachi")
+         (on-duplicate-key-update :age (:+ :age 1)))
+       '("INSERT INTO `person` (`sex`, `age`, `name`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `age` = (`age` + ?)" ("male" 25 "Eitaro Fukamachi" 1))
+       "INSERT ... ON DUPLICATE KEY UPDATE")
+
 (is-mv (update :person
                (set= :name "Eitaro Fukamachi"
                      :sex "male")
@@ -149,6 +157,13 @@
                (limit 5))
        '("UPDATE `person` SET `name` = ?, `sex` = ? WHERE (`age` > ?) ORDER BY `id` LIMIT 5"
          ("Eitaro Fukamachi" "male" 20))
+       "UPDATE")
+
+(is-mv (update :person
+         (set= :age (:+ :age 1))
+         (where (:like :name "Eitaro %")))
+       '("UPDATE `person` SET `age` = (`age` + ?) WHERE (`name` LIKE ?)"
+         (1 "Eitaro %"))
        "UPDATE")
 
 (is-mv (delete-from :person
