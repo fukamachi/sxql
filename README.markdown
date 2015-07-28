@@ -394,14 +394,14 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 Support MySQL's `INSERT ... ON DUPLICATE KEY UPDATE` syntax.
 
 ```common-lisp
-(on-duplicate-key-update :age '(:+ :age 1))
+(on-duplicate-key-update :age (:+ :age 1))
 ;=> #<SXQL-CLAUSE: ON DUPLICATE KEY UPDATE `age` = (`age` + 1)>
 
 (insert-into :person
   (set= :sex "male"
         :age 25
         :name "Eitaro Fukamachi")
-  (on-duplicate-key-update :age '(:+ :age 1)))
+  (on-duplicate-key-update :age (:+ :age 1)))
 ;=> #<SXQL-STATEMENT: INSERT INTO `person` (`sex`, `age`, `name`) VALUES ('male', 25, 'Eitaro Fukamachi') ON DUPLICATE KEY UPDATE `age` = (`age` + 1)>
 ```
 
