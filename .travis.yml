@@ -9,16 +9,9 @@ env:
     - LISP=allegro
     - LISP=abcl
     - LISP=ecl
-    - LISP=cmucl
-
-matrix:
-  allow_failures:
-    - env: LISP=clisp
-    - env: LISP=ecl
-    - env: LISP=cmucl
 
 install:
-  - curl -L https://raw.githubusercontent.com/fukamachi/roswell/fix-install-script/scripts/install-for-ci.sh | sh
+  - curl -L https://raw.githubusercontent.com/snmsts/roswell/master/scripts/install-for-ci.sh | sh
 
 before_script:
   - ros --version
