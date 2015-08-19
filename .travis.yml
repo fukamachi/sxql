@@ -1,22 +1,31 @@
 language: common-lisp
+sudo: required
 
 env:
+  global:
+    - PATH=~/.roswell/bin:$PATH
   matrix:
-    - LISP=sbcl
-    - LISP=ccl
+    - LISP=sbcl-bin
+    - LISP=ccl-bin
     - LISP=clisp
     - LISP=allegro
     - LISP=abcl
     - LISP=ecl
+    - LISP=cmucl
 
 matrix:
   allow_failures:
     - env: LISP=clisp
     - env: LISP=ecl
+    - env: LISP=cmucl
 
 install:
-  # Install cl-travis
-  - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | bash
+  - curl -L https://raw.githubusercontent.com/snmsts/roswell/master/scripts/install-for-ci.sh | sh
+  - ros install prove
+
+before_script:
+  - ros --version
+  - ros config
 
 script:
-  - cl -l prove -e '(or (prove:run :sxql-test) (uiop:quit -1))'
+  - run-prove sxql-test.asd
