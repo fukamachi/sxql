@@ -2,8 +2,6 @@ language: common-lisp
 sudo: required
 
 env:
-  global:
-    - PATH=~/.roswell/bin:$PATH
   matrix:
     - LISP=sbcl-bin
     - LISP=ccl-bin
@@ -21,11 +19,10 @@ matrix:
 
 install:
   - curl -L https://raw.githubusercontent.com/fukamachi/roswell/fix-install-script/scripts/install-for-ci.sh | sh
-  - ros install prove
 
 before_script:
   - ros --version
   - ros config
 
 script:
-  - run-prove sxql-test.asd
+  - ros -s prove -s uiop -e '(or (prove:run :sxql-test) (uiop:quit -1))'
