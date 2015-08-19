@@ -20,7 +20,7 @@ matrix:
     - env: LISP=cmucl
 
 install:
-  - curl -L https://raw.githubusercontent.com/snmsts/roswell/master/scripts/install-for-ci.sh | sh
+  - curl -L https://raw.githubusercontent.com/fukamachi/roswell/fix-install-script/scripts/install-for-ci.sh | sh
   - ros install prove
 
 before_script:
