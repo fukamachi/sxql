@@ -18,7 +18,6 @@ matrix:
     - env: LISP=cmucl
 
 install:
-  - sudo apt-get update
   - curl -L https://raw.githubusercontent.com/fukamachi/roswell/fix-install-script/scripts/install-for-ci.sh | sh
 
 before_script:
