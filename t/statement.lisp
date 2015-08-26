@@ -11,7 +11,7 @@
                           :is-error))
 (in-package :t.sxql.statement)
 
-(plan 18)
+(plan 19)
 
 (diag "statement")
 
@@ -47,6 +47,22 @@
                             (make-clause :order-by
                                          (make-sql-symbol "a")))))
     (list "SELECT `a`, ? FROM `table` ORDER BY `a`" '(1)))
+
+(is (multiple-value-list
+     (yield (make-statement :select
+                            (make-clause :fields :*)
+                            (make-clause :from
+                                         (make-sql-symbol "table"))
+                            (make-clause :where
+                                         (make-op :>
+                                                  :max
+                                                  (make-op :ifnull
+                                                           (make-statement :select
+                                                                           (make-clause :fields :count)
+                                                                           (make-clause :from
+                                                                                        (make-sql-symbol "table")))
+                                                           0))))))
+    (list "SELECT * FROM `table` WHERE (`max` > IFNULL((SELECT `count` FROM `table`), ?))" '(0)))
 
 (is (multiple-value-list
      (yield (make-statement :insert-into (make-sql-symbol "table")

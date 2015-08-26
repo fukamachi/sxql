@@ -16,6 +16,7 @@
 
 (defparameter *bind-values* nil)
 (defparameter *use-global-bind-values* nil)
+(defparameter *inside-function-op* nil)
 
 @export
 (defmacro with-yield-binds (&body body)
@@ -369,10 +370,11 @@
         (yield (car (conjunctive-op-expressions op))))))
 
 (defmethod yield ((op function-op))
-  (with-yield-binds
-    (format nil "~A(~{~A~^, ~})"
-            (sql-op-name op)
-            (mapcar #'yield (function-op-expressions op)))))
+  (let ((*inside-function-op* t))
+    (with-yield-binds
+      (format nil "~A(~{~A~^, ~})"
+              (sql-op-name op)
+              (mapcar #'yield (function-op-expressions op))))))
 
 (defmethod yield ((clause expression-clause))
   (multiple-value-bind (sql bind)
@@ -400,7 +402,9 @@
 
 (defmethod yield ((statement sql-composed-statement))
   (with-yield-binds
-    (format nil "~A ~{~A~^ ~}"
+    (format nil (if *inside-function-op*
+                    "(~A ~{~A~^ ~})"
+                    "~A ~{~A~^ ~}")
             (sql-statement-name statement)
             (mapcar #'yield (sql-composed-statement-children statement)))))
 
