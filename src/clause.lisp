@@ -219,18 +219,19 @@
 
 @export
 (defstruct (column-definition-clause (:include sql-clause)
-                                     (:constructor %make-column-definition-clause (column-name &key type not-null default auto-increment unique primary-key)))
+                                     (:constructor %make-column-definition-clause (column-name &key type not-null default auto-increment autoincrement unique primary-key)))
   column-name
   type
   not-null
   default
   auto-increment
+  autoincrement
   unique
   primary-key)
 
 @export
-(defun make-column-definition-clause (column-name &rest args &key type not-null default auto-increment unique primary-key)
-  (declare (ignore type not-null default auto-increment unique primary-key))
+(defun make-column-definition-clause (column-name &rest args &key type not-null default auto-increment autoincrement unique primary-key)
+  (declare (ignore type not-null default auto-increment autoincrement unique primary-key))
   (apply #'%make-column-definition-clause
          (detect-and-convert column-name)
          (loop for (key val) on args by #'cddr
@@ -258,7 +259,10 @@
       (when (column-definition-clause-unique clause)
         (write-string " UNIQUE" s))
       (when (column-definition-clause-primary-key clause)
-        (write-string " PRIMARY KEY" s)))))
+        (write-string " PRIMARY KEY" s))
+      (when (and (column-definition-clause-autoincrement clause)
+                 (not (column-definition-clause-auto-increment clause)))
+       (write-string " AUTOINCREMENT" s)))))
 
 (defstruct (add-primary-key-clause (:include expression-clause (name "ADD PRIMARY KEY"))
                                    (:constructor make-add-primary-key-clause (expression))))
