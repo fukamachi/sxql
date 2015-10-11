@@ -181,6 +181,14 @@
                      `,expression)))
 
 @export
+(defmacro returning (expression)
+  `(make-clause :returning
+                ,(if (and (listp expression)
+                          (keywordp (car expression)))
+                     (expand-op expression)
+                     `,expression)))
+
+@export
 (defun limit (count1 &optional count2)
   (apply #'make-clause :limit `(,count1 ,@(and count2 (list count2)))))
 

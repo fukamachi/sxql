@@ -66,6 +66,10 @@
                           (:constructor make-having-clause (expression))))
 
 @export
+(defstruct (returning-clause (:include expression-clause (name "RETURNING"))
+                          (:constructor make-returning-clause (expression))))
+
+@export
 (defstruct (join-clause (:include statement-clause)
                         (:constructor make-join-clause))
   (kind :inner :type (or (eql :inner)
