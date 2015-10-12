@@ -71,6 +71,12 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
         :name "Eitaro Fukamachi"))
 ;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = 'male', age = 25, name = 'Eitaro Fukamachi'>
 
+(insert-into :users
+  (set= :name "Jack"
+        :jinbei-size "small")
+  (returning :id))
+;=> #<SXQL-STATEMENT: INSERT INTO `users` (`name`, `jinbei-size`) VALUES ('Jack', 'small') RETURNING `id`>
+
 (insert-into :person
   (:id :name)
   (select (:id :name)
@@ -240,6 +246,20 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ```common-lisp
 (group-by :sex)
 ;=> #<SXQL-CLAUSE: GROUP BY sex>
+```
+
+### having
+
+```common-lisp
+(having (:>= (:sum :hoge) 88))
+;=> #<SXQL-CLAUSE: HAVING (SUM(`hoge`) >= 88)>
+```
+
+### returning
+
+```common-lisp
+(returning :id)
+;=> #<SXQL-CLAUSE: RETURNING `id`>
 ```
 
 ### limit
