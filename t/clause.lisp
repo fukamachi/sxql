@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 58)
+(plan 59)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list

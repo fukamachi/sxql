@@ -7,8 +7,9 @@
 (in-package :t.sxql.prepare)
 
 (defmacro is-error (form condition &optional desc)
-  #+ccl `(prove:is-error ,form ,condition ,desc)
-  #-ccl
-  (if (eq condition 'type-error)
+  (if #+sbcl (and (uiop:version< (lisp-implementation-version) "1.3.1")
+                  (eq condition 'type-error))
+      #+ccl nil
+      #-(or sbcl ccl) (eq condition 'type-error)
       '(skip 1 "Testing type-error isn't supported")
       `(prove:is-error ,form ,condition ,desc)))
