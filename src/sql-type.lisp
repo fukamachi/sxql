@@ -97,7 +97,7 @@
             (mapcar #'yield (sql-column-type-attrs type)))))
 
 @export
-(deftype sql-expression () '(or sql-atom sql-list sql-op sql-clause))
+(deftype sql-expression () '(or sql-atom sql-list sql-op sql-clause null))
 
 (defun sql-expression-p (object)
   (typep object 'sql-expression))

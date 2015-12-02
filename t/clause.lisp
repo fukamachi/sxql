@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 57)
+(plan 58)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -122,6 +122,7 @@
 (is (multiple-value-list
      (yield (make-clause :set= :a 1 :b 2)))
     (list "SET `a` = ?, `b` = ?" '(1 2)))
+(ok (make-clause :set= :a nil))
 ;(is-error (make-clause :set=) program-error)
 ;(is-error (make-clause :set= 'a 1 'b) program-error)
 ;(is-error (make-clause :set= '(a 1)) program-error)
