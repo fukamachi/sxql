@@ -356,7 +356,7 @@
 
 (defmethod make-clause ((clause-name (eql :change-column)) &rest args)
   (apply #'make-column-modifier-clause #'make-change-column-clause
-         args))
+         (mapcar #'detect-and-convert args)))
 
 (defmethod make-clause ((clause-name (eql :alter-column)) &rest args)
   (destructuring-bind (column-name &key type set-default drop-default (not-null :unspecified)) args
@@ -368,7 +368,7 @@
                               :not-null not-null)))
 
 (defmethod make-clause ((clause-name (eql :add-primary-key)) &rest args)
-  (make-add-primary-key-clause (apply #'make-sql-list args)))
+  (make-add-primary-key-clause (apply #'make-sql-list (mapcar #'detect-and-convert args))))
 
 (defmethod yield ((clause limit-clause))
   (let ((*use-placeholder* nil))
