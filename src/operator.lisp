@@ -107,6 +107,10 @@ case letters."
     (not (every #'upper-or-not-alpha (symbol-name symbol)))))
 
 @export
+(defvar *sql-symbol-conversion* #'identity
+  "Function for converting a string into an SQL symbol. It takes a string and must returns a string.")
+
+@export
 (defun detect-and-convert (object)
   (etypecase object
     ((or number
@@ -121,7 +125,7 @@ case letters."
                           #'string-downcase)))
        (if (string-equal name "null")
            (make-sql-keyword name)
-           (make-sql-symbol (funcall string-fn object)))))
+           (make-sql-symbol (funcall *sql-symbol-conversion* (funcall string-fn object))))))
     (list
      (if (keywordp (car object))
          (apply #'make-op object)

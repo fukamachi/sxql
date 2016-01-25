@@ -19,7 +19,8 @@
                 :make-op
                 :detect-and-convert
                 :union-op
-                :union-all-op)
+                :union-all-op
+                :*sql-symbol-conversion*)
   (:export :yield
            :sql-compile
            :add-child
@@ -29,6 +30,7 @@
            :compose-statements
            :*use-placeholder*
            :*quote-character*
+           :*sql-symbol-conversion*
 
            :select-statement
            :insert-into-statement
