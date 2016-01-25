@@ -11,6 +11,7 @@
   (:import-from :sxql.sql-type
                 :sql-clause-list
                 :yield
+                :make-sql-symbol
                 :*use-placeholder*
                 :*quote-character*)
   (:import-from :sxql.compile
@@ -27,6 +28,7 @@
            :make-statement
            :make-clause
            :make-op
+           :make-sql-symbol
            :compose-statements
            :*use-placeholder*
            :*quote-character*
