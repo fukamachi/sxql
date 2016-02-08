@@ -4,7 +4,8 @@
         :sxql.sql-type)
   (:import-from :sxql.sql-type
                 :sql-statement-p
-                :conjunctive-op-expressions))
+                :conjunctive-op-expressions
+                :sql-all-type))
 (in-package :sxql.operator)
 
 (cl-syntax:use-syntax :annot)
@@ -130,7 +131,8 @@ case letters."
      (if (keywordp (car object))
          (apply #'make-op object)
          (mapcar #'detect-and-convert object)))
-    (structure-object object)
+    (sql-all-type object)
+    (structure-object (make-sql-variable (princ-to-string object)))
     (standard-object (make-sql-variable (princ-to-string object)))))
 
 (defmethod yield ((op is-null-op))
