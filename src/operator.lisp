@@ -113,27 +113,47 @@ case letters."
 
 @export
 (defun detect-and-convert (object)
-  (etypecase object
-    ((or number
-         string
-         (vector (unsigned-byte 8)))
-     (make-sql-variable object))
-    (boolean object)
-    (symbol
-     (let ((name (symbol-name object))
-           (string-fn (if (has-lower-case-letters-p object) ;; Only downcase all caps
-                          #'string
-                          #'string-downcase)))
-       (if (string-equal name "null")
-           (make-sql-keyword name)
-           (make-sql-symbol (funcall *sql-symbol-conversion* (funcall string-fn object))))))
-    (list
-     (if (keywordp (car object))
-         (apply #'make-op object)
-         (mapcar #'detect-and-convert object)))
-    (sql-all-type object)
-    (structure-object (make-sql-variable (princ-to-string object)))
-    (standard-object (make-sql-variable (princ-to-string object)))))
+  (convert-for-sql object))
+
+@export
+(defgeneric convert-for-sql (object)
+  (:method ((object number))
+    (make-sql-variable object))
+  (:method ((object string))
+    (make-sql-variable object))
+  (:method ((object null))
+    object)
+  (:method ((object (eql t)))
+    object)
+  (:method ((object symbol))
+    (let ((name (symbol-name object))
+          (string-fn (if (has-lower-case-letters-p object) ;; Only downcase all caps
+                         #'string
+                         #'string-downcase)))
+      (if (string-equal name "null")
+          (make-sql-keyword name)
+          (make-sql-symbol (funcall *sql-symbol-conversion* (funcall string-fn object))))))
+  (:method ((object list))
+    (if (keywordp (car object))
+        (apply #'make-op object)
+        (mapcar #'detect-and-convert object)))
+  (:method ((object structure-object))
+    (if (typep object 'sql-all-type)
+        object
+        (make-sql-variable (princ-to-string object))))
+  (:method ((object standard-object))
+    (if (string-equal (prin1-to-string (type-of object)) "local-time:timestamp")
+        (progn
+          (eval
+           `(defmethod convert-for-sql ((object ,(type-of object)))
+              (make-sql-variable
+               (,(intern (string :format-timestring) :local-time)
+                nil object
+                :format '((:year 4) #\- (:month 2) #\- (:day 2)
+                          #\Space
+                          (:hour 2) #\: (:min 2) #\: (:sec 2))))))
+          (convert-for-sql object))
+        (make-sql-variable (princ-to-string object)))))
 
 (defmethod yield ((op is-null-op))
   (yield
