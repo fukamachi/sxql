@@ -121,6 +121,8 @@ case letters."
     (make-sql-variable object))
   (:method ((object string))
     (make-sql-variable object))
+  (:method ((object vector))
+    (make-sql-variable object))
   (:method ((object null))
     object)
   (:method ((object (eql t)))
