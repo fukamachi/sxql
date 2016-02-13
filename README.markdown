@@ -338,6 +338,9 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ```common-lisp
 (foreign-key '(:project_id) :references '(:project :id))
 ;=> #<SXQL-CLAUSE: FOREIGN KEY (project_id) REFERENCES project (id)>
+
+(foreign-key '(:user_id) :references '(:user :id) :on-delete :cascade)
+;=> #<SXQL-CLAUSE: FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE>
 ```
 
 ### add-column

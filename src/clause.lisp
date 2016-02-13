@@ -138,11 +138,30 @@
   (table-name nil :type sql-symbol)
   (column-names nil :type sql-list))
 
+(defstruct (on-clause (:include sql-clause (name)))
+  (action nil :type string))
+(defmethod yield ((clause on-clause))
+  (values
+   (format nil "~A ~A"
+           (slot-value clause 'name)
+           (on-clause-action clause))
+   nil))
+(defstruct (on-delete-clause (:include on-clause (name "ON DELETE"))))
+(defstruct (on-update-clause (:include on-clause (name "ON UPDATE"))))
+
 @export
 (defstruct (foreign-key-clause (:include expression-clause (name "FOREIGN KEY"))
-                               (:constructor make-foreign-key-clause (column-names references
+                               (:constructor make-foreign-key-clause (column-names references on-delete on-update
                                                                       &aux (expression
-                                                                            (make-sql-splicing-expression-list column-names references)))))
+                                                                            (apply #'make-sql-splicing-expression-list
+                                                                             column-names references
+                                                                             (append
+                                                                              (and on-delete
+                                                                                   (list
+                                                                                    (make-on-delete-clause :action on-delete)))
+                                                                              (and on-update
+                                                                                   (list
+                                                                                    (make-on-update-clause :action on-update)))))))))
   (column-names nil :type sql-list)
   (references nil :type references-clause))
 
@@ -335,7 +354,7 @@
   (apply #'make-key-clause-for-all #'make-unique-key-clause args))
 
 (defmethod make-clause ((clause-name (eql :foreign-key)) &rest args)
-  (destructuring-bind (column-names &key references) args
+  (destructuring-bind (column-names &key references on-delete on-update) args
     (destructuring-bind (target-table-name &rest target-column-names) references
       (make-foreign-key-clause
        (apply #'make-sql-list (mapcar #'detect-and-convert
@@ -344,7 +363,9 @@
                                           (list column-names))))
        (make-references-clause (detect-and-convert target-table-name)
                                (apply #'make-sql-list (mapcar #'detect-and-convert
-                                                              target-column-names)))))))
+                                                              target-column-names)))
+       on-delete
+       on-update))))
 
 (defmethod make-clause ((clause-name (eql :add-column)) &rest args)
   (apply #'make-column-modifier-clause #'make-add-column-clause
