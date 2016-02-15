@@ -325,9 +325,10 @@
                     :package package))
 
 @export
-(defmethod make-clause (clause-name &rest args)
-  (apply (find-make-clause clause-name #.*package*)
-         (mapcar #'detect-and-convert args)))
+(defgeneric make-clause (clause-name &rest args)
+  (:method ((clause-name t) &rest args)
+    (apply (find-make-clause clause-name #.*package*)
+           (mapcar #'detect-and-convert args))))
 
 (defmethod make-clause ((clause-name (eql :join)) &rest args)
   (destructuring-bind (statement &key kind on using) args

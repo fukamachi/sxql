@@ -34,6 +34,8 @@
 (cl-syntax:use-syntax :annot)
 
 @export
+(defgeneric add-child (statement child))
+
 (defmethod add-child ((statement sql-composed-statement) child)
   (let ((slot-name (type-of child)))
     (setf (slot-value statement slot-name)

@@ -88,14 +88,6 @@
     (symbol (make-sql-keyword (string-upcase type)))
     (t type)))
 
-(defmethod yield ((type sql-column-type))
-  (let ((*use-placeholder* nil)
-        (args (sql-column-type-args type)))
-    (format nil "~A~:[~;~:*(~{~A~^, ~})~]~{ ~A~}"
-            (yield (sql-column-type-name type))
-            (mapcar #'yield args)
-            (mapcar #'yield (sql-column-type-attrs type)))))
-
 @export
 (deftype sql-expression () '(or sql-atom sql-list sql-op sql-clause null))
 
@@ -375,6 +367,14 @@
       (format nil "~A(~{~A~^, ~})"
               (sql-op-name op)
               (mapcar #'yield (function-op-expressions op))))))
+
+(defmethod yield ((type sql-column-type))
+  (let ((*use-placeholder* nil)
+        (args (sql-column-type-args type)))
+    (format nil "~A~:[~;~:*(~{~A~^, ~})~]~{ ~A~}"
+            (yield (sql-column-type-name type))
+            (mapcar #'yield args)
+            (mapcar #'yield (sql-column-type-attrs type)))))
 
 (defmethod yield ((clause expression-clause))
   (multiple-value-bind (sql bind)
