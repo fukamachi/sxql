@@ -152,8 +152,8 @@
 
 @export
 (defstruct (create-table-statement (:include sql-composed-statement (name "CREATE TABLE"))
-                                   (:constructor make-create-table-statement (table &key if-not-exists children
-                                                                              &aux (children (cons table children)))))
+                                   (:constructor make-create-table-statement (table &key if-not-exists children)))
+  table
   (if-not-exists nil :type boolean))
 
 @export
@@ -232,14 +232,13 @@
        (detect-and-convert (car table-and-args))
        :if-not-exists (getf (cdr table-and-args) :if-not-exists)
        :children
-       (list (apply #'make-sql-list
-                    (append
-                     (mapcar #'(lambda (column)
-                                 (if (typep column 'column-definition-clause)
-                                     column
-                                     (apply #'make-column-definition-clause column)))
-                             column-definitions)
-                     options)))))))
+       (nconc
+        (mapcar #'(lambda (column)
+                    (if (typep column 'column-definition-clause)
+                        column
+                        (apply #'make-column-definition-clause column)))
+                column-definitions)
+        options)))))
 
 (defmethod make-statement ((statement-name (eql :drop-table)) &rest args)
   (destructuring-bind (table &key if-exists) args
@@ -264,9 +263,10 @@
 
 (defmethod yield ((statement create-table-statement))
   (with-yield-binds
-    (format nil "~A~:[~; IF NOT EXISTS~] ~{~A~^ ~}"
+    (format nil "~A~:[~; IF NOT EXISTS~] ~A (~%~{    ~A~^,~%~}~%)"
             (sql-statement-name statement)
             (create-table-statement-if-not-exists statement)
+            (yield (create-table-statement-table statement))
             (mapcar #'yield (sql-composed-statement-children statement)))))
 
 (defmethod yield ((statement drop-table-statement))

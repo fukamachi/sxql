@@ -213,7 +213,13 @@
                          :default "None")
          (identifying_color :type '(:char 20)
                             :unique t)))
-       '("CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)" ("None"))
+       '("CREATE TABLE `enemy` (
+    `name` STRING PRIMARY KEY,
+    `age` INTEGER NOT NULL,
+    `address` TEXT,
+    `fatal_weakness` TEXT NOT NULL DEFAULT ?,
+    `identifying_color` CHAR(20) UNIQUE
+)" ("None"))
        "CREATE TABLE")
 
 (is-mv (create-table (:enemy)
@@ -228,7 +234,13 @@
                          :default "None")
          (identifying_color :type '(:char 20)
                             :unique t)))
-       '("CREATE TABLE `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)" ("None"))
+       '("CREATE TABLE `enemy` (
+    `name` STRING PRIMARY KEY,
+    `age` INTEGER NOT NULL,
+    `address` TEXT,
+    `fatal_weakness` TEXT NOT NULL DEFAULT ?,
+    `identifying_color` CHAR(20) UNIQUE
+)" ("None"))
        "CREATE TABLE")
 
 (is-mv (create-table (:enemy :if-not-exists t)
@@ -243,7 +255,13 @@
                          :default "None")
          (identifying_color :type '(:char 20)
                             :unique t)))
-       '("CREATE TABLE IF NOT EXISTS `enemy` (`name` STRING PRIMARY KEY, `age` INTEGER NOT NULL, `address` TEXT, `fatal_weakness` TEXT NOT NULL DEFAULT ?, `identifying_color` CHAR(20) UNIQUE)" ("None"))
+       '("CREATE TABLE IF NOT EXISTS `enemy` (
+    `name` STRING PRIMARY KEY,
+    `age` INTEGER NOT NULL,
+    `address` TEXT,
+    `fatal_weakness` TEXT NOT NULL DEFAULT ?,
+    `identifying_color` CHAR(20) UNIQUE
+)" ("None"))
        "CREATE TABLE IF NOT EXISTS")
 
 (is-mv (drop-table :enemy)
