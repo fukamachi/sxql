@@ -249,7 +249,7 @@
 
 (defmethod make-statement ((statement-name (eql :create-index)) &rest args)
   (destructuring-bind (index-name  &key unique using on) args
-    (make-create-index-statement (make-sql-symbol index-name)
+    (make-create-index-statement (detect-and-convert index-name)
                                  (detect-and-convert (car on))
                                  (apply #'make-sql-list
                                         (mapcar #'detect-and-convert (cdr on)))
