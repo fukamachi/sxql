@@ -102,6 +102,20 @@
     "<=")
 
 (is (multiple-value-list
+     (yield (make-op :a<
+                     (make-sql-variable 1)
+                     (make-sql-variable 1))))
+    (list "(? @< ?)" '(1 1))
+    "@<")
+
+(is (multiple-value-list
+     (yield (make-op :a>
+                     (make-sql-variable 1)
+                     (make-sql-variable 1))))
+    (list "(? @> ?)" '(1 1))
+    "@>")
+
+(is (multiple-value-list
      (yield (make-op :as
                          (make-sql-symbol "table-name")
                          (make-sql-symbol "a"))))
