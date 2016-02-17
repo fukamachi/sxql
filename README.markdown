@@ -436,6 +436,7 @@ Support MySQL's `INSERT ... ON DUPLICATE KEY UPDATE` syntax.
 * :distinct
 * :=, :!=
 * :<, :>, :<= :>=
+* :a<, :a>
 * :as
 * :in, :not-in
 * :like

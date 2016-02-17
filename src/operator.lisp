@@ -55,6 +55,8 @@
 (define-op (:> infix-op))
 (define-op (:<= infix-op))
 (define-op (:>= infix-op))
+(define-op (:a< infix-op :sql-op-name "@<"))
+(define-op (:a> infix-op :sql-op-name "@>"))
 (define-op (:as infix-splicing-op))
 (define-op (:in infix-list-op))
 (define-op (:not-in infix-list-op))
