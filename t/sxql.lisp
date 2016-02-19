@@ -276,7 +276,7 @@
   (is-mv (drop-table table-name :if-exists t)
          '("DROP TABLE IF EXISTS `enemy`" ())))
 
-(is-mv (create-index "index_name"
+(is-mv (create-index :index_name
                      :unique t
                      :using :btree
                      :on '(:table :column1 :column2))

@@ -175,7 +175,7 @@
     '("ALTER TABLE `tweet` ADD COLUMN `status` ENUM('temporary', 'registered', 'banned')" nil))
 
 (is (multiple-value-list
-     (yield (make-statement :create-index "index_name"
+     (yield (make-statement :create-index :index_name
                             :unique t
                             :using :btree
                             :on '(:table :column1 :column2))))
