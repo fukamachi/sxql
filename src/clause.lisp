@@ -177,7 +177,9 @@
   (declare (ignore type not-null default auto-increment unique primary-key))
   (let ((args (list (apply #'make-column-definition-clause column-name
                            (loop for (k v) on args by #'cddr
-                                 unless (or (eq k :after) (eq k :first))
+                                 if (eq k :default)
+                                   append (list k (detect-and-convert v))
+                                 else if (not (or (eq k :after) (eq k :first)))
                                    append (list k v)))
                     :after (detect-and-convert after)
                     :first first)))
