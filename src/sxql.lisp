@@ -132,8 +132,8 @@
   (apply #'make-op :union-all queries))
 
 @export
-(defun create-index (index-name &rest args &key unique using on)
-  (declare (ignore unique using on))
+(defun create-index (index-name &rest args &key unique using on if-not-exists)
+  (declare (ignore unique using on if-not-exists))
   (apply #'make-statement :create-index index-name
          args))
 

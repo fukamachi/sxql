@@ -9,7 +9,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 65)
+(plan 66)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -282,6 +282,14 @@
                      :on '(:table :column1 :column2))
        '("CREATE UNIQUE INDEX `index_name` USING BTREE ON `table` (`column1`, `column2`)" nil)
        "CREATE UNIQUE INDEX")
+
+(is-mv (create-index :index_name
+                     :unique t
+                     :using :btree
+                     :on '(:table :column1 :column2)
+                     :if-not-exists t)
+       '("CREATE UNIQUE INDEX `index_name` IF NOT EXISTS USING BTREE ON `table` (`column1`, `column2`)" nil)
+       "CREATE UNIQUE INDEX IF NOT EXISTS")
 
 (is-mv (drop-index "index_name" :if-exists t)
        '("DROP INDEX IF EXISTS `index_name`" nil)

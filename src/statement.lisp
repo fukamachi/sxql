@@ -174,12 +174,13 @@
 
 @export
 (defstruct (create-index-statement (:include sql-statement (name "CREATE INDEX"))
-                                   (:constructor make-create-index-statement (index-name table-name columns &key unique using)))
+                                   (:constructor make-create-index-statement (index-name table-name columns &key unique using if-not-exists)))
   (index-name nil :type sql-symbol)
   (table-name nil :type sql-symbol)
   (columns nil :type sql-list)
   (unique nil :type boolean)
-  (using nil :type (or null sql-keyword)))
+  (using nil :type (or null sql-keyword))
+  (if-not-exists nil :type boolean))
 
 @export
 (defstruct (drop-index-statement (:include sql-statement (name "DROP INDEX"))
@@ -248,14 +249,15 @@
                                :if-exists if-exists)))
 
 (defmethod make-statement ((statement-name (eql :create-index)) &rest args)
-  (destructuring-bind (index-name  &key unique using on) args
+  (destructuring-bind (index-name  &key unique using on if-not-exists) args
     (make-create-index-statement (detect-and-convert index-name)
                                  (detect-and-convert (car on))
                                  (apply #'make-sql-list
                                         (mapcar #'detect-and-convert (cdr on)))
                                  :unique unique
                                  :using (and using
-                                             (make-sql-keyword (string using))))))
+                                             (make-sql-keyword (string using)))
+                                 :if-not-exists if-not-exists)))
 
 (defmethod make-statement ((statement-name (eql :drop-index)) &rest args)
   (destructuring-bind (index-name &key if-exists on) args
@@ -291,9 +293,10 @@
 
 (defmethod yield ((statement create-index-statement))
   (values
-   (format nil "CREATE~:[~; UNIQUE~] INDEX ~A~:[~; USING ~:*~A~] ON ~A ~A"
+   (format nil "CREATE~:[~; UNIQUE~] INDEX ~A~:[~; IF NOT EXISTS~]~:[~; USING ~:*~A~] ON ~A ~A"
            (create-index-statement-unique statement)
            (yield (create-index-statement-index-name statement))
+           (create-index-statement-if-not-exists statement)
            (and (create-index-statement-using statement)
                 (yield (create-index-statement-using statement)))
            (yield (create-index-statement-table-name statement))
