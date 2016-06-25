@@ -189,6 +189,13 @@
   (if-exists nil :type boolean)
   (on nil :type (or null sql-symbol)))
 
+@export
+(defstruct (pragma-statement (:include sql-statement (name "PRAGMA"))
+                             (:constructor make-pragma-statement (pragma-name &optional value)))
+  "A statement for PRAGMA statement available in SQLITE. See https://www.sqlite.org/pragma.html"
+  pragma-name
+  value)
+
 (defun find-make-statement (statement-name &optional (package *package*))
   (find-constructor statement-name #.(string :-statement)
                     :package package))
@@ -265,6 +272,9 @@
                                :if-exists if-exists
                                :on (detect-and-convert on))))
 
+(defmethod make-statement ((statement-name (eql :pragma)) &rest args)
+  (apply #'make-pragma-statement args))
+
 (defmethod yield ((statement create-table-statement))
   (with-yield-binds
     (format nil "~A~:[~; IF NOT EXISTS~] ~A (~%~{    ~A~^,~%~}~%)"
@@ -311,3 +321,11 @@
            (and (drop-index-statement-on statement)
                 (yield (drop-index-statement-on statement))))
    nil))
+
+(defmethod yield ((statement pragma-statement))
+  (values
+   (format nil "PRAGMA ~A ~@[ = ~A~]"
+           (pragma-statement-pragma-name statement)
+           (pragma-statement-value statement))
+   nil))
+
