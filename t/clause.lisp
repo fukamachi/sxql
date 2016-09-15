@@ -105,7 +105,7 @@
     (list "FOR UPDATE OF `hoge`, `piyo` NOWAIT" nil))
 (is (multiple-value-list
      (yield (make-clause :updatability :update :nowait t)))
-    (list "FOR UPDATE NOWAIT"))
+    (list "FOR UPDATE NOWAIT" nil))
 
 (ok (make-clause :limit (make-sql-variable 1)) "LIMIT")
 (ok (make-clause :limit (make-sql-variable 0) (make-sql-variable 10)))
