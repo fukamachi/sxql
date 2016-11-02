@@ -13,9 +13,9 @@
 @export
 (defparameter *inside-select* nil)
 
-(defmacro define-op ((op-name struct-type &key sql-op-name include-slots) &body body)
+(defmacro define-op ((op-name struct-type &key sql-op-name include-slots (package (find-package :sxql.operator))) &body body)
   (check-type op-name symbol)
-  (let ((struct-name (intern (concatenate 'string (symbol-name op-name) #.(string :-op)))))
+  (let ((struct-name (intern (concatenate 'string (symbol-name op-name) #.(string :-op)) package)))
     `(defstruct (,struct-name (:include ,struct-type
                                (name ,(or sql-op-name
                                           (with-output-to-string (s)
@@ -28,7 +28,8 @@
                               (:constructor ,(intern (concatenate 'string
                                                                   #.(string :make-)
                                                                   (symbol-name op-name)
-                                                                  #.(string :-op)))
+                                                                  #.(string :-op))
+                                                     package)
                                   ,(ecase struct-type
                                      ((unary-op
                                        unary-splicing-op
