@@ -124,6 +124,10 @@
                    ,(expand-expression table) ,@clauses))
 
 @export
+(defun pragma (name &optional value)
+  (make-statement :pragma name value))
+
+@export
 (defun union-queries (&rest queries)
   (apply #'make-op :union queries))
 
