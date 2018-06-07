@@ -210,6 +210,28 @@
 
 (deftype multiple-allowed-clause () 'join-clause)
 
+@export
+(defun merge-statements (statement defaults)
+  (check-type statement select-statement)
+  (check-type defaults select-statement)
+  (apply #'make-statement :select
+         (if defaults
+             (iter (for type in '(fields-clause
+                                  from-clause
+                                  join-clause
+                                  where-clause
+                                  group-by-clause
+                                  having-clause
+                                  returning-clause
+                                  order-by-clause
+                                  limit-clause
+                                  offset-clause))
+               (appending
+                (if (or (null defaults)
+                        (slot-value statement type))
+                    (slot-value statement type)
+                    (slot-value defaults type)))))))
+
 (defmethod make-statement ((statement-name (eql :select)) &rest args)
   (apply #'make-select-statement
          (iter (for (type clauses) on (group-by #'type-of

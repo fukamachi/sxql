@@ -25,6 +25,7 @@
   (:export :yield
            :sql-compile
            :add-child
+           :merge-statements
            :make-statement
            :make-clause
            :make-op
