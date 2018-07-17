@@ -9,16 +9,16 @@
   (from (:as :person :p))
   (where (:and (:>= :age 18)
                (:< :age 65)))
-  (order-by (:desc age)))
-;=> #<SXQL-STATEMENT: SELECT id, name, sex FROM (person AS p) WHERE ((age >= 18) AND (age < 65)) ORDER BY age DESC>
+  (order-by (:desc :age)))
+;=> #<SXQL-STATEMENT: SELECT id, name, sex FROM person AS p WHERE ((age >= 18) AND (age < 65)) ORDER BY age DESC>
 
 (yield *)
 
-;=> "SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC"
+;=> "SELECT id, name, sex FROM person AS p WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC"
 ;   (18 65)
 
 (sql-compile **)
-;=> #<SXQL-COMPILED: SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC [18, 65]>
+;=> #<SXQL-COMPILED: SELECT id, name, sex FROM person AS p WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC [18, 65]>
 
 (union-queries * (select (:id :name :sex) (from '(:as animal a))))
 ;=> #<SXQL-OP: (SELECT id, name, sex FROM (person AS p) WHERE ((age >= ?) AND (age < ?)) ORDER BY age DESC) UNION (SELECT id, name, sex FROM (animal AS a))>
