@@ -48,6 +48,19 @@
                                          (make-sql-symbol "a")))))
     (list "SELECT `a`, ? FROM `table` ORDER BY `a`" '(1)))
 
+(ok (make-statement :select
+                    (make-clause :fields :a)
+                    (make-clause :from (make-sql-symbol "table"))
+                    (make-clause :order-by (make-sql-symbol "a"))
+                    (make-clause :updatability :update :of (make-sql-symbol "a"))))
+(is (multiple-value-list
+     (yield (make-statement :select
+                            (make-clause :fields :a)
+                            (make-clause :from (make-sql-symbol "table"))
+                            (make-clause :order-by (make-sql-symbol "a"))
+                            (make-clause :updatability :update :of (make-sql-symbol "a") :nowait t))))
+    (list "SELECT `a` FROM `table` ORDER BY `a` FOR UPDATE OF `a` NOWAIT" nil))
+
 (is (multiple-value-list
      (yield (make-statement :select
                             (make-clause :fields :*)

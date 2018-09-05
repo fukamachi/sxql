@@ -20,6 +20,7 @@
                 :group-by-clause
                 :having-clause
                 :returning-clause
+                :updatability-clause
                 :order-by-clause
                 :limit-clause
                 :offset-clause)
@@ -55,7 +56,8 @@
                        returning-clause
                        order-by-clause
                        limit-clause
-                       offset-clause))
+                       offset-clause
+                       updatability-clause))
       (setf (gethash clause hash) i))
     hash))
 
@@ -84,6 +86,7 @@
                                                                     order-by-clause
                                                                     limit-clause
                                                                     offset-clause
+                                                                    updatability-clause
                                                                   &aux
                                                                     (clause-order
                                                                      (sort-clause-types
@@ -103,7 +106,8 @@
   (returning-clause nil)
   (order-by-clause nil)
   (limit-clause nil)
-  (offset-clause nil))
+  (offset-clause nil)
+  (updatability-clause nil))
 
 @export
 (defun compute-select-statement-children (select-statement)
@@ -118,7 +122,8 @@
                                       returning-clause
                                       order-by-clause
                                       limit-clause
-                                      offset-clause))
+                                      offset-clause
+                                      updatability-clause))
                    (collect (cons type
                                   (or (position type (select-statement-clause-order select-statement)
                                                 :test #'eq)

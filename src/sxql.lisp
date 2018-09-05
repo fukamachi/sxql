@@ -198,6 +198,13 @@
                      `,expression)))
 
 @export
+(defmacro for (update-type &key of nowait)
+  (let ((ident-list (if (keywordp of)
+                        `(list ,of)
+                        `(quote ,of))))
+    `(make-clause :updatability ,update-type :of ,ident-list :nowait ,nowait)))
+
+@export
 (defun limit (count1 &optional count2)
   (apply #'make-clause :limit `(,count1 ,@(and count2 (list count2)))))
 

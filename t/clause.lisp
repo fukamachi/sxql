@@ -88,6 +88,25 @@
       (make-clause :returning (make-sql-symbol "id"))))
     (list "RETURNING `id`" nil))
 
+(ok (make-clause :updatability :update) "FOR UPDATE")
+(ok (make-clause :updatability :update :of '(:hoge :piyo)) "FOR UPDATE OF")
+(ok (make-clause :updatability :update :of '(:hoge :piyo) :nowait t) "FOR UPDATE OF NOWAIT")
+(is (multiple-value-list
+     (yield (make-clause :updatability :update)))
+    (list "FOR UPDATE" nil))
+(is (multiple-value-list
+     (yield (make-clause :updatability :share)))
+    (list "FOR SHARE" nil))
+(is (multiple-value-list
+     (yield (make-clause :updatability :update :of '(:hoge :fuga.piyo))))
+    (list "FOR UPDATE OF `hoge`, `fuga`.`piyo`" nil))
+(is (multiple-value-list
+     (yield (make-clause :updatability :update :of '(:hoge :piyo) :nowait t)))
+    (list "FOR UPDATE OF `hoge`, `piyo` NOWAIT" nil))
+(is (multiple-value-list
+     (yield (make-clause :updatability :update :nowait t)))
+    (list "FOR UPDATE NOWAIT" nil))
+
 (ok (make-clause :limit (make-sql-variable 1)) "LIMIT")
 (ok (make-clause :limit (make-sql-variable 0) (make-sql-variable 10)))
 (is (multiple-value-list

@@ -70,6 +70,32 @@
                           (:constructor make-returning-clause (expression))))
 
 @export
+(defstruct (updatability-clause (:include statement-clause)
+                                (:constructor make-updatability-clause))
+  (update-type :update :type keyword)
+  (idents '() :type list)
+  (nowait nil :type boolean))
+
+(defmethod yield ((obj updatability-clause))
+  (let ((params '()))
+    (values (with-output-to-string (stream)
+              (format stream "FOR ~A"
+                      (ecase (updatability-clause-update-type obj)
+                        (:update "UPDATE")
+                        (:share "SHARE")))
+              ;; Optional "OF <cols/tables>..." list.
+              (when (updatability-clause-idents obj)
+                (format stream " OF ")
+                (multiple-value-bind (str params)
+                    (yield (apply #'make-clause :fields (updatability-clause-idents obj)))
+                  (write-string str stream)
+                  (setf params params)))
+              ;; Optional NOWAIT keyword
+              (when (updatability-clause-nowait obj)
+                (format stream " NOWAIT")))
+            params)))
+
+@export
 (defstruct (join-clause (:include statement-clause)
                         (:constructor make-join-clause))
   (kind :inner :type (or (eql :inner)
@@ -344,6 +370,13 @@
               (list (apply #'make-sql-list
                            (mapcar #'detect-and-convert using)))
               (t (detect-and-convert using))))))
+
+(defmethod make-clause ((clause-name (eql :updatability)) &rest args)
+  (destructuring-bind (update-type &key of nowait) args
+    (make-updatability-clause
+     :update-type update-type
+     :idents (if (not (listp of)) (list of) of)
+     :nowait nowait)))
 
 (defmethod make-clause ((clause-name (eql :key)) &rest args)
   (apply #'make-key-clause-for-all #'make-key-clause args))
