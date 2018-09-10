@@ -1,4 +1,4 @@
-# SxQL - A SQL generator.
+# SxQL - An SQL generator.
 
 [![Build Status](https://travis-ci.org/fukamachi/sxql.svg?branch=master)](https://travis-ci.org/fukamachi/sxql)
 
