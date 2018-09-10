@@ -78,6 +78,9 @@
   (var nil :type (or string
                     sql-variable)))
 
+(defstruct (splicing-raw-op (:include raw-op)
+                            (:constructor make-splicing-raw-op (var))))
+
 @export
 (defun find-constructor (name suffix &key (package *package*) (errorp t))
   (check-type name symbol)
@@ -175,6 +178,15 @@ case letters."
 (defmethod yield ((raw raw-op))
   (values
    (format nil "(~A)"
+           (etypecase (raw-op-var raw)
+             (string (raw-op-var raw))
+             (sql-variable (let ((*use-placeholder* nil))
+                             (sql-variable-value (raw-op-var raw))))))
+   nil))
+
+(defmethod yield ((raw splicing-raw-op))
+  (values
+   (format nil "~A"
            (etypecase (raw-op-var raw)
              (string (raw-op-var raw))
              (sql-variable (let ((*use-placeholder* nil))
