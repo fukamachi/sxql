@@ -234,7 +234,11 @@
                (appending
                 (if (or (null defaults)
                         (slot-value statement type))
-                    (slot-value statement type)
+                    (if (subtypep type 'multiple-allowed-clause)
+                        (append
+                         (slot-value defaults type)
+                         (slot-value statement type))
+                        (slot-value statement type))
                     (slot-value defaults type)))))))
 
 (defmethod make-statement ((statement-name (eql :select)) &rest args)
