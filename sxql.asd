@@ -13,7 +13,7 @@
 (in-package :sxql-asd)
 
 (defsystem sxql
-  :version "0.0.1"
+  :version "0.1.0"
   :author "Eitaro Fukamachi"
   :license "BSD 3-Clause"
   :depends-on (:optima
