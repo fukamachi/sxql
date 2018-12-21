@@ -17,6 +17,7 @@
                 :from-clause-table-name
                 :join-clause
                 :where-clause
+                :compose-where-clauses
                 :group-by-clause
                 :having-clause
                 :returning-clause
@@ -130,7 +131,11 @@
                                       100))))
                  #'<
                  :key #'cdr))
-    (appending (slot-value select-statement type))))
+    (appending
+     (let ((clauses (slot-value select-statement type)))
+       (if (eq type 'where-clause)
+           (list (compose-where-clauses clauses))
+           clauses)))))
 
 (defmethod yield ((statement select-statement))
   (let ((*inside-select* t))
@@ -213,7 +218,7 @@
   (apply (find-make-statement statement-name #.*package*)
          (remove nil (mapcar #'detect-and-convert args))))
 
-(deftype multiple-allowed-clause () 'join-clause)
+(deftype multiple-allowed-clause () '(or join-clause where-clause))
 
 @export
 (defun merge-statements (statement defaults)

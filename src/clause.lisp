@@ -4,10 +4,12 @@
         :annot.class
         :sxql.sql-type
         :sxql.operator
-        :trivial-types)
+        :trivial-types
+        :iterate)
   (:import-from :sxql.sql-type
                 :sql-symbol-name
-                :sql-list-elements)
+                :sql-list-elements
+                :expression-clause-expression)
   (:import-from :sxql.operator
                 :=-op
                 :as-op
@@ -40,6 +42,14 @@
 @export
 (defstruct (where-clause (:include expression-clause (name "WHERE"))
                          (:constructor make-where-clause (expression))))
+
+@export
+(defun compose-where-clauses (clauses)
+  (make-where-clause
+   (apply #'make-op
+          :and
+          (iter (for clause in clauses)
+            (collect (expression-clause-expression clause))))))
 
 @export
 (defstruct (order-by-clause (:include expression-list-clause (name "ORDER BY"))
