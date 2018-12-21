@@ -45,11 +45,12 @@
 
 @export
 (defun compose-where-clauses (clauses)
-  (make-where-clause
-   (apply #'make-op
-          :and
-          (iter (for clause in clauses)
-            (collect (expression-clause-expression clause))))))
+  (when clauses
+    (make-where-clause
+     (apply #'make-op
+            :and
+            (iter (for clause in clauses)
+              (collect (expression-clause-expression clause)))))))
 
 @export
 (defstruct (order-by-clause (:include expression-list-clause (name "ORDER BY"))

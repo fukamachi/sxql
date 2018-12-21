@@ -133,7 +133,7 @@
                  :key #'cdr))
     (appending
      (let ((clauses (slot-value select-statement type)))
-       (if (eq type 'where-clause)
+       (if (and (eq type 'where-clause) clauses)
            (list (compose-where-clauses clauses))
            clauses)))))
 
