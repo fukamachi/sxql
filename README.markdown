@@ -443,6 +443,7 @@ Support MySQL's `INSERT ... ON DUPLICATE KEY UPDATE` syntax.
 * :and, :or
 * :+, :-, :* :/ :%
 * :raw
+* :is-distinct-from, :is-not-distinct-from (Postgres)
 
 ## Set a quote character
 

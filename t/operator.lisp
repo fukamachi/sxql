@@ -172,6 +172,20 @@
                    (make-sql-variable "extra argument"))
           'program-error)
 
+(is (multiple-value-list
+     (yield (make-op :is-distinct-from
+                         (make-sql-variable 1 )
+                         (make-sql-variable 1))))
+    (list "(? IS DISTINCT FROM ?)" '(1 1))
+    "IS DISTINCT FROM")
+
+(is (multiple-value-list
+     (yield (make-op :is-not-distinct-from
+                         (make-sql-variable 1 )
+                         (make-sql-variable 1))))
+    (list "(? IS NOT DISTINCT FROM ?)" '(1 1))
+    "IS NOT DISTINCT FROM")
+
 (diag "conjunctive-op")
 
 (is (multiple-value-list

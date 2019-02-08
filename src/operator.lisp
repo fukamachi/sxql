@@ -62,6 +62,8 @@
 (define-op (:in infix-list-op))
 (define-op (:not-in infix-list-op))
 (define-op (:like infix-op))
+(define-op (:is-distinct-from infix-op))
+(define-op (:is-not-distinct-from infix-op))
 
 (define-op (:or conjunctive-op))
 (define-op (:and conjunctive-op))
