@@ -262,6 +262,60 @@
     '("ON DUPLICATE KEY UPDATE `a` = ?, `b` = ?" (1 2))
     "on-duplicate-key-update")
 
+(is (yield (make-clause :on-conflict-do-nothing))
+    "ON CONFLICT DO NOTHING"
+    "on-conflitct-do-nothing no conflict target")
+
+(is (yield (make-clause :on-conflict-do-nothing '(:x :y)))
+    "ON CONFLICT (`x`, `y`) DO NOTHING"
+    "on-conflitct-do-nothing column set")
+
+(is (yield (make-clause :on-conflict-do-nothing :pkey))
+    "ON CONFLICT ON CONSTRAINT `pkey` DO NOTHING"
+    "on-conflitct-do-nothing index name")
+
+(is (multiple-value-list
+     (yield
+      (make-clause :on-conflict-do-update
+                   '(:x :y)
+                   (make-clause :set= :a 1 :b 2))))
+    '("ON CONFLICT (`x`, `y`) DO UPDATE SET `a` = ?, `b` = ?" (1 2))
+    "on-conflict-do-update column set")
+
+(is (multiple-value-list
+     (yield
+      (make-clause :on-conflict-do-update
+                   :pkey
+                   (make-clause :set= :a 1 :b 2))))
+    '("ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ?" (1 2))
+    "on-conflict-do-update column set")
+
+(is-error (make-clause :on-conflict-do-update
+                       nil
+                       (make-clause :set= :a 1 :b 2))
+          error
+          "on-conflict-do-update no conflict target is error")
+
+(is (multiple-value-list
+     (yield
+      (make-clause :on-conflict-do-update
+                   :pkey
+                   (make-clause :set= :a 1 :b 2)
+                   (make-clause :where (make-op := :x :y)))))
+    '("ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ? WHERE (`x` = `y`)" (1 2))
+    "on-conflict-do-update with where")
+
+(is (multiple-value-list
+     (yield
+      (sxql.statement:make-statement :insert-into
+                                     :table
+                                     (make-clause :set= :a 1 :b 2)
+                                     (make-clause :on-conflict-do-update
+                                                  :pkey
+                                                  (make-clause :set= :a 1 :b 2)))))
+    '("INSERT INTO `table` (`a`, `b`) VALUES (?, ?) ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ?" (1 2 1 2))
+    "on-conflict-do-update inside insert set= correct")
+
 (diag "sql-compile clause")
 
 (ok (sql-compile (make-clause :limit 10)))

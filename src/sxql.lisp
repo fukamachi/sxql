@@ -323,6 +323,17 @@
 (defmacro on-duplicate-key-update (&rest args)
   `(make-clause :on-duplicate-key-update ,@(mapcar #'expand-op args)))
 
+@export
+(defmacro on-conflict-do-nothing (&optional (conflict-target nil))
+  `(make-clause :on-conflict-do-nothing ,conflict-target))
+
+@export
+(defmacro on-conflict-do-update (conflict-target update-set &optional where-condition)
+  `(make-clause :on-conflict-do-update
+                ,conflict-target
+                ,update-set
+                ,where-condition))
+
 
 ;;
 ;; Types
