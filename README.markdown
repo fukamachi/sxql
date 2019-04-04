@@ -428,6 +428,42 @@ Support MySQL's `INSERT ... ON DUPLICATE KEY UPDATE` syntax.
 ;=> #<SXQL-STATEMENT: INSERT INTO `person` (`sex`, `age`, `name`) VALUES ('male', 25, 'Eitaro Fukamachi') ON DUPLICATE KEY UPDATE `age` = (`age` + 1)>
 ```
 
+### on-coflict-do-nothing
+
+Support PostgreSQL's `INSERT ... ON CONFLICT DO NOTHING` syntax.
+
+```common-lisp
+(on-conflict-do-nothing)
+;=> #<SXQL-CLAUSE: ON CONFLICT DO NOTHING>
+
+(on-conflict-do-nothing :index_name)
+;=> #<SXQL-CLAUSE: ON CONFLICT ON CONSTRAINT index_name DO NOTHING>
+
+(on-conflict-do-nothing '(:column1 :column2 :column3))
+;=> #<SXQL-CLAUSE: ON CONFLICT (column1, column2, column3) DO NOTHING>
+```
+
+### on-coflict-do-update
+
+Support PostgreSQL's `INSERT ... ON CONFLICT ... DO UPDATE` syntax.
+
+```common-lisp
+(on-conflict-do-update :index_name (set= :x 1 :y 2))
+;=> #<SXQL-CLAUSE: ON CONFLICT ON CONSTRAINT index_name DO UPDATE SET x = 1, y = 2>
+
+(on-conflict-do-update '(:column1 :column2 :column3) (set= :x 1 :y 2))
+;=> #<SXQL-CLAUSE: ON CONFLICT (column1, column2, column3) DO UPDATE SET x = 1, y = 2>
+
+(insert-into :person
+  (set= :sex "male"
+        :age 25
+        :name "Eitaro Fukamachi")
+  (on-conflict-do-update '(:name)
+                         (set= :age (:+ :age 1))
+                         (where (:< :age 99))))
+;=> #<SXQL-STATEMENT: INSERT INTO person (sex, age, name) VALUES ('male', 25, 'Eitaro Fukamachi') ON CONFLICT (name) DO UPDATE SET age = (age + 1) WHERE (age < 99)>
+```
+
 ## SQL Operators
 
 * :not
