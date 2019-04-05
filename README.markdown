@@ -479,6 +479,7 @@ Support PostgreSQL's `INSERT ... ON CONFLICT ... DO UPDATE` syntax.
 * :and, :or
 * :+, :-, :* :/ :%
 * :raw
+* :is-distinct-from, :is-not-distinct-from (Postgres)
 
 ## Set a quote character
 
