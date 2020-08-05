@@ -201,6 +201,10 @@
          (10 100))
        "UNION ALL")
 
+(is-mv (where `(:<= ,(select :* (from :table)) :value))
+       '("WHERE ((SELECT * FROM `table`) <= `value`)"
+         nil))
+
 (is-mv (create-table :enemy
         ((name :type 'string
                :primary-key t)
