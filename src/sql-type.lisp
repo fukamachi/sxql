@@ -326,13 +326,15 @@
             binds)))
 
 (defmethod yield ((op infix-op))
-  (with-yield-binds
-    (format nil "(~A ~A ~A)"
-            (yield (infix-op-left op))
-            (sql-op-name op)
-            (if (sql-statement-p (infix-op-right op))
-                (format nil "(~A)" (yield (infix-op-right op)))
-                (yield (infix-op-right op))))))
+  (flet ((f (left-or-right)
+           (if (sql-statement-p left-or-right)
+               (format nil "(~A)" (yield left-or-right))
+               (yield left-or-right))))
+    (with-yield-binds
+      (format nil "(~A ~A ~A)"
+              (f (infix-op-left op))
+              (sql-op-name op)
+              (f (infix-op-right op))))))
 
 (defmethod yield ((op infix-splicing-op))
   (with-yield-binds
