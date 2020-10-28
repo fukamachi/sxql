@@ -21,7 +21,8 @@
                :cl-syntax-annot
                :trivial-types
                :split-sequence
-               :alexandria)
+               :alexandria
+               :cl-package-locks)
   :components ((:module "src"
                 :components
                 ((:file "sxql" :depends-on ("statement" "clause" "operator" "compile" "composed-statement"))

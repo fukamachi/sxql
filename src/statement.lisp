@@ -33,6 +33,7 @@
                 :when-let))
 (in-package :sxql.statement)
 
+(cl-package-locks:lock-package :sxql.statement)
 (cl-syntax:use-syntax :annot)
 
 @export

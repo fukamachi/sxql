@@ -5,6 +5,7 @@
         :sxql.sql-type))
 (in-package :sxql.compile)
 
+(cl-package-locks:lock-package :sxql.compile)
 (cl-syntax:use-syntax :annot)
 
 (defgeneric find-compile-function (object))

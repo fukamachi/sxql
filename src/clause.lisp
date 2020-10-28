@@ -16,6 +16,7 @@
                 :as-op-right))
 (in-package :sxql.clause)
 
+(cl-package-locks:lock-package :sxql.clause)
 (cl-syntax:use-syntax :annot)
 
 @export
