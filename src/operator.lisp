@@ -87,13 +87,12 @@
 @export
 (defun find-constructor (name suffix &key (package *package*) (errorp t))
   (check-type name symbol)
-  (let ((func-symbol (intern
-                      (concatenate 'string
-                                   #.(string :make-)
-                                   (symbol-name name)
-                                   suffix)
-                      package)))
-    (if (or errorp (fboundp func-symbol))
+  (let ((func-symbol (find-symbol (concatenate 'string
+                                               #.(string :make-)
+                                               (symbol-name name)
+                                               suffix)
+                                  package)))
+    (if (or errorp func-symbol)
         (symbol-function func-symbol)
         nil)))
 
