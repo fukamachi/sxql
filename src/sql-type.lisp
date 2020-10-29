@@ -6,6 +6,7 @@
         :split-sequence))
 (in-package :sxql.sql-type)
 
+(cl-package-locks:lock-package :sxql.sql-type)
 (cl-syntax:use-syntax :annot)
 
 @export

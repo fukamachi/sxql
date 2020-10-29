@@ -8,6 +8,7 @@
                 :sql-all-type))
 (in-package :sxql.operator)
 
+(cl-package-locks:lock-package :sxql.operator)
 (cl-syntax:use-syntax :annot)
 
 @export

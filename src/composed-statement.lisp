@@ -41,6 +41,7 @@
                 :compose))
 (in-package :sxql.composed-statement)
 
+(cl-package-locks:lock-package :sxql.composed-statement)
 (cl-syntax:use-syntax :annot)
 
 (defparameter *clause-delimiters*

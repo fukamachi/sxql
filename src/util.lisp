@@ -6,6 +6,8 @@
            :subdivide))
 (in-package :sxql.util)
 
+(cl-package-locks:lock-package :sxql.util)
+
 (defun group-by (key sequence &key (test 'eql))
   (let ((hash (make-hash-table :test test))
         (keys '()))
