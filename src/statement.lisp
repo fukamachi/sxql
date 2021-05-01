@@ -207,6 +207,14 @@
   pragma-name
   value)
 
+@export
+(defstruct (explain-statement (:include sql-statement (name "EXPLAIN"))
+                              (:constructor make-explain-statement (statement
+                                                                    &key analyze verbose)))
+  statement
+  (analyze nil :type boolean)
+  (verbose nil :type boolean))
+
 (defun find-make-statement (statement-name &optional (package *package*))
   (find-constructor statement-name #.(string :-statement)
                     :package package))
@@ -312,6 +320,12 @@
 (defmethod make-statement ((statement-name (eql :pragma)) &rest args)
   (apply #'make-pragma-statement args))
 
+(defmethod make-statement ((statement-name (eql :explain)) &rest args)
+  (destructuring-bind (statement &key analyze verbose) args
+    (make-explain-statement statement
+                            :analyze analyze
+                            :verbose verbose)))
+
 (defmethod yield ((statement create-table-statement))
   (with-yield-binds
     (format nil "~A~:[~; IF NOT EXISTS~] ~A (~%~{    ~A~^,~%~}~%)"
@@ -366,3 +380,10 @@
            (pragma-statement-value statement))
    nil))
 
+(defmethod yield ((statement explain-statement))
+  (values
+   (format nil "EXPLAIN~:[~; ANALYZE~]~:[~; VERBOSE~] ~A"
+           (explain-statement-analyze statement)
+           (explain-statement-verbose statement)
+           (yield (explain-statement-statement statement)))
+   nil))

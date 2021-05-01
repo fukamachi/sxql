@@ -43,7 +43,8 @@
            :drop-table-statement
            :alter-table-statement
            :create-index-statement
-           :drop-index-statement))
+           :drop-index-statement
+           :explain-statement))
 (in-package :sxql)
 
 (cl-package-locks:lock-package :sxql)
@@ -146,6 +147,10 @@
 @export
 (defun drop-index (index-name &key if-exists on)
   (make-statement :drop-index index-name :if-exists if-exists :on on))
+
+@export
+(defun explain (statement &key analyze verbose)
+  (make-statement :explain statement :analyze analyze :verbose verbose))
 
 ;;
 ;; Clauses
