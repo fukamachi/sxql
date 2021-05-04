@@ -273,6 +273,37 @@
       (list "((SELECT * FROM `table1`) UNION ALL (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1)"
             nil)))
 
+(is (multiple-value-list
+     (yield (make-op :case
+                     (make-op :when
+                              (make-op :=
+                                       (make-sql-symbol "a")
+                                       (make-sql-variable 0))
+                              (make-sql-variable "zero"))
+                     (make-op :when
+                              (make-op :=
+                                       (make-sql-symbol "a")
+                                       (make-sql-variable 1))
+                              (make-sql-variable "one"))
+                     (make-op :else
+                              (make-sql-variable "other")))))
+    (list "CASE WHEN (`a` = ?) THEN ? WHEN (`a` = ?) THEN ? ELSE ? END"
+          '(0 "zero" 1 "one" "other")))
+
+(is (multiple-value-list
+     (yield (make-op :case
+                     (make-sql-symbol "a")
+                     (make-op :when
+                              (make-sql-variable 0)
+                              (make-sql-variable "zero"))
+                     (make-op :when
+                              (make-sql-variable 1)
+                              (make-sql-variable "one"))
+                     (make-op :else
+                              (make-sql-variable "other")))))
+    (list "CASE `a` WHEN ? THEN ? WHEN ? THEN ? ELSE ? END"
+          '(0 "zero" 1 "one" "other")))
+
 (diag "function-op")
 
 (ok (make-op :count :*))
