@@ -299,6 +299,18 @@
        '("DROP INDEX IF EXISTS `index_name`" nil)
        "DROP INDEX")
 
+(is-mv (explain (select :* (from :table)))
+       '("EXPLAIN SELECT * FROM `table`" nil)
+       "EXPLAIN")
+
+(is-mv (explain (select :* (from :table)) :analyze t)
+       '("EXPLAIN ANALYZE SELECT * FROM `table`" nil)
+       "EXPLAIN ANALYZE")
+
+(is-mv (explain (select :* (from :table)) :verbose t)
+       '("EXPLAIN VERBOSE SELECT * FROM `table`" nil)
+       "EXPLAIN VERBOSE")
+
 (diag "placeholder")
 
 (is-mv (let ((*use-placeholder* nil))

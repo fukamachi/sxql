@@ -200,6 +200,16 @@
     '("DROP INDEX IF EXISTS `index_name`" nil)
     "DROP INDEX")
 
+(is (multiple-value-list
+     (yield (make-statement :explain
+                            (make-statement :select
+                                            (make-clause :fields :*)
+                                            (make-clause :from (make-sql-symbol "table-name")))
+                            :analyze t
+                            :verbose t)))
+    '("EXPLAIN ANALYZE VERBOSE SELECT * FROM `table-name`" nil)
+    "EXPLAIN")
+
 (diag "sql-compile statement")
 
 (let ((stmt (sql-compile
