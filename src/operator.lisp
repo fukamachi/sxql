@@ -76,6 +76,10 @@
 (define-op (:union conjunctive-op))
 (define-op (:union-all conjunctive-op))
 
+(define-op (:case conjunctive-op))
+(define-op (:when infix-op))
+(define-op (:else unary-op))
+
 (defstruct (raw-op (:include sql-op (name ""))
                    (:constructor make-raw-op (var)))
   (var nil :type (or string
@@ -227,3 +231,24 @@ case letters."
 
 (defmethod yield ((op union-all-op))
   (yield-for-union-ops "UNION ALL"))
+
+(defmethod yield ((op case-op))
+  (with-yield-binds
+    (let ((when-else (loop for obj in (conjunctive-op-expressions op)
+                           collect (with-table-name nil
+                                     (yield obj)))))
+      (format nil "CASE ~{~A~^ ~} END" when-else))))
+
+(defmethod yield ((op when-op))
+  (with-yield-binds
+    (format nil "WHEN ~A THEN ~A"
+            (with-table-name nil
+              (yield (when-op-left op)))
+            (with-table-name nil
+              (yield (when-op-right op))))))
+
+(defmethod yield ((op else-op))
+  (with-yield-binds
+    (format nil "ELSE ~A"
+            (with-table-name nil
+              (yield (else-op-var op))))))
