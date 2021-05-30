@@ -98,6 +98,18 @@
        '("SELECT * FROM `table` WHERE (`a` = NULL)" ())
        "NULL")
 
+(is-mv (select :* (from :table) (where (:< :a :current_date)))
+       '("SELECT * FROM `table` WHERE (`a` < CURRENT_DATE)" ())
+       "NULL")
+
+(is-mv (select :* (from :table) (where (:< :a :current_time)))
+       '("SELECT * FROM `table` WHERE (`a` < CURRENT_TIME)" ())
+       "NULL")
+
+(is-mv (select :* (from :table) (where (:< :a :current_timestamp)))
+       '("SELECT * FROM `table` WHERE (`a` < CURRENT_TIMESTAMP)" ())
+       "NULL")
+
 (let ((age-limit 20))
   (is-mv (select :* (from :table) (where (:< :age age-limit)))
          '("SELECT * FROM `table` WHERE (`age` < ?)" (20)))
