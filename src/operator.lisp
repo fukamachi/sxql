@@ -141,10 +141,11 @@ case letters."
     object)
   (:method ((object symbol))
     (let ((name (symbol-name object))
+          (keywords '("null" "current_date" "current_time" "current_timestamp"))
           (string-fn (if (has-lower-case-letters-p object) ;; Only downcase all caps
                          #'string
                          #'string-downcase)))
-      (if (string-equal name "null")
+      (if (member name keywords :test #'string-equal)
           (make-sql-keyword name)
           (make-sql-symbol (funcall *sql-symbol-conversion* (funcall string-fn object))))))
   (:method ((object list))

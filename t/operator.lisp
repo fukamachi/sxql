@@ -30,6 +30,14 @@
                                         (make-sql-symbol "b"))
                          (make-sql-keyword "NULL")))
 
+(diag "keywords")
+
+(loop for (k . s) in '((:null . "NULL")
+                       (:current_date . "CURRENT_DATE")
+                       (:current_time . "CURRENT_TIME")
+                       (:current_timestamp . "CURRENT_TIMESTAMP"))
+      do (is (multiple-value-list (yield (convert-for-sql k))) (list s nil)))
+
 (diag "unary-op")
 
 (is (multiple-value-list
