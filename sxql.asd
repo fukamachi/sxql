@@ -16,7 +16,7 @@
   :version "0.1.0"
   :author "Eitaro Fukamachi"
   :license "BSD 3-Clause"
-  :depends-on (:optima
+  :depends-on (:trivia
                :iterate
                :cl-syntax-annot
                :trivial-types

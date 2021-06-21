@@ -3,8 +3,7 @@
   (:use :cl
         :sxql.statement
         :sxql.composed-statement
-        :sxql.clause
-        :optima)
+        :sxql.clause)
   (:shadow :primary-key
            :foreign-key
            :key)
@@ -22,6 +21,8 @@
                 :union-op
                 :union-all-op
                 :*sql-symbol-conversion*)
+  (:import-from :trivia
+                :match)
   (:export :yield
            :sql-compile
            :add-child
