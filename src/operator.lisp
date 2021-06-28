@@ -44,8 +44,12 @@
 (define-op (:not unary-op))
 (define-op (:is-null unary-op))
 (define-op (:not-null unary-op))
-(define-op (:desc unary-postfix-op))
-(define-op (:asc unary-postfix-op))
+(defstruct (order-op (:include unary-postfix-op (name)))
+  (nulls nil :type (or null (member :last :first))))
+(defstruct (desc-op (:include order-op (name "DESC"))
+                    (:constructor make-desc-op (var &key nulls))))
+(defstruct (asc-op (:include order-op (name "ASC"))
+                   (:constructor make-asc-op (var &key nulls))))
 (define-op (:distinct unary-splicing-op))
 (defstruct (on-op (:include sql-op (name "ON"))
                   (:constructor make-on-op (var)))
@@ -108,9 +112,20 @@
           (apply #'make-function-op (symbol-name op-name) expressions))))
 
 @export
-(defun make-op (op-name &rest args)
-  (apply (find-make-op op-name #.*package*)
-         (mapcar #'detect-and-convert args)))
+(defgeneric make-op (op-name &rest args)
+  (:method ((op-name t) &rest args)
+    (apply (find-make-op op-name #.*package*)
+           (mapcar #'detect-and-convert args))))
+
+(defmethod make-op ((op-name (eql :desc)) &rest args)
+  (destructuring-bind (var &key nulls) args
+    (make-desc-op (detect-and-convert var)
+                  :nulls nulls)))
+
+(defmethod make-op ((op-name (eql :asc)) &rest args)
+  (destructuring-bind (var &key nulls) args
+    (make-desc-op (detect-and-convert var)
+                  :nulls nulls)))
 
 (defun has-lower-case-letters-p (symbol)
   "Take in a symbol, convert to string, look for presences of lower
@@ -181,6 +196,13 @@ case letters."
    (make-infix-op "IS NOT"
                   (not-null-op-var op)
                   (make-sql-keyword "NULL"))))
+
+(defmethod yield ((op order-op))
+  (multiple-value-bind (sql binds)
+      (call-next-method)
+    (values
+      (format nil "~A~@[ NULLS ~A~]" sql (order-op-nulls op))
+      binds)))
 
 (defmethod yield ((raw raw-op))
   (values
