@@ -125,8 +125,8 @@
 
 (defmethod make-op ((op-name (eql :asc)) &rest args)
   (destructuring-bind (var &key nulls) args
-    (make-desc-op (detect-and-convert var)
-                  :nulls nulls)))
+    (make-asc-op (detect-and-convert var)
+                 :nulls nulls)))
 
 (defun has-lower-case-letters-p (symbol)
   "Take in a symbol, convert to string, look for presences of lower
