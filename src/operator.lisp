@@ -71,6 +71,7 @@
 (define-op (:is-distinct-from infix-op))
 (define-op (:is-not-distinct-from infix-op))
 
+(define-op (:separator infix-splicing-op))
 (define-op (:or conjunctive-op))
 (define-op (:and conjunctive-op))
 (define-op (:+ conjunctive-op))
