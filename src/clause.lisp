@@ -521,30 +521,30 @@
              (if arg
                  (yield arg)
                  "NULL")))
-    (let ((values-collect (make-hash-table))
-	  (count 0)
-	  (largest-count 0)
-	  keys-collect values-out-collect)
-      (loop for item in (set=-clause-args clause)
-	    for item-symbol-p = (eq (type-of item) 'sxql.sql-type:sql-symbol)
-	    do (cond ((and item-symbol-p values-collect)
-		      (push (yield-arg item) keys-collect)
-		      (when (> count largest-count)
-			(setf largest-count count))
-		      (setf count 0))
-		     (item-symbol-p (push (yield-arg item) keys-collect))
-		     (t (push item (gethash count values-collect))
-			(incf count))))
-      (dotimes (n count)
-	(let ((dump (mapcar #'yield-arg (reverse (gethash n values-collect)))))
-	  (push dump values-out-collect)))
-      (with-yield-binds
-	(if *inside-insert-into*
-            (format nil "(~{~A~^, ~}) VALUES ~{(~{~A~^, ~})~^,~}"
+    (with-yield-binds
+      (if *inside-insert-into*
+	  (let ((values-collect (make-hash-table))
+		(count 0)
+		(largest-count 0)
+		keys-collect values-out-collect)
+	    (loop for item in (set=-clause-args clause)
+		  for item-symbol-p = (eq (type-of item) 'sxql.sql-type:sql-symbol)
+		  do (cond ((and item-symbol-p values-collect)
+			    (push (yield-arg item) keys-collect)
+			    (when (> count largest-count)
+			      (setf largest-count count))
+			    (setf count 0))
+			   (item-symbol-p (push (yield-arg item) keys-collect))
+			   (t (push item (gethash count values-collect))
+			      (incf count))))
+	    (dotimes (n count)
+	      (let ((dump (mapcar #'yield-arg (reverse (gethash n values-collect)))))
+		(push dump values-out-collect)))
+	    (format nil "(~{~A~^, ~}) VALUES ~{(~{~A~^, ~})~^,~}"
 		    (reverse keys-collect)
-		    (reverse values-out-collect))
-            (format nil "SET ~{~A = ~A~^, ~}"
-                    (mapcar #'yield-arg (set=-clause-args clause))))))))
+		    (reverse values-out-collect)))
+	  (format nil "SET ~{~A = ~A~^, ~}"
+		  (mapcar #'yield-arg (set=-clause-args clause)))))))
 
 (defun make-sql-column-type-from-list (val)
   (destructuring-bind (type &optional args &rest attrs)
