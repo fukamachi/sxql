@@ -539,11 +539,12 @@
       (dotimes (n count)
 	(push (gethash n values-collect) values-out-collect))
       (with-yield-binds
-	  (if *inside-insert-into*
-              (format nil "(~{~A~^, ~}) VALUES ~{(~{~A~^, ~})~^,~}"
-		      keys-collect values-out-collect)
-              (format nil "SET ~{~A = ~A~^, ~}"
-                      (mapcar #'yield-arg (set=-clause-args clause))))))))
+	(if *inside-insert-into*
+            (format nil "(~{~A~^, ~}) VALUES ~{(~{~A~^, ~})~^,~}"
+		    (reverse keys-collect)
+		    (reverse values-out-collect))
+            (format nil "SET ~{~A = ~A~^, ~}"
+                    (mapcar #'yield-arg (set=-clause-args clause))))))))
 
 (defun make-sql-column-type-from-list (val)
   (destructuring-bind (type &optional args &rest attrs)
