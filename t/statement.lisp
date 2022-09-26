@@ -11,7 +11,7 @@
                           :is-error))
 (in-package :t.sxql.statement)
 
-(plan 19)
+(plan 20)
 
 (diag "statement")
 
@@ -186,6 +186,11 @@
               (make-clause :add-column :status
                            :type '(:enum ("temporary" "registered" "banned"))))))
     '("ALTER TABLE `tweet` ADD COLUMN `status` ENUM('temporary', 'registered', 'banned')" nil))
+
+(is (multiple-value-list
+     (yield (make-statement :alter-table :tweet
+              (make-clause :rename-column :uuid :id))))
+    '("ALTER TABLE `tweet` RENAME COLUMN `uuid` TO `id`" nil))
 
 (is (multiple-value-list
      (yield (make-statement :create-index :index_name
