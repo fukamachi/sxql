@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 59)
+(plan 60)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -216,6 +216,10 @@
 (is (multiple-value-list
      (yield (make-clause :alter-column :profile :not-null t)))
     (list "ALTER COLUMN `profile` SET NOT NULL" nil))
+
+(is (multiple-value-list
+     (yield (make-clause :rename-column :uuid :id)))
+    (list "RENAME COLUMN `uuid` TO `id`" nil))
 
 (is (multiple-value-list
      (yield (make-clause :drop-column
