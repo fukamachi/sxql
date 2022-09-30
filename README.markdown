@@ -380,6 +380,12 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 ;=> #<SXQL-CLAUSE: CHANGE COLUMN updated_at updated_on>
 ```
 
+### rename-column
+```common-lisp
+(rename-column :e_mail :email)
+;=> #<SXQL-CLAUSE: RENAME COLUMN e_mail TO email>
+```
+
 ### drop-column
 
 ```common-lisp
