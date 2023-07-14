@@ -93,6 +93,10 @@
 (defstruct (splicing-raw-op (:include raw-op)
                             (:constructor make-splicing-raw-op (var))))
 
+(defstruct (columns-op (:include sql-op (name ""))
+                       (:constructor make-columns-op (columns)))
+  (columns nil :type list))
+
 @export
 (defun find-constructor (name suffix &key (package *package*) (errorp t))
   (check-type name symbol)
@@ -117,6 +121,9 @@
   (:method ((op-name t) &rest args)
     (apply (find-make-op op-name #.*package*)
            (mapcar #'detect-and-convert args))))
+
+(defmethod make-op ((op-name (eql :columns)) &rest args)
+  (make-columns-op (mapcar #'detect-and-convert args)))
 
 (defmethod make-op ((op-name (eql :desc)) &rest args)
   (destructuring-bind (var &key nulls) args
@@ -276,3 +283,9 @@ case letters."
     (format nil "ELSE ~A"
             (with-table-name nil
               (yield (else-op-var op))))))
+
+(defmethod yield ((op columns-op))
+  (with-yield-binds
+    (format nil "~{~A~^, ~}"
+            (loop for obj in (columns-op-columns op)
+                  collect (yield obj)))))

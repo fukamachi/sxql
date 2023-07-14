@@ -88,6 +88,11 @@
       (make-clause :returning (make-sql-symbol "id"))))
     (list "RETURNING `id`" nil))
 
+(is (multiple-value-list
+     (yield
+      (make-clause :returning (make-op :columns :a :b))))
+    (list "RETURNING `a`, `b`" nil))
+
 (ok (make-clause :updatability :update) "FOR UPDATE")
 (ok (make-clause :updatability :update :of '(:hoge :piyo)) "FOR UPDATE OF")
 (ok (make-clause :updatability :update :of '(:hoge :piyo) :nowait t) "FOR UPDATE OF NOWAIT")
