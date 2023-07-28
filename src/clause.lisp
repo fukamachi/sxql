@@ -78,8 +78,8 @@
                           (:constructor make-having-clause (expression))))
 
 @export
-(defstruct (returning-clause (:include expression-clause (name "RETURNING"))
-                          (:constructor make-returning-clause (expression))))
+(defstruct (returning-clause (:include expression-list-clause (name "RETURNING"))
+                          (:constructor make-returning-clause (&rest expressions))))
 
 @export
 (defstruct (updatability-clause (:include statement-clause)

@@ -197,12 +197,14 @@
                      `,expression)))
 
 @export
-(defmacro returning (expression)
-  `(make-clause :returning
-                ,(if (and (listp expression)
-                          (keywordp (car expression)))
-                     (expand-op expression)
-                     `,expression)))
+(defmacro returning (&rest expressions)
+  `(apply #'make-clause :returning
+          (list ,@(mapcar (lambda (expr)
+                            (if (and (listp expr)
+                                     (keywordp (car expr)))
+                              (expand-op expr)
+                              `,expr))
+                          expressions))))
 
 @export
 (defmacro for (update-type &key of nowait)
