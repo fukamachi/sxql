@@ -10,7 +10,7 @@
                           :is-error))
 (in-package :t.sxql.clause)
 
-(plan 59)
+(plan 60)
 
 (ok (make-clause :where (make-op := :a 10)))
 (is (multiple-value-list
@@ -87,6 +87,10 @@
      (yield
       (make-clause :returning (make-sql-symbol "id"))))
     (list "RETURNING `id`" nil))
+(is (multiple-value-list
+     (yield
+      (make-clause :returning (make-sql-symbol "id") (make-sql-symbol "name"))))
+    (list "RETURNING `id`, `name`" nil))
 
 (ok (make-clause :updatability :update) "FOR UPDATE")
 (ok (make-clause :updatability :update :of '(:hoge :piyo)) "FOR UPDATE OF")
