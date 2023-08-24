@@ -49,7 +49,7 @@
 (in-package :sxql)
 
 (cl-package-locks:lock-package :sxql)
-(cl-syntax:use-syntax :annot)
+(annot:enable-annot-syntax)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun expand-op (object)

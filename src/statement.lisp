@@ -34,7 +34,7 @@
 (in-package :sxql.statement)
 
 (cl-package-locks:lock-package :sxql.statement)
-(cl-syntax:use-syntax :annot)
+(annot:enable-annot-syntax)
 
 @export
 (defgeneric add-child (statement child))

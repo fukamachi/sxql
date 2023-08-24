@@ -6,7 +6,7 @@
 (in-package :sxql.compile)
 
 (cl-package-locks:lock-package :sxql.compile)
-(cl-syntax:use-syntax :annot)
+(annot:enable-annot-syntax)
 
 (defgeneric find-compile-function (object))
 

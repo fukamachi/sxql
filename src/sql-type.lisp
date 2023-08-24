@@ -7,7 +7,7 @@
 (in-package :sxql.sql-type)
 
 (cl-package-locks:lock-package :sxql.sql-type)
-(cl-syntax:use-syntax :annot)
+(annot:enable-annot-syntax)
 
 @export
 (defparameter *quote-character* nil)

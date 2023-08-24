@@ -17,7 +17,7 @@
 (in-package :sxql.clause)
 
 (cl-package-locks:lock-package :sxql.clause)
-(cl-syntax:use-syntax :annot)
+(annot:enable-annot-syntax)
 
 @export
 (defstruct (fields-clause (:include statement-clause (name ""))
