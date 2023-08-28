@@ -2,11 +2,12 @@
 (defpackage sxql.compile
   (:use :cl
         :trivial-types
-        :sxql.sql-type))
+        :sxql.sql-type
+        :sxql.syntax))
 (in-package :sxql.compile)
 
 (cl-package-locks:lock-package :sxql.compile)
-(cl-syntax:use-syntax :annot)
+(enable-syntax)
 
 (defgeneric find-compile-function (object))
 

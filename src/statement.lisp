@@ -3,6 +3,7 @@
   (:use :cl
         :annot.class
         :sxql.sql-type
+        :sxql.syntax
         :iterate)
   (:import-from :sxql.operator
                 :*inside-select*
@@ -34,7 +35,7 @@
 (in-package :sxql.statement)
 
 (cl-package-locks:lock-package :sxql.statement)
-(cl-syntax:use-syntax :annot)
+(enable-syntax)
 
 @export
 (defgeneric add-child (statement child))

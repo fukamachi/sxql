@@ -3,7 +3,8 @@
   (:use :cl
         :sxql.statement
         :sxql.composed-statement
-        :sxql.clause)
+        :sxql.clause
+        :sxql.syntax)
   (:shadow :primary-key
            :foreign-key
            :key)
@@ -49,7 +50,7 @@
 (in-package :sxql)
 
 (cl-package-locks:lock-package :sxql)
-(cl-syntax:use-syntax :annot)
+(enable-syntax)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun expand-op (object)

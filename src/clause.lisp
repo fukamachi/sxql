@@ -4,6 +4,7 @@
         :annot.class
         :sxql.sql-type
         :sxql.operator
+        :sxql.syntax
         :trivial-types
         :iterate)
   (:import-from :sxql.sql-type
@@ -17,7 +18,7 @@
 (in-package :sxql.clause)
 
 (cl-package-locks:lock-package :sxql.clause)
-(cl-syntax:use-syntax :annot)
+(enable-syntax)
 
 @export
 (defstruct (fields-clause (:include statement-clause (name ""))

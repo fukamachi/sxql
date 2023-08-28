@@ -1,7 +1,8 @@
 (in-package :cl-user)
 (defpackage sxql.composed-statement
   (:use :cl
-        :iterate)
+        :iterate
+        :sxql.syntax)
   (:import-from :sxql.sql-type
                 :*use-placeholder*
                 :with-table-name
@@ -42,7 +43,7 @@
 (in-package :sxql.composed-statement)
 
 (cl-package-locks:lock-package :sxql.composed-statement)
-(cl-syntax:use-syntax :annot)
+(enable-syntax)
 
 (defparameter *clause-delimiters*
   '((fields-clause . ", ")

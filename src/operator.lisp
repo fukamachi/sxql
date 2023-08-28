@@ -1,7 +1,8 @@
 (in-package :cl-user)
 (defpackage sxql.operator
   (:use :cl
-        :sxql.sql-type)
+        :sxql.sql-type
+        :sxql.syntax)
   (:import-from :sxql.sql-type
                 :sql-statement-p
                 :conjunctive-op-expressions
@@ -9,7 +10,7 @@
 (in-package :sxql.operator)
 
 (cl-package-locks:lock-package :sxql.operator)
-(cl-syntax:use-syntax :annot)
+(enable-syntax)
 
 @export
 (defparameter *inside-select* nil)

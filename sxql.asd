@@ -18,20 +18,22 @@
   :license "BSD 3-Clause"
   :depends-on (:trivia
                :iterate
-               :cl-syntax-annot
+               :cl-annot
                :trivial-types
                :split-sequence
+               :named-readtables
                :alexandria
                :cl-package-locks)
   :components ((:module "src"
                 :components
-                ((:file "sxql" :depends-on ("statement" "clause" "operator" "compile" "composed-statement"))
-                 (:file "compile" :depends-on ("sql-type"))
-                 (:file "sql-type")
-                 (:file "operator" :depends-on ("sql-type"))
-                 (:file "clause" :depends-on ("operator"))
-                 (:file "statement" :depends-on ("operator" "clause" "util"))
-                 (:file "composed-statement" :depends-on ("sql-type" "operator" "clause" "statement" "util"))
+                ((:file "sxql" :depends-on ("statement" "clause" "operator" "compile" "composed-statement" "syntax"))
+                 (:file "compile" :depends-on ("sql-type" "syntax"))
+                 (:file "sql-type" :depends-on ("syntax"))
+                 (:file "operator" :depends-on ("sql-type" "syntax"))
+                 (:file "clause" :depends-on ("operator" "syntax"))
+                 (:file "statement" :depends-on ("operator" "clause" "syntax" "util"))
+                 (:file "composed-statement" :depends-on ("sql-type" "operator" "clause" "statement" "syntax" "util"))
+                 (:file "syntax")
                  (:file "util"))))
   :description "A SQL generator"
   :long-description

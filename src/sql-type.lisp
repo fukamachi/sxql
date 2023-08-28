@@ -3,11 +3,12 @@
   (:use :cl
         :annot.class
         :trivial-types
-        :split-sequence))
+        :split-sequence
+        :sxql.syntax))
 (in-package :sxql.sql-type)
 
 (cl-package-locks:lock-package :sxql.sql-type)
-(cl-syntax:use-syntax :annot)
+(enable-syntax)
 
 @export
 (defparameter *quote-character* nil)
