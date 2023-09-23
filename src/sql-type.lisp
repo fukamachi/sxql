@@ -60,9 +60,12 @@
                     :tokens (split-sequence #\. name)))
 
 @export
-(defun make-sql-symbol* (name)
-  (%make-sql-symbol :name name
-                    :tokens (list name)))
+(defun make-sql-symbol* (tokens)
+  (let ((tokens (if (listp tokens)
+                    tokens
+                    (list tokens))))
+    (%make-sql-symbol :name (format nil "~{~A~^.~}" tokens)
+                      :tokens tokens)))
 
 @export 'elements
 @export
