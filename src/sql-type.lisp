@@ -49,10 +49,20 @@
   (name nil :type string))
 
 @export
-@export-constructors
 (defstruct (sql-symbol (:include sql-atom)
-                       (:constructor make-sql-symbol (name)))
-  (name nil :type string))
+                       (:constructor %make-sql-symbol))
+  (name nil :type string)
+  (tokens nil :type cons))
+
+@export
+(defun make-sql-symbol (name)
+  (%make-sql-symbol :name name
+                    :tokens (split-sequence #\. name)))
+
+@export
+(defun make-sql-symbol* (name)
+  (%make-sql-symbol :name name
+                    :tokens (list name)))
 
 @export 'elements
 @export
@@ -249,7 +259,7 @@
           (mapcar #'yield var-list)))
 
 (defmethod yield ((symbol sql-symbol))
-  (let ((tokens (split-sequence #\. (sql-symbol-name symbol))))
+  (let ((tokens (sql-symbol-tokens symbol)))
     (when (and *table-name-scope*
                (null (cdr tokens)))
       (push *table-name-scope* tokens))
