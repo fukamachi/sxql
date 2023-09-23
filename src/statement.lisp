@@ -25,7 +25,8 @@
                 :updatability-clause
                 :order-by-clause
                 :limit-clause
-                :offset-clause)
+                :offset-clause
+                :make-values-clause)
   (:import-from :sxql.util
                 :group-by
                 :subdivide)
@@ -154,7 +155,13 @@
 
 @export
 (defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
-                                  (:constructor make-insert-into-statement (&rest children))))
+                                  (:constructor make-insert-into-statement (&rest children
+                                                                            &aux (children
+                                                                                  (mapcar (lambda (child)
+                                                                                            (if (consp child)
+                                                                                                (apply #'make-values-clause child)
+                                                                                                child))
+                                                                                                children))))))
 
 @export
 (defstruct (update-statement (:include sql-composed-statement (name "UPDATE"))

@@ -71,6 +71,17 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
         :name "Eitaro Fukamachi"))
 ;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = 'male', age = 25, name = 'Eitaro Fukamachi'>
 
+(insert-into :person
+  (:sex :age :name)
+  (list "male" 25 "Eitaro Fukamachi"))
+;=> #<SXQL-STATEMENT: INSERT INTO person SET sex = 'male', age = 25, name = 'Eitaro Fukamachi'>
+
+(insert-into :person
+  (:sex :age :name)
+  (list (list "male" 25 "Eitaro Fukamachi")
+        (list "female" 16 "Miku Hatsune")))
+;=> #<SXQL-STATEMENT: INSERT INTO person (sex, age, name) VALUES (('male', 25, 'Eitaro Fukamachi'), ('female', 16, 'Miku Hatsune'))>
+
 (insert-into :users
   (set= :name "Jack"
         :jinbei-size "small")
