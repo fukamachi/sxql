@@ -85,6 +85,18 @@
     '("INSERT INTO `table` (`a`) VALUES (?)" (10)))
 
 (is (multiple-value-list
+      (yield (make-statement :insert-into (make-sql-symbol "table")
+                             (list :col1 :col2)
+                             (list 1 2))))
+    '("INSERT INTO `table` (`col1`, `col2`) VALUES (?, ?)" (1 2)))
+
+(is (multiple-value-list
+      (yield (make-statement :insert-into (make-sql-symbol "table")
+                             (list :col1 :col2)
+                             (list (list 1 2) (list 3 4)))))
+    '("INSERT INTO `table` (`col1`, `col2`) VALUES ((?, ?), (?, ?))" (1 2 3 4)))
+
+(is (multiple-value-list
      (yield (make-statement :update (make-sql-symbol "table")
                             (make-clause :set=
                                          (make-sql-symbol "a")
