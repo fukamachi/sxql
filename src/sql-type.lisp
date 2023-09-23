@@ -244,6 +244,10 @@
   `(let ((*table-name-scope* ,table-name))
      ,@body))
 
+(defmethod yield ((var-list list))
+  (format nil "(~{~A~^, ~})"
+          (mapcar #'yield var-list)))
+
 (defmethod yield ((symbol sql-symbol))
   (let ((tokens (split-sequence #\. (sql-symbol-name symbol))))
     (when (and *table-name-scope*

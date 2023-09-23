@@ -55,6 +55,13 @@
               (collect (expression-clause-expression clause)))))))
 
 @export
+(defstruct (values-clause (:include expression-clause (name "VALUES"))
+                          (:constructor make-values-clause (&rest elements
+                                                            &aux (expression
+                                                                  (apply #'make-sql-list
+                                                                         (mapcar #'detect-and-convert elements)))))))
+
+@export
 (defstruct (order-by-clause (:include expression-list-clause (name "ORDER BY"))
                             (:constructor make-order-by-clause (&rest expressions))))
 
