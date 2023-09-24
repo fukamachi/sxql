@@ -80,7 +80,7 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
   (:sex :age :name)
   (list (list "male" 25 "Eitaro Fukamachi")
         (list "female" 16 "Miku Hatsune")))
-;=> #<SXQL-STATEMENT: INSERT INTO person (sex, age, name) VALUES (('male', 25, 'Eitaro Fukamachi'), ('female', 16, 'Miku Hatsune'))>
+;=> #<SXQL-STATEMENT: INSERT INTO person (sex, age, name) VALUES ('male', 25, 'Eitaro Fukamachi'), ('female', 16, 'Miku Hatsune')>
 
 (insert-into :users
   (set= :name "Jack"

@@ -58,8 +58,11 @@
 (defstruct (values-clause (:include expression-clause (name "VALUES"))
                           (:constructor make-values-clause (&rest elements
                                                             &aux (expression
-                                                                  (apply #'make-sql-list
-                                                                         (mapcar #'detect-and-convert elements)))))))
+                                                                  (apply
+                                                                   (if (consp (first elements))
+                                                                       #'make-sql-splicing-list
+                                                                       #'make-sql-list)
+                                                                   (mapcar #'detect-and-convert elements)))))))
 
 @export
 (defstruct (order-by-clause (:include expression-list-clause (name "ORDER BY"))
