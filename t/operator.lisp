@@ -249,7 +249,7 @@
                      (select :* (from :table2))
                      (order-by :column1)
                      (limit 1))))
-    (list "(SELECT * FROM `table1`) UNION (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1"
+    (list "SELECT * FROM `table1` UNION SELECT * FROM `table2` ORDER BY `column1` LIMIT 1"
           nil))
 
 (let ((*inside-select* t))
@@ -259,7 +259,7 @@
                        (select :* (from :table2))
                        (order-by :column1)
                        (limit 1))))
-      (list "((SELECT * FROM `table1`) UNION (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1)"
+      (list "(SELECT * FROM `table1` UNION SELECT * FROM `table2` ORDER BY `column1` LIMIT 1)"
             nil)))
 
 (is (multiple-value-list
@@ -268,7 +268,7 @@
                      (select :* (from :table2))
                      (order-by :column1)
                      (limit 1))))
-    (list "(SELECT * FROM `table1`) UNION ALL (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1"
+    (list "SELECT * FROM `table1` UNION ALL SELECT * FROM `table2` ORDER BY `column1` LIMIT 1"
           nil))
 
 (let ((*inside-select* t))
@@ -278,7 +278,7 @@
                        (select :* (from :table2))
                        (order-by :column1)
                        (limit 1))))
-      (list "((SELECT * FROM `table1`) UNION ALL (SELECT * FROM `table2`) ORDER BY `column1` LIMIT 1)"
+      (list "(SELECT * FROM `table1` UNION ALL SELECT * FROM `table2` ORDER BY `column1` LIMIT 1)"
             nil)))
 
 (is (multiple-value-list
