@@ -5,11 +5,15 @@
         :sxql.sql-type
         :sxql.syntax
         :iterate)
+  (:import-from :sxql.sql-type
+                :sql-splicing-list-elements
+                :statement-clause-statement)
   (:import-from :sxql.operator
                 :*inside-select*
                 :find-constructor
                 :detect-and-convert)
   (:import-from :sxql.clause
+                :make-fields-clause
                 :column-definition-clause
                 :make-column-definition-clause
                 :*inside-insert-into*
@@ -43,9 +47,32 @@
 
 (defmethod add-child ((statement sql-composed-statement) child)
   (let ((slot-name (type-of child)))
+    ;; Need to merge if it's a fields clause.
     (setf (slot-value statement slot-name)
-          (nconc (slot-value statement slot-name) (list child))))
+          (if (eq slot-name 'fields-clause)
+              (let ((current-fields (slot-value statement slot-name)))
+                (if current-fields
+                    (list (apply #'append-fields (append current-fields (list child))))
+                    (list child)))
+              (nconc (slot-value statement slot-name) (list child)))))
   statement)
+
+(defun append-fields (fields &rest other-fields)
+  (apply #'make-fields-clause
+         (apply #'append
+                (mapcar (lambda (fields)
+                          (sql-splicing-list-elements (statement-clause-statement fields)))
+                        (cons fields other-fields)))))
+
+(defmethod add-child ((statement select-statement) child)
+  (prog1 (call-next-method)
+    (setf (select-statement-clause-order statement)
+          (sort-clause-types
+           (delete-duplicates
+            (iter (for clause on (select-statement-children statement))
+              (collect (type-of clause)))
+            :from-end t
+            :test #'eq)))))
 
 (defparameter *clause-priority*
   (let ((hash (make-hash-table :test 'eq)))
@@ -96,6 +123,7 @@
                                                                      (sort-clause-types
                                                                       (delete-duplicates
                                                                        (iter (for (type clause) on clauses by #'cddr)
+                                                                         (declare (ignorable type))
                                                                          (collect (type-of (car clause))))
                                                                        :from-end t
                                                                        :test #'eq))))))
@@ -134,6 +162,7 @@
                                       100))))
                  #'<
                  :key #'cdr))
+    (declare (ignorable score))
     (appending
      (let ((clauses (slot-value select-statement type)))
        (if (and (eq type 'where-clause) clauses)
