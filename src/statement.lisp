@@ -64,16 +64,6 @@
                           (sql-splicing-list-elements (statement-clause-statement fields)))
                         (cons fields other-fields)))))
 
-(defmethod add-child ((statement select-statement) child)
-  (prog1 (call-next-method)
-    (setf (select-statement-clause-order statement)
-          (sort-clause-types
-           (delete-duplicates
-            (iter (for clause on (select-statement-children statement))
-              (collect (type-of clause)))
-            :from-end t
-            :test #'eq)))))
-
 (defparameter *clause-priority*
   (let ((hash (make-hash-table :test 'eq)))
     (iter
@@ -168,6 +158,16 @@
        (if (and (eq type 'where-clause) clauses)
            (list (compose-where-clauses clauses))
            clauses)))))
+
+(defmethod add-child ((statement select-statement) child)
+  (prog1 (call-next-method)
+    (setf (select-statement-clause-order statement)
+          (sort-clause-types
+           (delete-duplicates
+            (iter (for clause on (select-statement-children statement))
+              (collect (type-of clause)))
+            :from-end t
+            :test #'eq)))))
 
 (defmethod yield ((statement select-statement))
   (let ((*inside-select* t))
