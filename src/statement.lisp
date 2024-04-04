@@ -123,6 +123,7 @@
                                                                      (sort-clause-types
                                                                       (delete-duplicates
                                                                        (iter (for (type clause) on clauses by #'cddr)
+                                                                         (declare (ignorable type))
                                                                          (collect (type-of (car clause))))
                                                                        :from-end t
                                                                        :test #'eq))))))
@@ -161,6 +162,7 @@
                                       100))))
                  #'<
                  :key #'cdr))
+    (declare (ignorable score))
     (appending
      (let ((clauses (slot-value select-statement type)))
        (if (and (eq type 'where-clause) clauses)
