@@ -103,6 +103,19 @@
     (symbol (make-sql-keyword (string-upcase type)))
     (t type)))
 
+
+@export
+(defstruct sql-clause
+  (name "" :type string))
+
+(defun sql-clause-list-p (object)
+  (every #'sql-clause-p object))
+
+@export
+(deftype sql-clause-list ()
+  '(and proper-list
+        (satisfies sql-clause-list-p)))
+
 @export
 (deftype sql-expression () '(or sql-atom sql-list sql-op sql-clause null))
 
@@ -126,28 +139,16 @@
                                          (:constructor make-sql-splicing-expression-list (&rest elements))))
 
 @export
-(defstruct sql-clause
-  (name "" :type string))
-
-(defun sql-clause-list-p (object)
-  (every #'sql-clause-p object))
-
-@export
-(deftype sql-clause-list ()
-  '(and proper-list
-        (satisfies sql-clause-list-p)))
-
-@export
 @export-accessors
 (defstruct sql-statement
   (name "" :type string))
+
+(deftype sql-all-type () '(or sql-expression sql-statement))
 
 (defun sql-statement-list-p (object)
   (every #'(lambda (element)
              (typep element 'sql-all-type))
          object))
-
-(deftype sql-all-type () '(or sql-expression sql-statement))
 
 ;;
 ;; Operator

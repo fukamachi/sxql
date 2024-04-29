@@ -52,11 +52,12 @@
 (defstruct (asc-op (:include order-op (name "ASC"))
                    (:constructor make-asc-op (var &key nulls))))
 (define-op (:distinct unary-splicing-op))
+(define-op (:= infix-op))
 (defstruct (on-op (:include sql-op (name "ON"))
                   (:constructor make-on-op (var)))
   (var nil :type =-op))
 
-(define-op (:= infix-op))
+
 (define-op (:!= infix-op))
 (define-op (:< infix-op))
 (define-op (:> infix-op))

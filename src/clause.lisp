@@ -214,6 +214,18 @@
   (column-names nil :type sql-list)
   (references nil :type references-clause))
 
+@export
+(defstruct (column-definition-clause (:include sql-clause)
+                                     (:constructor %make-column-definition-clause (column-name &key type not-null default auto-increment autoincrement unique primary-key)))
+  column-name
+  type
+  not-null
+  default
+  auto-increment
+  autoincrement
+  unique
+  primary-key)
+
 (defstruct (column-modifier-clause (:include expression-clause)
                                    (:constructor nil))
   (column-definition nil :type column-definition-clause)
@@ -288,18 +300,6 @@
 
 (defstruct (drop-column-clause (:include expression-clause (name "DROP COLUMN"))
                                (:constructor make-drop-column-clause (expression))))
-
-@export
-(defstruct (column-definition-clause (:include sql-clause)
-                                     (:constructor %make-column-definition-clause (column-name &key type not-null default auto-increment autoincrement unique primary-key)))
-  column-name
-  type
-  not-null
-  default
-  auto-increment
-  autoincrement
-  unique
-  primary-key)
 
 @export
 (defun make-column-definition-clause (column-name &rest args &key type not-null default auto-increment autoincrement unique primary-key)
