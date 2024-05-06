@@ -349,6 +349,24 @@
        '("FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
 (is-mv (foreign-key '(:project_id) :references '(:project :id))
        '("FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
+(is-mv (foreign-key '(:order-id :customer-id) :references '(:orders :order-id :customer-id))
+       '("FOREIGN KEY (`order-id`, `customer-id`) REFERENCES `orders` (`order-id`, `customer-id`)" nil))
+(is-mv (foreign-key nil :references '(:project :id))
+       '("REFERENCES `project` (`id`)" nil))
+(is-mv (foreign-key '(:order-id :customer-id) :references '(:orders :order-id :customer-id))
+       '("FOREIGN KEY (`order-id`, `customer-id`) REFERENCES `orders` (`order-id`, `customer-id`)" nil))
+(is-mv (foreign-key :order-id :references '(:orders :order-id))
+       (list "FOREIGN KEY (`order-id`) REFERENCES `orders` (`order-id`)"
+nil))
+
+
+(is-error (foreign-key nil :references '(:project))
+	  'simple-error)
+(is-error (foreign-key '(:order-id :customer-id) :references '(:orders :order-id :customer-id :wrong-column))
+	  'simple-error)
+(is-error (foreign-key '(:order-id) :references '(:orders :order-id :customer-id))
+	  'simple-error)
+
 
 (let ((primary-key :id))
   (is-mv (primary-key primary-key)

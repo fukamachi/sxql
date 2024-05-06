@@ -279,22 +279,9 @@
   (apply #'make-clause :key key-args))
 
 @export
-(defun foreign-key (column-names &key references on-delete on-update)
-  (flet ((canonicalize-action (action)
-           (etypecase action
-             (keyword
-              (ecase action
-                (:no-action "NO ACTION")
-                (:set-null "SET NULL")
-                ((:restrict :cascade)
-                 (symbol-name action))))
-             (string action)
-             (null action))))
-    (make-clause :foreign-key
-                 column-names
-                 :references references
-                 :on-delete (canonicalize-action on-delete)
-                 :on-update (canonicalize-action on-update))))
+(defun foreign-key (column-names &rest args &key references on-delete on-update)
+  (declare (ignore references on-delete on-update))
+  (apply #'make-clause (list* :foreign-key :column-names column-names args)))
 
 @export
 (defun add-column (column-name &rest args)
