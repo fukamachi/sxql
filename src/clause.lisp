@@ -11,6 +11,9 @@
                 :sql-symbol-name
                 :sql-list-elements
                 :expression-clause-expression)
+  (:import-from #:alexandria
+		#:if-let
+		#:when-let)
   (:import-from :sxql.operator
                 :=-op
                 :as-op
@@ -179,6 +182,7 @@
 (defstruct (unique-key-clause (:include key-clause (name "UNIQUE"))
                               (:constructor make-unique-key-clause (expression))))
 
+;; FOREIGN KEY DEFINITION
 @export
 (defstruct (references-clause (:include expression-clause (name "REFERENCES"))
                               (:constructor make-references-clause (table-name column-names
@@ -195,36 +199,30 @@
            (slot-value clause 'name)
            (on-clause-action clause))
    nil))
+
 (defstruct (on-delete-clause (:include on-clause (name "ON DELETE"))))
 (defstruct (on-update-clause (:include on-clause (name "ON UPDATE"))))
 
 @export
-(defstruct (foreign-key-clause (:include expression-clause (name "FOREIGN KEY"))
-                               (:constructor make-foreign-key-clause (column-names references on-delete on-update
-                                                                      &aux (expression
-                                                                            (apply #'make-sql-splicing-expression-list
-                                                                             column-names references
-                                                                             (append
-                                                                              (and on-delete
-                                                                                   (list
-                                                                                    (make-on-delete-clause :action on-delete)))
-                                                                              (and on-update
-                                                                                   (list
-                                                                                    (make-on-update-clause :action on-update)))))))))
-  (column-names nil :type sql-list)
-  (references nil :type references-clause))
+(defstruct (foreign-key-clause (:include expression-clause (name "FOREIGN KEY")))
+  (column-names nil :type (or sql-list null))
+  (references nil :type references-clause)
+  (on-delete nil :type (or null on-delete-clause))
+  (on-update nil :type (or null on-update-clause)))
 
 @export
 (defstruct (column-definition-clause (:include sql-clause)
-                                     (:constructor %make-column-definition-clause (column-name &key type not-null default auto-increment autoincrement unique primary-key)))
-  column-name
-  type
-  not-null
-  default
-  auto-increment
-  autoincrement
-  unique
-  primary-key)
+                                     (:constructor %make-column-definition-clause
+					 (column-name &key type not-null default auto-increment autoincrement foreign-key unique primary-key)))
+  (column-name nil :type sql-symbol)
+  (type nil :type sql-column-type)
+  (not-null nil :type boolean)
+  (default nil :type (or sql-variable null))
+  (auto-increment nil :type boolean)
+  (autoincrement nil :type boolean)
+  (foreign-key nil :type (or foreign-key-clause null))
+  (unique nil :type boolean)
+  (primary-key nil :type boolean))
 
 (defstruct (column-modifier-clause (:include expression-clause)
                                    (:constructor nil))
@@ -302,15 +300,22 @@
                                (:constructor make-drop-column-clause (expression))))
 
 @export
-(defun make-column-definition-clause (column-name &rest args &key type not-null default auto-increment autoincrement unique primary-key)
-  (declare (ignore type not-null default auto-increment autoincrement unique primary-key))
+(defun make-column-definition-clause (column-name &rest args &key type not-null default auto-increment autoincrement unique foreign-key primary-key)
+  (declare (ignore type not-null default auto-increment autoincrement unique foreign-key primary-key))
   (apply #'%make-column-definition-clause
          (detect-and-convert column-name)
          (loop for (key val) on args by #'cddr
                if (eq key :type)
                  append (list key (make-sql-column-type-from-list val))
                else
-                 append (list key (detect-and-convert val)))))
+		 if (eq key :foreign-key)
+		   append (list key
+				(make-clause :foreign-key
+					     :references (getf val :references)
+					     :on-update (getf val :on-update)
+					     :on-delete (getf val :on-delete)))
+	           else
+		     append (list key (detect-and-convert val)))))
 
 (defmethod yield ((clause column-definition-clause))
   (with-yield-binds
@@ -332,6 +337,9 @@
         (write-string " UNIQUE" s))
       (when (column-definition-clause-primary-key clause)
         (write-string " PRIMARY KEY" s))
+      (when-let (foreign-key
+		 (column-definition-clause-foreign-key clause))
+        (format s " ~A" (yield foreign-key)))
       (when (and (column-definition-clause-autoincrement clause)
                  (not (column-definition-clause-auto-increment clause)))
        (write-string " AUTOINCREMENT" s)))))
@@ -388,7 +396,6 @@
                  1)
                 (t 2))
           (yield (on-conflict-do-nothing-clause-conflict-target clause))))
-
 
 (defstruct (on-conflict-do-update-clause (:include sql-clause (name "ON CONFLICT DO UPDATE"))
                                          (:constructor %make-on-conflict-do-update-clause (conflict-target update-set &optional where-condition)))
@@ -457,20 +464,6 @@
 (defmethod make-clause ((clause-name (eql :unique-key)) &rest args)
   (apply #'make-key-clause-for-all #'make-unique-key-clause args))
 
-(defmethod make-clause ((clause-name (eql :foreign-key)) &rest args)
-  (destructuring-bind (column-names &key references on-delete on-update) args
-    (destructuring-bind (target-table-name &rest target-column-names) references
-      (make-foreign-key-clause
-       (apply #'make-sql-list (mapcar #'detect-and-convert
-                                      (if (listp column-names)
-                                          column-names
-                                          (list column-names))))
-       (make-references-clause (detect-and-convert target-table-name)
-                               (apply #'make-sql-list (mapcar #'detect-and-convert
-                                                              target-column-names)))
-       on-delete
-       on-update))))
-
 (defmethod make-clause ((clause-name (eql :add-column)) &rest args)
   (apply #'make-column-modifier-clause #'make-add-column-clause
          nil args))
@@ -502,6 +495,56 @@
   (make-on-conflict-do-update-clause (make-conflict-target (car args))
                                      (cadr args)
                                      (caddr args)))
+
+(defmethod make-clause ((clause-name (eql :foreign-key)) &key column-names references on-delete on-update)
+  (flet ((canonicalize-action (action)
+	   (etypecase action
+	     (keyword
+	      (ecase action
+		(:no-action "NO ACTION")
+		(:set-null "SET NULL")
+		(:set-default "SET DEFAULT")
+		((:restrict :cascade)
+		 (symbol-name action))))
+	     (string action)
+	     (null action))))
+    (unless references
+      (error "You have to supply references with foreign key."))
+    (let* ((target-columns
+	    (cdr references))
+	  (column-length
+	    (if (atom column-names)
+		1
+		(list-length column-names)))
+	  (target-column-length
+	    (if (atom target-columns)
+		1
+		(list-length target-columns))))
+      (unless target-columns
+	(error "You have to supply at least one references target-columns."))
+      (when (and (not column-names)
+		 (not (or (atom target-columns)
+			  (eql 1 (list-length target-columns)))))
+	(error "You have to supply exactly one references target-column with inline references."))
+      (unless (eql column-length target-column-length)
+	(error "Supplied columns count (~A) not identical with target-columns count (~A)."
+	       column-length
+	       target-column-length))
+      ;(break)
+      (make-foreign-key-clause
+       :column-names (when column-names
+		       (apply #'make-sql-list (mapcar #'detect-and-convert
+						      (if (consp column-names)
+							  column-names
+							  (list column-names)))))
+       :references (make-references-clause (detect-and-convert (first references))
+					   (apply #'make-sql-list (mapcar #'detect-and-convert
+									  (cdr references))))
+       :on-delete (when on-delete
+		    (make-on-delete-clause :action (canonicalize-action on-delete)))
+       :on-update (when on-update
+		    (make-on-update-clause :action (canonicalize-action on-update)))))))
+
 
 (defmethod yield ((clause limit-clause))
   (let ((*use-placeholder* nil))
@@ -543,6 +586,23 @@
                           (return (list keys values))))
           (format nil "SET ~{~A = ~A~^, ~}"
                   (mapcar #'yield-arg (set=-clause-args clause)))))))
+
+
+(defmethod yield ((clause foreign-key-clause))
+  (with-yield-binds
+    (with-output-to-string (s)
+      (if-let (column-names
+	       (foreign-key-clause-column-names clause))
+	(format s "FOREIGN KEY ~A ~A"
+		(yield column-names)
+		(yield (foreign-key-clause-references clause)))
+	(write-string (yield (foreign-key-clause-references clause)) s))
+      (when-let (on-delete
+		 (foreign-key-clause-on-delete clause))
+	(format s " ~A" (yield on-delete)))
+      (when-let (on-update
+		 (foreign-key-clause-on-update clause))
+	(format s " ~A" (yield on-update))))))
 
 (defun make-sql-column-type-from-list (val)
   (destructuring-bind (type &optional args &rest attrs)

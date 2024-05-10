@@ -134,36 +134,54 @@ Creates a SELECT query. It takes a field (or a list of fields) and SQL Clauses.
 
 ```common-lisp
 (create-table :enemy
-    ((name :type 'string
+    ((name :type 'varchar
            :primary-key t)
      (age :type 'integer
           :not-null t)
      (address :type 'text
-              :not-null nil)
-     (fatal_weakness :type 'text
-                     :not-null t
-                     :default "None")
-     (identifying_color :type '(:char 20)
-                        :unique t)))
-;=> #<SXQL-STATEMENT: CREATE TABLE enemy (name STRING PRIMARY KEY, age INTEGER NOT NULL, address TEXT, fatal_weakness TEXT NOT NULL DEFAULT 'None', identifying_color CHAR(20) UNIQUE)>
+              :not-null nil
+              :unique t)))
+;=> #<SXQL-STATEMENT: CREATE TABLE enemy (
+;    name VARCHAR PRIMARY KEY,
+;    age INTEGER NOT NULL,
+;    address TEXT UNIQUE
+;    )>
 
 (yield *)
-;=> "CREATE TABLE enemy (name STRING PRIMARY KEY, age INTEGER NOT NULL, address TEXT, fatal_weakness TEXT NOT NULL DEFAULT ?, identifying_color CHAR(20) UNIQUE)"
-;   ("None")
-
-(create-table (:enemy :if-not-exists t)
-    ((name :type 'string
-           :primary-key t)
-     (age :type 'integer
+;=> "CREATE TABLE enemy (
+;       name VARCHAR PRIMARY KEY,
+;       age INTEGER NOT NULL,
+;       address TEXT UNIQUE
+;       )"
+;   NIL
+```
+```common-lisp
+(create-table (:enemy-details :if-not-exists t)
+    ((name :type :varchar
+            :references '(:enemy :name))
+            :primary-key t)
+     (time :type 'integer
           :not-null t)
-     (address :type 'text
-              :not-null nil)
      (fatal_weakness :type 'text
                      :not-null t
                      :default "None")
      (identifying_color :type '(:char 20)
-                        :unique t)))
-;=> #<SXQL-STATEMENT: CREATE TABLE IF NOT EXISTS enemy (name STRING PRIMARY KEY, age INTEGER NOT NULL, address TEXT, fatal_weakness TEXT NOT NULL DEFAULT 'None', identifying_color CHAR(20) UNIQUE)>
+                        :unique t))
+;=> #<SXQL-STATEMENT: CREATE TABLE IF NOT EXISTS enemy-details (
+;    id BIGINT PRIMARY KEY FOREIGN KEY REFERENCES enemy (name),
+;    time INTEGER NOT NULL,
+;    fatal_weakness TEXT NOT NULL DEFAULT 'None',
+;    identifying_color CHAR(20) UNIQUE
+;    )>
+
+(yield *)
+;=> "CREATE TABLE IF NOT EXISTS enemy-details (
+;       id BIGINT PRIMARY KEY FOREIGN KEY REFERENCES enemy (name),
+;       time INTEGER NOT NULL,
+;       fatal_weakness TEXT NOT NULL DEFAULT ?,
+;       identifying_color CHAR(20) UNIQUE
+;   )"
+;   ("None")
 ```
 
 ### drop-table (table &key if-exists)

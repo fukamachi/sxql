@@ -183,6 +183,48 @@
     "CREATE TABLE IF NOT EXISTS")
 
 (is (multiple-value-list
+     (yield (make-statement :create-table
+	    '(:table3)
+	    '((:fatal_weakness :type text
+			       :not-null t
+			       :default "None"
+			       :foreign-key (:references (:nxt-table :nxt-column) :on-update :restrict))
+	      (:identifying_color :type (:char 20)
+				  :foreign-key (:references (:iden-table :iden-colum) :on-delete :set-default)
+				  :unique t)))))
+    '("CREATE TABLE `table3` (
+    `fatal_weakness` TEXT NOT NULL DEFAULT ? REFERENCES `nxt-table` (`nxt-column`) ON UPDATE RESTRICT,
+    `identifying_color` CHAR(20) UNIQUE REFERENCES `iden-table` (`iden-colum`) ON DELETE SET DEFAULT
+)"
+      ("None")))
+
+(is (multiple-value-list
+     (yield (make-statement :create-table
+	    '(:enemy :if-not-exists nil)
+	    '((:age :type integer
+		    :not-null t)
+	      (:address :type text
+			:not-null nil
+			:foreign-key (:references (:fk-table :fk-column) :on-delete :set-null :on-update :no-action))))))
+    '("CREATE TABLE `enemy` (
+    `age` INTEGER NOT NULL,
+    `address` TEXT REFERENCES `fk-table` (`fk-column`) ON DELETE SET NULL ON UPDATE NO ACTION
+)"
+      nil))
+
+(is (multiple-value-list
+     (yield (make-statement
+	     :create-table
+	     '(:enemy :if-not-exists t)
+	     '((:name :type string
+		      :foreign-key (:references (:foreign-key-table :foreign-key-column))
+		      :primary-key t)))))
+    '("CREATE TABLE IF NOT EXISTS `enemy` (
+    `name` STRING PRIMARY KEY REFERENCES `foreign-key-table` (`foreign-key-column`)
+)"
+      nil))
+
+(is (multiple-value-list
      (yield (make-statement :alter-table :tweet
               (make-clause :add-column :id
                            :type '(:bigint 20 :unsigned)

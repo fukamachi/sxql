@@ -177,8 +177,17 @@
      (sxql.sql-type:make-sql-list (sxql.sql-type:make-sql-symbol "id"))))
 
 (is (multiple-value-list
-     (yield (make-clause :foreign-key '(:project_id) :references '(:project :id))))
+     (yield (make-clause :foreign-key :column-names '(:project_id) :references '(:project :id))))
     (list "FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
+
+(is (multiple-value-list
+     (yield (make-clause :foreign-key :column-names '(:project_id) :references '(:project :id) :on-update :set-default)))
+    (list "FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON UPDATE SET DEFAULT"
+	   nil))
+
+(is (multiple-value-list
+     (yield (make-clause :foreign-key :column-names nil :references '(:project :id) :on-delete :cascade)))
+    (list "REFERENCES `project` (`id`) ON DELETE CASCADE" nil))
 
 (is (yield (sxql.clause::make-sql-column-type-from-list '(:integer)))
     "INTEGER")
