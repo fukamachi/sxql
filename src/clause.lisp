@@ -10,7 +10,8 @@
   (:import-from :sxql.sql-type
                 :sql-symbol-name
                 :sql-list-elements
-                :expression-clause-expression)
+                :expression-clause-expression
+                :statement-clause-statement)
   (:import-from :sxql.operator
                 :=-op
                 :as-op
@@ -25,6 +26,28 @@
                           (:constructor make-fields-clause (&rest fields
                                                             &aux (statement
                                                                   (apply #'make-sql-splicing-list fields))))))
+
+@export
+(defstruct (distinct-on-clause (:include fields-clause (name "DISTINCT ON"))
+                               (:constructor make-distinct-on-clause (columns &rest fields
+                                                                              &aux
+                                                                              (columns
+                                                                                (apply #'make-sql-list columns))
+                                                                              (statement
+                                                                                (apply #'make-sql-splicing-list fields)))))
+  (columns nil :type sql-list))
+
+(defmethod yield ((clause distinct-on-clause))
+  (with-yield-binds
+    (format nil "~A ~A ~A"
+              (slot-value clause 'name)
+              (yield (distinct-on-clause-columns clause))
+              (yield (statement-clause-statement clause)))))
+
+(defmethod make-clause ((clause-name (eql :distinct-on)) &rest args)
+  (apply #'make-distinct-on-clause
+         (mapcar #'detect-and-convert (first args))
+         (mapcar #'detect-and-convert (rest args))))
 
 @export
 (defstruct (from-clause (:include statement-clause (name "FROM"))

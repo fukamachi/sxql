@@ -163,6 +163,10 @@
 (defmacro fields (&rest fields)
   `(make-clause :fields ,@(mapcar #'expand-op fields)))
 
+@export
+(defmacro distinct-on (columns &rest fields)
+  `(make-clause :distinct-on (list ,@columns) ,@(mapcar #'expand-op fields)))
+
 (defun convert-if-fields-clause (clause)
   (match clause
     ((or (list* (type keyword) _)

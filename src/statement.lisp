@@ -18,6 +18,7 @@
                 :make-column-definition-clause
                 :*inside-insert-into*
                 :fields-clause
+                :distinct-on-clause
                 :from-clause
                 :from-clause-table-name
                 :join-clause
@@ -69,6 +70,7 @@
     (iter
       (for i from 0)
       (for clause in '(fields-clause
+                       distinct-on-clause
                        from-clause
                        join-clause
                        where-clause
@@ -98,6 +100,7 @@
                                                                     clauses
                                                                   &key
                                                                     fields-clause
+                                                                    distinct-on-clause
                                                                     from-clause
                                                                     join-clause
                                                                     where-clause
@@ -120,6 +123,7 @@
   clause-order
 
   (fields-clause nil)
+  (distinct-on-clause nil)
   (from-clause nil)
   (join-clause nil)
   (where-clause nil)
@@ -136,6 +140,7 @@
   (iter (for (type . score)
              in (sort
                  (iter (for type in '(fields-clause
+                                      distinct-on-clause
                                       from-clause
                                       join-clause
                                       where-clause
@@ -273,6 +278,7 @@
   (apply #'make-statement :select
          (if defaults
              (iter (for type in '(fields-clause
+                                  distinct-on-clause
                                   from-clause
                                   join-clause
                                   where-clause
