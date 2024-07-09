@@ -371,6 +371,9 @@
    "DROP PRIMARY KEY"
    nil))
 
+(defstruct (drop-constraint-clause (:include expression-clause (name "DROP CONSTRAINT"))
+                                   (:constructor make-drop-constraint-clause (expression))))
+
 (defstruct (on-duplicate-key-update-clause (:include sql-clause (name "ON DUPLICATE KEY UPDATE"))
                                            (:constructor %make-on-duplicate-key-update-clause (&rest args)))
   (args nil :type (and proper-list

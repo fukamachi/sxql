@@ -336,6 +336,10 @@
   (make-clause :drop-primary-key))
 
 @export
+(defun drop-constraint (constraint-name)
+  (make-clause :drop-constraint constraint-name))
+
+@export
 (defmacro on-duplicate-key-update (&rest args)
   `(make-clause :on-duplicate-key-update ,@(mapcar #'expand-op args)))
 
