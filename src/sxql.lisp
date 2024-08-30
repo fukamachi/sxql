@@ -214,11 +214,11 @@
                           expressions))))
 
 @export
-(defmacro for (update-type &key of nowait)
+(defmacro for (update-type &key of nowait skip-locked)
   (let ((ident-list (if (keywordp of)
                         `(list ,of)
                         `(quote ,of))))
-    `(make-clause :updatability ,update-type :of ,ident-list :nowait ,nowait)))
+    `(make-clause :updatability ,update-type :of ,ident-list :nowait ,nowait :skip-locked ,skip-locked)))
 
 @export
 (defun limit (count1 &optional count2)
