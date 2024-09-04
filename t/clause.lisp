@@ -95,6 +95,7 @@
 (ok (make-clause :updatability :update) "FOR UPDATE")
 (ok (make-clause :updatability :update :of '(:hoge :piyo)) "FOR UPDATE OF")
 (ok (make-clause :updatability :update :of '(:hoge :piyo) :nowait t) "FOR UPDATE OF NOWAIT")
+(ok (make-clause :updatability :update :of '(:hoge :piyo) :skip-locked t) "FOR UPDATE OF SKIP LOCKED")
 (is (multiple-value-list
      (yield (make-clause :updatability :update)))
     (list "FOR UPDATE" nil))
@@ -110,6 +111,12 @@
 (is (multiple-value-list
      (yield (make-clause :updatability :update :nowait t)))
     (list "FOR UPDATE NOWAIT" nil))
+(is (multiple-value-list
+     (yield (make-clause :updatability :update :of '(:hoge :piyo) :skip-locked t)))
+    (list "FOR UPDATE OF `hoge`, `piyo` SKIP LOCKED" nil))
+(is (multiple-value-list
+     (yield (make-clause :updatability :update :skip-locked t)))
+    (list "FOR UPDATE SKIP LOCKED" nil))
 
 (ok (make-clause :limit (make-sql-variable 1)) "LIMIT")
 (ok (make-clause :limit (make-sql-variable 0) (make-sql-variable 10)))

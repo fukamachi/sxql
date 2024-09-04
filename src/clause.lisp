@@ -120,9 +120,14 @@
                                 (:constructor make-updatability-clause))
   (update-type :update :type keyword)
   (idents '() :type list)
-  (nowait nil :type boolean))
+  (nowait nil :type boolean)
+  (skip-locked nil :type boolean))
 
 (defmethod yield ((obj updatability-clause))
+  (when (and (updatability-clause-nowait obj)
+             (updatability-clause-skip-locked obj))
+    (error "It is not possible to specify both :nowait and :skip-locked at the same time."))
+
   (let ((params '()))
     (values (with-output-to-string (stream)
               (format stream "FOR ~A"
@@ -138,7 +143,10 @@
                   (setf params params)))
               ;; Optional NOWAIT keyword
               (when (updatability-clause-nowait obj)
-                (format stream " NOWAIT")))
+                (format stream " NOWAIT"))
+              ;; Optional SKIP LOCKED keyword
+              (when (updatability-clause-skip-locked obj)
+                (format stream " SKIP LOCKED")))
             params)))
 
 @export
@@ -468,11 +476,12 @@
               (t (detect-and-convert using))))))
 
 (defmethod make-clause ((clause-name (eql :updatability)) &rest args)
-  (destructuring-bind (update-type &key of nowait) args
+  (destructuring-bind (update-type &key of nowait skip-locked) args
     (make-updatability-clause
      :update-type update-type
      :idents (if (not (listp of)) (list of) of)
-     :nowait nowait)))
+     :nowait nowait
+     :skip-locked skip-locked)))
 
 (defmethod make-clause ((clause-name (eql :key)) &rest args)
   (apply #'make-key-clause-for-all #'make-key-clause args))
