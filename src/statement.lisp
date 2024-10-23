@@ -257,6 +257,19 @@
   (analyze nil :type boolean)
   (verbose nil :type boolean))
 
+@export
+(defstruct (create-view-statement (:include sql-statement (name "CREATE VIEW"))
+                                  (:constructor make-create-view-statement (view-name &key or-replace as)))
+  view-name
+  or-replace
+  as)
+
+@export
+(defstruct (drop-view-statement (:include sql-statement (name "DROP VIEW"))
+                                (:constructor make-drop-view-statement (view-name &key if-exists)))
+  view-name
+  if-exists)
+
 (defun find-make-statement (statement-name &optional (package *package*))
   (find-constructor statement-name #.(string :-statement)
                     :package package))
@@ -369,6 +382,20 @@
                             :analyze analyze
                             :verbose verbose)))
 
+(defmethod make-statement ((statement-name (eql :create-view)) &rest args)
+  (destructuring-bind (view-name &key or-replace as)
+      args
+    (make-create-view-statement (detect-and-convert view-name) :or-replace or-replace :as as)))
+
+(defmethod make-statement ((statement-name (eql :drop-view)) &rest args)
+  (destructuring-bind (view-name &key if-exists)
+      args
+    (make-drop-view-statement (typecase view-name
+                                (sql-symbol view-name)
+                                (string (make-sql-symbol view-name))
+                                (otherwise (detect-and-convert view-name)))
+                              :if-exists if-exists)))
+
 (defmethod yield ((statement create-table-statement))
   (with-yield-binds
     (format nil "~A~:[~; IF NOT EXISTS~] ~A (~%~{    ~A~^,~%~}~%)"
@@ -430,3 +457,19 @@
            (explain-statement-verbose statement)
            (yield (explain-statement-statement statement)))
    nil))
+
+(defmethod yield ((statement create-view-statement))
+  (with-yield-binds
+    (format nil "CREATE~:[~; OR REPLACE~] VIEW ~A AS ~A"
+            (create-view-statement-or-replace statement)
+            (yield (create-view-statement-view-name statement))
+            (let ((as (create-view-statement-as statement)))
+              (typecase as
+                (string as)
+                (otherwise (yield as)))))))
+
+(defmethod yield ((statement drop-view-statement))
+  (with-yield-binds
+    (format nil "DROP~:[~; IF EXISTS~] VIEW ~A"
+            (drop-view-statement-if-exists statement)
+            (yield (drop-view-statement-view-name statement)))))

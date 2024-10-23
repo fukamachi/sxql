@@ -48,7 +48,9 @@
            :alter-table-statement
            :create-index-statement
            :drop-index-statement
-           :explain-statement))
+           :explain-statement
+           :create-view-statement
+           :drop-view-statement))
 (in-package :sxql)
 
 (cl-package-locks:lock-package :sxql)
@@ -353,6 +355,16 @@
                 ,conflict-target
                 ,update-set
                 ,where-condition))
+
+@export
+(defmacro create-view (view-name &key or-replace as)
+  `(make-statement :create-view ,view-name
+                   :or-replace ,or-replace
+                   :as ,as))
+
+@export
+(defmacro drop-view (view-name)
+  `(make-statement :drop-view ,view-name))
 
 
 ;;
