@@ -229,6 +229,10 @@
     (list "ALTER COLUMN `profile` SET NOT NULL" nil))
 
 (is (multiple-value-list
+     (yield (make-clause :rename-column :uuid :id)))
+    (list "RENAME COLUMN `uuid` TO `id`" nil))
+
+(is (multiple-value-list
      (yield (make-clause :drop-column
                          :updated_on)))
     (list "DROP COLUMN `updated_on`" nil))

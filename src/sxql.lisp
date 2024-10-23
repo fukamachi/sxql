@@ -326,6 +326,11 @@
          args))
 
 @export
+(defun rename-column (old-column-name new-column-name)
+  "Notice that SQLite before 3.25.0 doesn't support this RENAME COLUMN clause."
+  (make-clause :rename-column old-column-name new-column-name))
+
+@export
 (defun rename-to (new-table-name)
   (make-clause :rename-to new-table-name))
 
