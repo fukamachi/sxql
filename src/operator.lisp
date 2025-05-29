@@ -6,7 +6,9 @@
   (:import-from :sxql.sql-type
                 :sql-statement-p
                 :conjunctive-op-expressions
-                :sql-all-type))
+                :sql-all-type
+                :*inside-function-op*
+                :unary-op-var))
 (in-package :sxql.operator)
 
 (cl-package-locks:lock-package :sxql.operator)
@@ -86,6 +88,7 @@
 (define-op (:case conjunctive-op))
 (define-op (:when infix-op))
 (define-op (:else unary-op))
+(define-op (:exists unary-splicing-op))
 
 (defstruct (raw-op (:include sql-op (name ""))
                    (:constructor make-raw-op (var)))
@@ -278,3 +281,12 @@ case letters."
     (format nil "ELSE ~A"
             (with-table-name nil
               (yield (else-op-var op))))))
+
+(defmethod yield ((op exists-op))
+  (let ((*inside-function-op* t))
+    (multiple-value-bind (var binds)
+        (yield (unary-op-var op))
+      (values (format nil "~A ~A"
+                      (exists-op-name op)
+                      var)
+              binds))))

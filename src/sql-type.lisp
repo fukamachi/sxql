@@ -158,7 +158,8 @@
 @export-constructors
 (defstruct (unary-op (:include sql-op)
                      (:constructor make-unary-op (name var)))
-  (var nil :type sql-expression))
+  (var nil :type (or sql-statement
+                     sql-expression)))
 
 @export
 @export-constructors
