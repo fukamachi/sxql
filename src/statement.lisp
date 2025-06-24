@@ -314,7 +314,7 @@
 (defmethod make-statement ((statement-name (eql :select)) &rest args)
   (apply #'make-select-statement
          (iter (for (type clauses) on (group-by #'type-of
-                                                args :test 'eq) :by #'cddr)
+                                                (remove-if #'null args) :test 'eq) :by #'cddr)
            (let ((type-key (intern (symbol-name type) :keyword)))
              (when (and (cdr clauses)
                         (not (subtypep type 'multiple-allowed-clause)))
