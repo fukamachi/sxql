@@ -249,7 +249,7 @@ case letters."
        (format nil (if *inside-select*
                        "(~{~A~^ ~})"
                        "~{~A~^ ~}")
-               (append (list (format nil ,(format nil "~~{(~~A)~~^ ~a ~~}" keyword)
+               (append (list (format nil ,(format nil "~~{~~A~~^ ~a ~~}" keyword)
                                      (mapcar #'yield statements)))
                        (when others
                          (list (format nil "~{~A~^ ~}"

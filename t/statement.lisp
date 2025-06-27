@@ -243,6 +243,6 @@
                                                (make-clause :from (make-sql-symbol "table-2"))))))
     (ok union-stmt)
     (is (multiple-value-list (yield union-stmt))
-        '("(SELECT * FROM `table-name` WHERE (`age` < ?)) UNION (SELECT * FROM `table-2`)" (20)))))
+        '("SELECT * FROM `table-name` WHERE (`age` < ?) UNION SELECT * FROM `table-2`" (20)))))
 
 (finalize)
