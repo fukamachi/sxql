@@ -551,16 +551,16 @@
 
 (defmethod yield ((clause join-clause))
   (with-yield-binds
-    (values
-     (format nil "~A JOIN ~A~:[~;~:* ON ~A~]~:[~;~:* USING ~A~]"
-             (join-clause-kind clause)
-             (yield (join-clause-statement clause))
-             (if (join-clause-on clause)
-                 (yield (join-clause-on clause))
-                 nil)
-             (if (join-clause-using clause)
-                 (yield (join-clause-using clause))
-                 nil)))))
+      (values
+       (format nil "~A JOIN ~A~:[~;~:* ON ~A~]~:[~;~:* USING ~A~]"
+               (join-clause-kind clause)
+               (yield (join-clause-statement clause))
+               (if (join-clause-on clause)
+                   (yield (join-clause-on clause))
+                   nil)
+               (if (join-clause-using clause)
+                   (yield (join-clause-using clause))
+                   nil)))))
 
 (defmethod yield ((clause set=-clause))
   (labels ((yield-arg (arg)
@@ -569,15 +569,28 @@
                  "NULL")))
     (with-yield-binds
       (if *inside-insert-into*
-          (apply #'format nil
-                 "(~{~A~^, ~}) VALUES (~{~A~^, ~})"
-                 (loop for (k v) on (set=-clause-args clause) by #'cddr
-                       collect (yield-arg k) into keys
-                       collect (yield-arg v) into values
-                       finally
-                          (return (list keys values))))
-          (format nil "SET ~{~A = ~A~^, ~}"
-                  (mapcar #'yield-arg (set=-clause-args clause)))))))
+	  (let ((values-collect (make-hash-table))
+		(count 0)
+		(largest-count 0)
+		keys-collect values-out-collect)
+	    (loop for item in (set=-clause-args clause)
+		  for item-symbol-p = (eq (type-of item) 'sxql.sql-type:sql-symbol)
+		  do (cond ((and item-symbol-p values-collect)
+			    (push (yield-arg item) keys-collect)
+			    (when (> count largest-count)
+			      (setf largest-count count))
+			    (setf count 0))
+			   (item-symbol-p (push (yield-arg item) keys-collect))
+			   (t (push item (gethash count values-collect))
+			      (incf count))))
+	    (dotimes (n count)
+	      (let ((dump (mapcar #'yield-arg (reverse (gethash n values-collect)))))
+		(push dump values-out-collect)))
+	    (format nil "(~{~A~^, ~}) VALUES ~{(~{~A~^, ~})~^,~}"
+		    (reverse keys-collect)
+		    (reverse values-out-collect)))
+	  (format nil "SET ~{~A = ~A~^, ~}"
+		  (mapcar #'yield-arg (set=-clause-args clause)))))))
 
 (defun make-sql-column-type-from-list (val)
   (destructuring-bind (type &optional args &rest attrs)
