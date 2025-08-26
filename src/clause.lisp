@@ -305,6 +305,11 @@
   column-name type set-default drop-default
   (not-null :unspecified))
 
+(defstruct (rename-column-clause (:include sql-clause (name "RENAME COLUMN"))
+                                 (:constructor make-rename-column-clause (old-column-name new-column-name)))
+  "Generates a RENAME COLUMN clause. All MySQL/PostgreSQL/SQLite support this to rename a column. Notice that SQLite before 3.25.0 doesn't support RENAME COLUMN."
+  old-column-name new-column-name)
+
 (defmethod yield ((clause alter-column-clause))
   (with-yield-binds
     (format nil "ALTER COLUMN ~A~:[~; TYPE ~:*~A~]~:[~; SET DEFAULT ~:*~A~]~:[~; DROP DEFAULT~]~A"
@@ -319,6 +324,12 @@
               ((eq (alter-column-clause-not-null clause) :unspecified) "")
               ((alter-column-clause-not-null clause) " SET NOT NULL")
               (T " DROP NOT NULL")))))
+
+(defmethod yield ((clause rename-column-clause))
+  (with-yield-binds
+    (format nil "RENAME COLUMN ~A TO ~A"
+            (yield (rename-column-clause-old-column-name clause))
+            (yield (rename-column-clause-new-column-name clause)))))
 
 (defstruct (change-column-clause (:include column-modifier-clause (name "CHANGE COLUMN"))
                                  (:constructor make-change-column-clause (old-column-name column-definition

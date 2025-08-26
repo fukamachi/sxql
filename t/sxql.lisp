@@ -9,7 +9,7 @@
                           :is-error))
 (in-package :t.sxql)
 
-(plan 66)
+(plan 67)
 
 (defmacro is-mv (test result &optional desc)
   `(is (multiple-value-list (yield ,test))
@@ -325,6 +325,12 @@
 (is-mv (explain (select :* (from :table)) :verbose t)
        '("EXPLAIN VERBOSE SELECT * FROM `table`" nil)
        "EXPLAIN VERBOSE")
+
+(diag "alter/modify table")
+
+(is-mv (alter-table :user (rename-column :e_mail :email))
+       '("ALTER TABLE `user` RENAME COLUMN `e_mail` TO `email`" nil)
+       "ALTER TABLE RENAME COLUMN")
 
 (diag "placeholder")
 
