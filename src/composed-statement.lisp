@@ -1,8 +1,7 @@
 (defpackage #:sxql/composed-statement
   (:nicknames #:sxql.composed-statement)
   (:use #:cl
-        #:iterate
-        #:sxql/syntax)
+        #:iterate)
   (:import-from #:sxql/sql-type
                 #:*use-placeholder*
                 #:with-table-name
@@ -39,11 +38,15 @@
                 #:group-by
                 #:subdivide)
   (:import-from #:alexandria
-                #:compose))
+                #:compose)
+  (:export
+   ;; Structures
+   #:composed-statement
+   ;; Functions
+   #:compose-statements))
 (in-package #:sxql/composed-statement)
 
 (cl-package-locks:lock-package '#:sxql/composed-statement)
-(enable-syntax)
 
 (defparameter *clause-delimiters*
   '((fields-clause . ", ")
@@ -79,7 +82,6 @@
           (with-table-name table-name-b
             (yield-only-contents clause-b))))
 
-@export
 (defstruct (composed-statement (:constructor make-composed-statement (&rest statements)))
   (statements nil))
 
@@ -167,7 +169,6 @@
                               scoped-clauses
                               :initial-value nil))))))))
 
-@export
 (defun compose-statements (statement &rest statements)
   (let ((statements (cons statement statements)))
     (mapc (lambda (stmt)

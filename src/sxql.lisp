@@ -2,8 +2,7 @@
   (:use #:cl
         #:sxql/statement
         #:sxql/composed-statement
-        #:sxql/clause
-        #:sxql/syntax)
+        #:sxql/clause)
   (:shadow #:primary-key
            #:foreign-key
            #:key)
@@ -24,36 +23,95 @@
                 #:*sql-symbol-conversion*)
   (:import-from #:trivia
                 #:match)
-  (:export :yield
-           :sql-compile
-           :add-child
-           :merge-statements
-           :make-statement
-           :make-clause
-           :make-op
-           :make-sql-symbol
-           :make-sql-symbol*
-           :compose-statements
-           :*use-placeholder*
-           :*quote-character*
-           :*sql-symbol-conversion*
+  (:export #:yield
+           #:sql-compile
+           #:add-child
+           #:merge-statements
+           #:make-statement
+           #:make-clause
+           #:make-op
+           #:make-sql-symbol
+           #:make-sql-symbol*
+           #:compose-statements
+           #:*use-placeholder*
+           #:*quote-character*
+           #:*sql-symbol-conversion*
 
-           :select-statement
-           :insert-into-statement
-           :update-statement
-           :delete-from-statement
-           :create-table-statement
-           :drop-table-statement
-           :alter-table-statement
-           :create-index-statement
-           :drop-index-statement
-           :explain-statement
-           :create-view-statement
-           :drop-view-statement))
+           ;; Statement types
+           #:select-statement
+           #:insert-into-statement
+           #:update-statement
+           #:delete-from-statement
+           #:create-table-statement
+           #:drop-table-statement
+           #:alter-table-statement
+           #:create-index-statement
+           #:drop-index-statement
+           #:explain-statement
+           #:create-view-statement
+           #:drop-view-statement
+           #:select-statement-designator
+
+           ;; Statement macros/functions
+           #:select
+           #:insert-into
+           #:update
+           #:delete-from
+           #:create-table
+           #:drop-table
+           #:alter-table
+           #:pragma
+           #:union-queries
+           #:union-all-queries
+           #:create-index
+           #:drop-index
+           #:explain
+           #:create-view
+           #:drop-view
+
+           ;; Clause macros/functions
+           #:fields
+           #:distinct-on
+           #:from
+           #:where
+           #:order-by
+           #:group-by
+           #:having
+           #:returning
+           #:for
+           #:limit
+           #:offset
+           #:set=
+           #:join
+           #:inner-join
+           #:left-join
+           #:right-join
+           #:full-join
+
+           ;; Key and constraint functions
+           #:primary-key
+           #:unique-key
+           #:index-key
+           #:foreign-key
+
+           ;; Column modification functions
+           #:add-column
+           #:modify-column
+           #:alter-column
+           #:drop-column
+           #:change-column
+           #:rename-to
+           #:add-primary-key
+           #:drop-primary-key
+           #:drop-constraint
+
+           ;; Conflict resolution
+           #:on-duplicate-key-update
+           #:on-conflict-do-nothing
+           #:on-conflict-do-update))
 (in-package #:sxql)
 
 (cl-package-locks:lock-package '#:sxql)
-(enable-syntax)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun expand-op (object)
@@ -70,7 +128,6 @@
        expressions)
       (t (mapcar #'expand-op expressions)))))
 
-@export
 (defmacro select (fields &body clauses)
   `(make-statement :select
                    ,(match fields
@@ -85,7 +142,6 @@
                       (otherwise fields))
                    ,@clauses))
 
-@export
 (defmacro insert-into (table &body clauses)
   `(make-statement :insert-into
                    ,(expand-expression table)
@@ -94,17 +150,14 @@
                          `(',(car clauses) ,@(cdr clauses))
                          clauses)))
 
-@export
 (defmacro update (table &body clauses)
   `(make-statement :update
                    ,(expand-expression table) ,@clauses))
 
-@export
 (defmacro delete-from (table &body clauses)
   `(make-statement :delete-from
                    ,(expand-expression table) ,@clauses))
 
-@export
 (defmacro create-table (table column-definitions &body options)
   `(make-statement :create-table
                    ',(expand-expression table)
@@ -121,50 +174,40 @@
                          nil
                          options)))
 
-@export
 (defmacro drop-table (table &key if-exists)
   `(make-statement :drop-table
                    ,(expand-expression table) :if-exists ,if-exists))
 
-@export
 (defmacro alter-table (table &body clauses)
   `(make-statement :alter-table
                    ,(expand-expression table) ,@clauses))
 
-@export
 (defun pragma (name &optional value)
   (make-statement :pragma name value))
 
-@export
 (defun union-queries (&rest queries)
   (apply #'make-op :union queries))
 
-@export
 (defun union-all-queries (&rest queries)
   (apply #'make-op :union-all queries))
 
-@export
 (defun create-index (index-name &rest args &key unique using on if-not-exists)
   (declare (ignore unique using on if-not-exists))
   (apply #'make-statement :create-index index-name
          args))
 
-@export
 (defun drop-index (index-name &key if-exists on)
   (make-statement :drop-index index-name :if-exists if-exists :on on))
 
-@export
 (defun explain (statement &key analyze verbose)
   (make-statement :explain statement :analyze analyze :verbose verbose))
 
 ;;
 ;; Clauses
 
-@export
 (defmacro fields (&rest fields)
   `(make-clause :fields ,@(mapcar #'expand-op fields)))
 
-@export
 (defmacro distinct-on (columns &rest fields)
   `(make-clause :distinct-on (list ,@columns) ,@(mapcar #'expand-op fields)))
 
@@ -176,11 +219,9 @@
     ((type keyword) (fields clause))
     (otherwise clause)))
 
-@export
 (defmacro from (&rest statements)
   `(make-clause :from ,@(mapcar #'expand-op statements)))
 
-@export
 (defmacro where (expression)
   `(make-clause :where
                 ,(if (and (listp expression)
@@ -188,15 +229,12 @@
                      (expand-op expression)
                      `,expression)))
 
-@export
 (defmacro order-by (&rest expressions)
   `(make-clause :order-by ,@(expand-expression expressions)))
 
-@export
 (defmacro group-by (&rest expressions)
   `(apply #'make-clause :group-by ',expressions))
 
-@export
 (defmacro having (expression)
   `(make-clause :having
                 ,(if (and (listp expression)
@@ -204,7 +242,6 @@
                      (expand-op expression)
                      `,expression)))
 
-@export
 (defmacro returning (&rest expressions)
   `(apply #'make-clause :returning
           (list ,@(mapcar (lambda (expr)
@@ -214,26 +251,21 @@
                               `,expr))
                           expressions))))
 
-@export
 (defmacro for (update-type &key of nowait skip-locked)
   (let ((ident-list (if (keywordp of)
                         `(list ,of)
                         `(quote ,of))))
     `(make-clause :updatability ,update-type :of ,ident-list :nowait ,nowait :skip-locked ,skip-locked)))
 
-@export
 (defun limit (count1 &optional count2)
   (apply #'make-clause :limit `(,count1 ,@(and count2 (list count2)))))
 
-@export
 (defun offset (offset)
   (make-clause :offset offset))
 
-@export
 (defmacro set= (&rest args)
   `(make-clause :set= ,@(mapcar #'expand-op args)))
 
-@export
 (defmacro join (table &key (kind :inner) on using)
   `(make-clause :join ,(expand-op table)
                 :kind ,kind
@@ -247,19 +279,15 @@
                       `(:using ',using)
                       nil)))
 
-@export
 (defmacro inner-join (table &key on using)
   `(join ,table :kind :inner :on ,on :using ,using))
 
-@export
 (defmacro left-join (table &key on using)
   `(join ,table :kind :left :on ,on :using ,using))
 
-@export
 (defmacro right-join (table &key on using)
   `(join ,table :kind :right :on ,on :using ,using))
 
-@export
 (defmacro full-join (table &key on using)
   `(join ,table :kind :full :on ,on :using ,using))
 
@@ -271,19 +299,15 @@
       `(make-clause ,type
                     ',(car key-args))))
 
-@export
 (defun primary-key (&rest key-args)
   (apply #'make-clause :primary-key key-args))
 
-@export
 (defun unique-key (&rest key-args)
   (apply #'make-clause :unique-key key-args))
 
-@export
 (defun index-key (&rest key-args)
   (apply #'make-clause :key key-args))
 
-@export
 (defun foreign-key (column-names &key references on-delete on-update)
   (flet ((canonicalize-action (action)
            (etypecase action
@@ -301,67 +325,53 @@
                  :on-delete (canonicalize-action on-delete)
                  :on-update (canonicalize-action on-update))))
 
-@export
 (defun add-column (column-name &rest args)
   (apply #'make-clause :add-column column-name args))
 
-@export
 (defun modify-column (column-name &rest args)
   (apply #'make-clause :modify-column column-name args))
 
-@export
 (defun alter-column (column-name &rest args)
   (apply #'make-clause :alter-column column-name args))
 
-@export
 (defun drop-column (column-name)
   (make-clause :drop-column column-name))
 
-@export
 (defun change-column (old-column-name new-column-name &rest args)
   (apply #'make-clause
          :change-column
          old-column-name new-column-name
          args))
 
-@export
 (defun rename-to (new-table-name)
   (make-clause :rename-to new-table-name))
 
-@export
 (defun add-primary-key (&rest column-names)
   (apply #'make-clause :add-primary-key column-names))
 
-@export
 (defun drop-primary-key ()
   (make-clause :drop-primary-key))
 
-@export
 (defun drop-constraint (constraint-name)
   (make-clause :drop-constraint constraint-name))
 
-@export
 (defmacro on-duplicate-key-update (&rest args)
   `(make-clause :on-duplicate-key-update ,@(mapcar #'expand-op args)))
 
-@export
 (defmacro on-conflict-do-nothing (&optional (conflict-target nil))
   `(make-clause :on-conflict-do-nothing ,conflict-target))
 
-@export
 (defmacro on-conflict-do-update (conflict-target update-set &optional where-condition)
   `(make-clause :on-conflict-do-update
                 ,conflict-target
                 ,update-set
                 ,where-condition))
 
-@export
 (defmacro create-view (view-name &key or-replace as)
   `(make-statement :create-view ,view-name
                    :or-replace ,or-replace
                    :as ,as))
 
-@export
 (defmacro drop-view (view-name)
   `(make-statement :drop-view ,view-name))
 
@@ -369,7 +379,6 @@
 ;;
 ;; Types
 
-@export
 (deftype select-statement-designator ()
   '(or
     select-statement

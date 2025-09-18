@@ -2,12 +2,13 @@
   (:nicknames #:sxql.compile)
   (:use #:cl
         #:trivial-types
-        #:sxql/sql-type
-        #:sxql/syntax))
+        #:sxql/sql-type)
+  (:export
+   ;; Functions
+   #:sql-compile))
 (in-package #:sxql/compile)
 
 (cl-package-locks:lock-package '#:sxql/compile)
-(enable-syntax)
 
 (defgeneric find-compile-function (object))
 
@@ -37,7 +38,6 @@
 (define-compile-struct sql-clause)
 (define-compile-struct sql-statement)
 
-@export
 (defun sql-compile (object)
   (multiple-value-bind (sql bind) (yield object)
     (funcall

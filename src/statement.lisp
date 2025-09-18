@@ -1,9 +1,7 @@
 (defpackage #:sxql/statement
   (:nicknames #:sxql.statement)
   (:use #:cl
-        #:annot.class
         #:sxql/sql-type
-        #:sxql/syntax
         #:iterate)
   (:import-from #:sxql/sql-type
                 #:sql-splicing-list-elements
@@ -37,13 +35,36 @@
                 #:subdivide)
   (:import-from #:alexandria
                 #:compose
-                #:when-let))
+                #:when-let)
+  (:export
+   ;; Generic functions
+   #:add-child
+   #:sort-clause-types
+   #:compute-select-statement-children
+   #:select-statement-table-name
+   #:make-statement
+   #:merge-statements
+   ;; Statement structures
+   #:select-statement
+   #:insert-into-statement
+   #:update-statement
+   #:delete-from-statement
+   #:create-table-statement
+   #:drop-table-statement
+   #:alter-table-statement
+   #:create-index-statement
+   #:drop-index-statement
+   #:pragma-statement
+   #:explain-statement
+   #:create-view-statement
+   #:drop-view-statement
+   ;; Accessors (from @export-accessors on select-statement)
+   #:select-statement-name
+   #:select-statement-children))
 (in-package #:sxql/statement)
 
 (cl-package-locks:lock-package '#:sxql/statement)
-(enable-syntax)
 
-@export
 (defgeneric add-child (statement child))
 
 (defmethod add-child ((statement sql-composed-statement) child)
@@ -84,7 +105,6 @@
       (setf (gethash clause hash) i))
     hash))
 
-@export
 (defun sort-clause-types (types)
   (sort types
         (lambda (a b)
@@ -93,8 +113,6 @@
         :key (lambda (type)
                (gethash type *clause-priority*))))
 
-@export
-@export-accessors
 (defstruct (select-statement (:include sql-composed-statement (name "SELECT"))
                              (:constructor make-select-statement (&rest
                                                                     clauses
@@ -135,7 +153,6 @@
   (offset-clause nil)
   (updatability-clause nil))
 
-@export
 (defun compute-select-statement-children (select-statement)
   (iter (for (type . score)
              in (sort
@@ -182,12 +199,10 @@
   (setf (select-statement-children statement)
         (compute-select-statement-children statement)))
 
-@export
 (defun select-statement-table-name (select)
   (when-let ((from (select-statement-from-clause select)))
     (from-clause-table-name (car from))))
 
-@export
 (defstruct (insert-into-statement (:include sql-composed-statement (name "INSERT INTO"))
                                   (:constructor make-insert-into-statement (&rest children
                                                                             &aux (children
@@ -197,27 +212,22 @@
                                                                                                 child))
                                                                                                 children))))))
 
-@export
 (defstruct (update-statement (:include sql-composed-statement (name "UPDATE"))
                              (:constructor make-update-statement (&rest children))))
 
-@export
 (defstruct (delete-from-statement (:include sql-composed-statement (name "DELETE FROM"))
                                   (:constructor make-delete-from-statement (&rest children))))
 
-@export
 (defstruct (create-table-statement (:include sql-composed-statement (name "CREATE TABLE"))
                                    (:constructor make-create-table-statement (table &key if-not-exists children)))
   table
   (if-not-exists nil :type boolean))
 
-@export
 (defstruct (drop-table-statement (:include sql-statement (name "DROP TABLE"))
                                  (:constructor make-drop-table-statement (table &key if-exists)))
   (table nil :type sql-symbol)
   (if-exists nil :type boolean))
 
-@export
 (defstruct (alter-table-statement (:include sql-statement (name "ALTER TABLE"))
                                   (:constructor make-alter-table-statement (table &rest children
                                                                             &aux (children
@@ -225,7 +235,6 @@
   (table nil :type sql-symbol)
   (children nil))
 
-@export
 (defstruct (create-index-statement (:include sql-statement (name "CREATE INDEX"))
                                    (:constructor make-create-index-statement (index-name table-name columns &key unique using if-not-exists)))
   (index-name nil :type sql-symbol)
@@ -235,21 +244,18 @@
   (using nil :type (or null sql-keyword))
   (if-not-exists nil :type boolean))
 
-@export
 (defstruct (drop-index-statement (:include sql-statement (name "DROP INDEX"))
                                  (:constructor make-drop-index-statement (index-name &key if-exists on)))
   (index-name nil :type sql-symbol)
   (if-exists nil :type boolean)
   (on nil :type (or null sql-symbol)))
 
-@export
 (defstruct (pragma-statement (:include sql-statement (name "PRAGMA"))
                              (:constructor make-pragma-statement (pragma-name &optional value)))
   "A statement for PRAGMA statement available in SQLITE. See https://www.sqlite.org/pragma.html"
   pragma-name
   value)
 
-@export
 (defstruct (explain-statement (:include sql-statement (name "EXPLAIN"))
                               (:constructor make-explain-statement (statement
                                                                     &key analyze verbose)))
@@ -257,14 +263,12 @@
   (analyze nil :type boolean)
   (verbose nil :type boolean))
 
-@export
 (defstruct (create-view-statement (:include sql-statement (name "CREATE VIEW"))
                                   (:constructor make-create-view-statement (view-name &key or-replace as)))
   view-name
   or-replace
   as)
 
-@export
 (defstruct (drop-view-statement (:include sql-statement (name "DROP VIEW"))
                                 (:constructor make-drop-view-statement (view-name &key if-exists)))
   view-name
@@ -274,17 +278,14 @@
   (find-constructor statement-name #.(string :-statement)
                     :package package))
 
-@export
 (defgeneric make-statement (statement-name &rest args))
 
-@export
 (defmethod make-statement (statement-name &rest args)
   (apply (find-make-statement statement-name #.*package*)
          (remove nil (mapcar #'detect-and-convert args))))
 
 (deftype multiple-allowed-clause () '(or join-clause where-clause))
 
-@export
 (defun merge-statements (statement defaults)
   (check-type statement select-statement)
   (check-type defaults select-statement)

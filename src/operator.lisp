@@ -1,20 +1,26 @@
 (defpackage #:sxql/operator
   (:nicknames #:sxql.operator)
   (:use #:cl
-        #:sxql/sql-type
-        #:sxql/syntax)
+        #:sxql/sql-type)
   (:import-from #:sxql/sql-type
                 #:sql-statement-p
                 #:conjunctive-op-expressions
                 #:sql-all-type
                 #:*inside-function-op*
-                #:unary-op-var))
+                #:unary-op-var)
+  (:export
+   ;; Parameters and variables
+   #:*inside-select*
+   #:*sql-symbol-conversion*
+   ;; Functions
+   #:find-constructor
+   #:make-op
+   #:detect-and-convert
+   #:convert-for-sql))
 (in-package #:sxql/operator)
 
 (cl-package-locks:lock-package '#:sxql/operator)
-(enable-syntax)
 
-@export
 (defparameter *inside-select* nil)
 
 (defmacro define-op ((op-name struct-type &key sql-op-name include-slots (package (find-package '#:sxql/operator))) &body body)
@@ -98,7 +104,6 @@
 (defstruct (splicing-raw-op (:include raw-op)
                             (:constructor make-splicing-raw-op (var))))
 
-@export
 (defun find-constructor (name suffix &key (package *package*) (errorp t))
   (check-type name symbol)
   (let ((func-symbol (find-symbol (concatenate 'string
@@ -117,7 +122,6 @@
       #'(lambda (&rest expressions)
           (apply #'make-function-op (symbol-name op-name) expressions))))
 
-@export
 (defgeneric make-op (op-name &rest args)
   (:method ((op-name t) &rest args)
     (apply (find-make-op op-name #.*package*)
@@ -140,15 +144,12 @@ case letters."
            (or (upper-case-p c) (not (alpha-char-p c)))))
     (not (every #'upper-or-not-alpha (symbol-name symbol)))))
 
-@export
 (defvar *sql-symbol-conversion* #'identity
   "Function for converting a string into an SQL symbol. It takes a string and must returns a string.")
 
-@export
 (defun detect-and-convert (object)
   (convert-for-sql object))
 
-@export
 (defgeneric convert-for-sql (object)
   (:method ((object number))
     (make-sql-variable object))

@@ -1,10 +1,8 @@
 (defpackage #:sxql/clause
   (:nicknames #:sxql.clause)
   (:use #:cl
-        #:annot.class
         #:sxql/sql-type
         #:sxql/operator
-        #:sxql/syntax
         #:trivial-types
         #:iterate)
   (:import-from #:sxql/sql-type
@@ -15,19 +13,45 @@
   (:import-from #:sxql/operator
                 #:=-op
                 #:as-op
-                #:as-op-right))
+                #:as-op-right)
+  (:export
+   ;; Clause structures
+   #:fields-clause
+   #:distinct-on-clause
+   #:from-clause
+   #:where-clause
+   #:values-clause
+   #:order-by-clause
+   #:limit-clause
+   #:offset-clause
+   #:group-by-clause
+   #:having-clause
+   #:returning-clause
+   #:updatability-clause
+   #:join-clause
+   #:set=-clause
+   #:key-clause
+   #:primary-key-clause
+   #:unique-key-clause
+   #:references-clause
+   #:foreign-key-clause
+   #:column-definition-clause
+   ;; Functions
+   #:from-clause-table-name
+   #:compose-where-clauses
+   #:make-column-definition-clause
+   #:make-clause
+   ;; Parameters
+   #:*inside-insert-into*))
 (in-package #:sxql/clause)
 
 (cl-package-locks:lock-package '#:sxql/clause)
-(enable-syntax)
 
-@export
 (defstruct (fields-clause (:include statement-clause (name ""))
                           (:constructor make-fields-clause (&rest fields
                                                             &aux (statement
                                                                   (apply #'make-sql-splicing-list fields))))))
 
-@export
 (defstruct (distinct-on-clause (:include fields-clause (name "DISTINCT ON"))
                                (:constructor make-distinct-on-clause (columns &rest fields
                                                                               &aux
@@ -49,13 +73,11 @@
          (mapcar #'detect-and-convert (first args))
          (mapcar #'detect-and-convert (rest args))))
 
-@export
 (defstruct (from-clause (:include statement-clause (name "FROM"))
                         (:constructor make-from-clause (&rest tables
                                                         &aux (statement
                                                               (apply #'make-sql-splicing-list tables))))))
 
-@export
 (defun from-clause-table-name (from)
   (let ((statements (sql-list-elements (from-clause-statement from))))
     (when (cdr statements)
@@ -64,11 +86,9 @@
       (sql-symbol (sql-symbol-name (car statements)))
       (as-op (sql-symbol-name (as-op-right (car statements)))))))
 
-@export
 (defstruct (where-clause (:include expression-clause (name "WHERE"))
                          (:constructor make-where-clause (expression))))
 
-@export
 (defun compose-where-clauses (clauses)
   (when clauses
     (make-where-clause
@@ -77,7 +97,6 @@
             (iter (for clause in clauses)
               (collect (expression-clause-expression clause)))))))
 
-@export
 (defstruct (values-clause (:include expression-clause (name "VALUES"))
                           (:constructor make-values-clause (&rest elements
                                                             &aux (expression
@@ -87,35 +106,28 @@
                                                                        #'make-sql-list)
                                                                    (mapcar #'detect-and-convert elements)))))))
 
-@export
 (defstruct (order-by-clause (:include expression-list-clause (name "ORDER BY"))
                             (:constructor make-order-by-clause (&rest expressions))))
 
-@export
 (defstruct (limit-clause (:include expression-list-clause (name "LIMIT"))
                          (:constructor make-limit-clause (count1 &optional count2
                                                           &aux (expressions `(,count1 ,@(and count2 (list count2)))))))
   (count1 nil :type sql-variable)
   (count2 nil :type (or null sql-variable)))
 
-@export
 (defstruct (offset-clause (:include sql-clause (name "OFFSET"))
                           (:constructor make-offset-clause (offset)))
   (offset nil :type sql-variable))
 
-@export
 (defstruct (group-by-clause (:include expression-list-clause (name "GROUP BY"))
                             (:constructor make-group-by-clause (&rest expressions))))
 
-@export
 (defstruct (having-clause (:include expression-clause (name "HAVING"))
                           (:constructor make-having-clause (expression))))
 
-@export
 (defstruct (returning-clause (:include expression-list-clause (name "RETURNING"))
                           (:constructor make-returning-clause (&rest expressions))))
 
-@export
 (defstruct (updatability-clause (:include statement-clause)
                                 (:constructor make-updatability-clause))
   (update-type :update :type keyword)
@@ -149,7 +161,6 @@
                 (format stream " SKIP LOCKED")))
             params)))
 
-@export
 (defstruct (join-clause (:include statement-clause)
                         (:constructor make-join-clause))
   (kind :inner :type (or (eql :inner)
@@ -159,7 +170,6 @@
   (on nil :type (or null sql-expression))
   (using nil :type (or null sql-symbol sql-list)))
 
-@export
 (defstruct (set=-clause (:include sql-clause (name "SET"))
                         (:constructor %make-set=-clause (&rest args)))
   (args nil :type (and proper-list
@@ -172,7 +182,6 @@
     )
   (apply #'%make-set=-clause args))
 
-@export
 (defstruct (key-clause (:include expression-clause (name "KEY"))
                        (:constructor make-key-clause (expression)))
   (key-name nil :type (or null sql-variable))
@@ -202,15 +211,12 @@
   (let ((*use-placeholder* nil))
     (call-next-method)))
 
-@export
 (defstruct (primary-key-clause (:include key-clause (name "PRIMARY KEY"))
                                (:constructor make-primary-key-clause (expression))))
 
-@export
 (defstruct (unique-key-clause (:include key-clause (name "UNIQUE"))
                               (:constructor make-unique-key-clause (expression))))
 
-@export
 (defstruct (references-clause (:include expression-clause (name "REFERENCES"))
                               (:constructor make-references-clause (table-name column-names
                                                                     &aux (expression
@@ -229,7 +235,6 @@
 (defstruct (on-delete-clause (:include on-clause (name "ON DELETE"))))
 (defstruct (on-update-clause (:include on-clause (name "ON UPDATE"))))
 
-@export
 (defstruct (foreign-key-clause (:include expression-clause (name "FOREIGN KEY"))
                                (:constructor make-foreign-key-clause (column-names references on-delete on-update
                                                                       &aux (expression
@@ -245,7 +250,6 @@
   (column-names nil :type sql-list)
   (references nil :type references-clause))
 
-@export
 (defstruct (column-definition-clause (:include sql-clause)
                                      (:constructor %make-column-definition-clause (column-name &key type not-null default auto-increment autoincrement unique primary-key)))
   column-name
@@ -332,7 +336,6 @@
 (defstruct (drop-column-clause (:include expression-clause (name "DROP COLUMN"))
                                (:constructor make-drop-column-clause (expression))))
 
-@export
 (defun make-column-definition-clause (column-name &rest args &key type not-null default auto-increment autoincrement unique primary-key)
   (declare (ignore type not-null default auto-increment autoincrement unique primary-key))
   (apply #'%make-column-definition-clause
@@ -436,7 +439,6 @@
     (error "ON-CONFLICT-DO-UPDATE requires inference specification or constraint name. For example, ON CONFLICT (column_name)."))
   (%make-on-conflict-do-update-clause conflict-target update-set where-condition))
 
-@export
 (defparameter *inside-insert-into* nil)
 
 (defmethod yield ((clause on-conflict-do-update-clause))
@@ -454,7 +456,6 @@
   (find-constructor clause-name #.(string :-clause)
                     :package package))
 
-@export
 (defgeneric make-clause (clause-name &rest args)
   (:method ((clause-name t) &rest args)
     (apply (find-make-clause clause-name #.*package*)

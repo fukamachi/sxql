@@ -1,26 +1,91 @@
 (defpackage #:sxql/sql-type
   (:nicknames #:sxql.sql-type)
   (:use #:cl
-        #:annot.class
         #:trivial-types
-        #:split-sequence
-        #:sxql/syntax))
+        #:split-sequence)
+  (:export
+   ;; Special variables
+   #:*quote-character*
+   #:*use-placeholder*
+   ;; Macros
+   #:with-yield-binds
+   #:with-table-name
+   ;; Types
+   #:sql-atom
+   #:sql-variable
+   #:sql-keyword
+   #:sql-symbol
+   #:sql-list
+   #:sql-splicing-list
+   #:sql-op
+   #:sql-column-type
+   #:sql-clause
+   #:sql-clause-list
+   #:sql-expression
+   #:sql-expression-list
+   #:sql-splicing-expression-list
+   #:sql-statement
+   #:unary-op
+   #:unary-splicing-op
+   #:unary-postfix-op
+   #:infix-op
+   #:infix-splicing-op
+   #:infix-list-op
+   #:conjunctive-op
+   #:function-op
+   #:expression-clause
+   #:statement-clause
+   #:expression-list-clause
+   #:sql-composed-statement
+   ;; Constructors
+   #:make-sql-variable
+   #:make-sql-keyword
+   #:make-sql-symbol
+   #:make-sql-symbol*
+   #:make-sql-list
+   #:make-sql-splicing-list
+   #:make-sql-column-type
+   #:make-sql-expression-list
+   #:make-sql-splicing-expression-list
+   #:make-unary-op
+   #:make-unary-splicing-op
+   #:make-infix-op
+   #:make-infix-splicing-op
+   #:make-infix-list-op
+   #:make-conjunctive-op
+   #:make-function-op
+   #:make-type-keyword
+   ;; Accessors
+   #:sql-variable-value
+   #:sql-list-elements
+   #:sql-statement-name
+   #:sql-statement-children
+   #:sql-composed-statement-children
+   ;; Slot accessors
+   #:elements
+   #:name
+   #:var
+   #:left
+   #:right
+   #:expressions
+   #:expression
+   #:statement
+   #:children
+   ;; Functions
+   #:sql-expression-list-p
+   #:yield))
 (in-package #:sxql/sql-type)
 
 (cl-package-locks:lock-package '#:sxql/sql-type)
-(enable-syntax)
 
-@export
 (defparameter *quote-character* nil)
 
-@export
 (defparameter *use-placeholder* t)
 
 (defparameter *bind-values* nil)
 (defparameter *use-global-bind-values* nil)
 (defparameter *inside-function-op* nil)
 
-@export
 (defmacro with-yield-binds (&body body)
   `(let ((*bind-values* nil)
          (*use-global-bind-values* t))
@@ -32,34 +97,25 @@
 ;;
 ;; Atom
 
-@export
 (defstruct sql-atom)
 
-@export
-@export-accessors
-@export-constructors
 (defstruct (sql-variable (:include sql-atom)
                          (:constructor make-sql-variable (value)))
   (value nil :type (or string number (vector (unsigned-byte 8)) array)))
 
-@export
-@export-constructors
 (defstruct (sql-keyword (:include sql-atom)
                         (:constructor make-sql-keyword (name)))
   (name nil :type string))
 
-@export
 (defstruct (sql-symbol (:include sql-atom)
                        (:constructor %make-sql-symbol))
   (name nil :type string)
   (tokens nil :type cons))
 
-@export
 (defun make-sql-symbol (name)
   (%make-sql-symbol :name name
                     :tokens (split-sequence #\. name)))
 
-@export
 (defun make-sql-symbol* (tokens)
   (let ((tokens (if (listp tokens)
                     tokens
@@ -67,19 +123,12 @@
     (%make-sql-symbol :name (format nil "~{~A~^.~}" tokens)
                       :tokens tokens)))
 
-@export 'elements
-@export
-@export-accessors
-@export-constructors
 (defstruct (sql-list (:constructor make-sql-list (&rest elements)))
   (elements nil :type proper-list))
 
-@export-constructors
 (defstruct (sql-splicing-list (:include sql-list)
                               (:constructor make-sql-splicing-list (&rest elements))))
 
-@export 'name
-@export
 (defstruct sql-op
   (name nil :type string))
 
@@ -88,15 +137,12 @@
           (let ((*use-placeholder* nil))
             (yield op))))
 
-@export
-@export-constructors
 (defstruct (sql-column-type (:constructor make-sql-column-type (name &key args attrs
                                                                 &aux (name (make-type-keyword name)))))
   (name nil)
   (args nil :type list)
   (attrs nil :type list))
 
-@export
 (defun make-type-keyword (type)
   (typecase type
     (string (make-sql-keyword type))
@@ -104,42 +150,32 @@
     (t type)))
 
 
-@export
 (defstruct sql-clause
   (name "" :type string))
 
 (defun sql-clause-list-p (object)
   (every #'sql-clause-p object))
 
-@export
 (deftype sql-clause-list ()
   '(and proper-list
         (satisfies sql-clause-list-p)))
 
-@export
 (deftype sql-expression () '(or sql-atom sql-list sql-op sql-clause null))
 
 (defun sql-expression-p (object)
   (typep object 'sql-expression))
 
-@export
 (defun sql-expression-list-p (object)
   (every #'sql-expression-p object))
 
-@export
-@export-constructors
 (defstruct (sql-expression-list (:constructor make-sql-expression-list (&rest elements))
                                 (:predicate nil))
   (elements nil :type (and proper-list
                          (satisfies sql-expression-list-p))))
 
-@export
-@export-constructors
 (defstruct (sql-splicing-expression-list (:include sql-expression-list)
                                          (:constructor make-sql-splicing-expression-list (&rest elements))))
 
-@export
-@export-accessors
 (defstruct sql-statement
   (name "" :type string))
 
@@ -153,25 +189,16 @@
 ;;
 ;; Operator
 
-@export 'var
-@export
-@export-constructors
 (defstruct (unary-op (:include sql-op)
                      (:constructor make-unary-op (name var)))
   (var nil :type (or sql-statement
                      sql-expression)))
 
-@export
-@export-constructors
 (defstruct (unary-splicing-op (:include unary-op)
                               (:constructor make-unary-splicing-op (name var))))
 
-@export
 (defstruct (unary-postfix-op (:include unary-op)))
 
-@export 'left @export 'right
-@export
-@export-constructors
 (defstruct (infix-op (:include sql-op)
                      (:constructor make-infix-op (name left right)))
   (left nil :type (or sql-statement
@@ -181,49 +208,34 @@
                      sql-expression
                      sql-expression-list)))
 
-@export
-@export-constructors
 (defstruct (infix-splicing-op (:include infix-op)
                               (:constructor make-infix-splicing-op (name left right))))
 
-@export
-@export-constructors
 (defstruct (infix-list-op (:include sql-op))
   (left nil :type sql-expression)
   (right nil :type (or proper-list
                        sql-statement)))
 
-@export 'expressions
-@export
-@export-constructors
 (defstruct (conjunctive-op (:include sql-op)
                            (:constructor make-conjunctive-op (name &rest expressions)))
   (expressions nil :type (and proper-list
                             (satisfies sql-statement-list-p))))
 
-@export
-@export-constructors
 (defstruct (function-op (:include conjunctive-op)
                         (:constructor make-function-op (name &rest expressions))))
 
 ;;
 ;; Clause
 
-@export 'expression
-@export
 (defstruct (expression-clause (:include sql-clause))
   (expression nil :type (or sql-expression
                            sql-expression-list)))
 
-@export 'statement
-@export
 (defstruct (statement-clause (:include sql-clause))
   (statement nil :type (or sql-expression
                          sql-expression-list
                          sql-statement)))
 
-@export 'expressions
-@export
 (defstruct (expression-list-clause (:include sql-clause))
   (expressions nil :type (and proper-list
                             (satisfies sql-expression-list-p))))
@@ -236,9 +248,6 @@
 ;;
 ;; Statement
 
-@export 'children
-@export
-@export-accessors
 (defstruct (sql-composed-statement (:include sql-statement))
   (children nil :type proper-list))
 
@@ -250,11 +259,9 @@
 ;;
 ;; Yield
 
-@export
 (defgeneric yield (object))
 
 (defparameter *table-name-scope* nil)
-@export
 (defmacro with-table-name (table-name &body body)
   `(let ((*table-name-scope* ,table-name))
      ,@body))
