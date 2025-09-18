@@ -1,12 +1,13 @@
-(defpackage t.sxql.operator
-  (:use :cl
-        :sxql
-        :sxql.sql-type
-        :sxql.operator
-        :prove)
-  (:shadowing-import-from :t.sxql.prepare
-                          :is-error))
-(in-package :t.sxql.operator)
+(defpackage #:sxql/test/operator
+  (:nicknames #:t.sxql.operator)
+  (:use #:cl
+        #:sxql
+        #:sxql/sql-type
+        #:sxql/operator
+        #:prove)
+  (:shadowing-import-from #:sxql/test/prepare
+                          #:is-error))
+(in-package #:sxql/test/operator)
 
 (plan nil)
 

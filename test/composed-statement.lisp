@@ -1,9 +1,10 @@
-(defpackage t.sxql.composed-statement
-  (:use :cl
-        :sxql
-        :sxql.composed-statement
-        :prove))
-(in-package :t.sxql.composed-statement)
+(defpackage #:sxql/test/composed-statement
+  (:nicknames #:t.sxql.composed-statement)
+  (:use #:cl
+        #:sxql
+        #:sxql/composed-statement
+        #:prove))
+(in-package #:sxql/test/composed-statement)
 
 (plan 6)
 

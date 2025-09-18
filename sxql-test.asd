@@ -3,17 +3,16 @@
   :license "BSD 3-Clause"
   :depends-on ("sxql"
                "prove")
+  :pathname "test"
+  :serial t
   :components
-  ((:module "t"
-    :serial t
-    :components
-    ((:file "prepare")
-     (:test-file "sql-type")
-     (:test-file "operator")
-     (:test-file "clause")
-     (:test-file "statement")
-     (:test-file "composed-statement")
-     (:test-file "sxql"))))
+  ((:file "prepare")
+   (:test-file "sql-type")
+   (:test-file "operator")
+   (:test-file "clause")
+   (:test-file "statement")
+   (:test-file "composed-statement")
+   (:test-file "sxql"))
   :defsystem-depends-on ("prove-asdf")
   :perform (test-op :after (op c)
                     (funcall (intern (string :run-test-system) :prove) c)))

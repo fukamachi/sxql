@@ -1,13 +1,14 @@
-(defpackage t.sxql.clause
-  (:use :cl
-        :prove
-        :sxql.sql-type
-        :sxql.operator
-        :sxql.clause
-        :sxql.compile)
-  (:shadowing-import-from :t.sxql.prepare
-                          :is-error))
-(in-package :t.sxql.clause)
+(defpackage #:sxql/test/clause
+  (:nicknames #:t.sxql.clause)
+  (:use #:cl
+        #:prove
+        #:sxql/sql-type
+        #:sxql/operator
+        #:sxql/clause
+        #:sxql/compile)
+  (:shadowing-import-from #:sxql/test/prepare
+                          #:is-error))
+(in-package #:sxql/test/clause)
 
 (plan 60)
 

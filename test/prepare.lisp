@@ -1,9 +1,10 @@
-(defpackage t.sxql.prepare
-  (:use :cl
-        :prove)
-  (:shadow :is-error)
-  (:export :is-error))
-(in-package :t.sxql.prepare)
+(defpackage #:sxql/test/prepare
+  (:nicknames #:t.sxql.prepare)
+  (:use #:cl
+        #:prove)
+  (:shadow #:is-error)
+  (:export #:is-error))
+(in-package #:sxql/test/prepare)
 
 (defmacro is-error (form condition &optional desc)
   (if #+sbcl (and (uiop:version< (lisp-implementation-version) "1.3.1")

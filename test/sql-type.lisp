@@ -1,11 +1,12 @@
-(defpackage t.sxql.sql-type
-  (:use :cl
-        :sxql
-        :sxql.sql-type
-        :prove)
-  (:shadowing-import-from :t.sxql.prepare
-                          :is-error))
-(in-package :t.sxql.sql-type)
+(defpackage #:sxql/test/sql-type
+  (:nicknames #:t.sxql.sql-type)
+  (:use #:cl
+        #:sxql
+        #:sxql/sql-type
+        #:prove)
+  (:shadowing-import-from #:sxql/test/prepare
+                          #:is-error))
+(in-package #:sxql/test/sql-type)
 
 (plan 28)
 
