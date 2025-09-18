@@ -1,12 +1,12 @@
-(in-package :cl-user)
-(defpackage sxql.compile
-  (:use :cl
-        :trivial-types
-        :sxql.sql-type
-        :sxql.syntax))
-(in-package :sxql.compile)
+(defpackage #:sxql/compile
+  (:nicknames #:sxql.compile)
+  (:use #:cl
+        #:trivial-types
+        #:sxql/sql-type
+        #:sxql/syntax))
+(in-package #:sxql/compile)
 
-(cl-package-locks:lock-package :sxql.compile)
+(cl-package-locks:lock-package '#:sxql/compile)
 (enable-syntax)
 
 (defgeneric find-compile-function (object))

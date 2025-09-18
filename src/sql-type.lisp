@@ -1,13 +1,13 @@
-(in-package :cl-user)
-(defpackage sxql.sql-type
-  (:use :cl
-        :annot.class
-        :trivial-types
-        :split-sequence
-        :sxql.syntax))
-(in-package :sxql.sql-type)
+(defpackage #:sxql/sql-type
+  (:nicknames #:sxql.sql-type)
+  (:use #:cl
+        #:annot.class
+        #:trivial-types
+        #:split-sequence
+        #:sxql/syntax))
+(in-package #:sxql/sql-type)
 
-(cl-package-locks:lock-package :sxql.sql-type)
+(cl-package-locks:lock-package '#:sxql/sql-type)
 (enable-syntax)
 
 @export

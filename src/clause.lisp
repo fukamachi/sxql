@@ -1,24 +1,24 @@
-(in-package :cl-user)
-(defpackage sxql.clause
-  (:use :cl
-        :annot.class
-        :sxql.sql-type
-        :sxql.operator
-        :sxql.syntax
-        :trivial-types
-        :iterate)
-  (:import-from :sxql.sql-type
-                :sql-symbol-name
-                :sql-list-elements
-                :expression-clause-expression
-                :statement-clause-statement)
-  (:import-from :sxql.operator
-                :=-op
-                :as-op
-                :as-op-right))
-(in-package :sxql.clause)
+(defpackage #:sxql/clause
+  (:nicknames #:sxql.clause)
+  (:use #:cl
+        #:annot.class
+        #:sxql/sql-type
+        #:sxql/operator
+        #:sxql/syntax
+        #:trivial-types
+        #:iterate)
+  (:import-from #:sxql/sql-type
+                #:sql-symbol-name
+                #:sql-list-elements
+                #:expression-clause-expression
+                #:statement-clause-statement)
+  (:import-from #:sxql/operator
+                #:=-op
+                #:as-op
+                #:as-op-right))
+(in-package #:sxql/clause)
 
-(cl-package-locks:lock-package :sxql.clause)
+(cl-package-locks:lock-package '#:sxql/clause)
 (enable-syntax)
 
 @export

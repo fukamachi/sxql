@@ -1,23 +1,23 @@
-(in-package :cl-user)
-(defpackage sxql.operator
-  (:use :cl
-        :sxql.sql-type
-        :sxql.syntax)
-  (:import-from :sxql.sql-type
-                :sql-statement-p
-                :conjunctive-op-expressions
-                :sql-all-type
-                :*inside-function-op*
-                :unary-op-var))
-(in-package :sxql.operator)
+(defpackage #:sxql/operator
+  (:nicknames #:sxql.operator)
+  (:use #:cl
+        #:sxql/sql-type
+        #:sxql/syntax)
+  (:import-from #:sxql/sql-type
+                #:sql-statement-p
+                #:conjunctive-op-expressions
+                #:sql-all-type
+                #:*inside-function-op*
+                #:unary-op-var))
+(in-package #:sxql/operator)
 
-(cl-package-locks:lock-package :sxql.operator)
+(cl-package-locks:lock-package '#:sxql/operator)
 (enable-syntax)
 
 @export
 (defparameter *inside-select* nil)
 
-(defmacro define-op ((op-name struct-type &key sql-op-name include-slots (package (find-package :sxql.operator))) &body body)
+(defmacro define-op ((op-name struct-type &key sql-op-name include-slots (package (find-package '#:sxql/operator))) &body body)
   (check-type op-name symbol)
   (let ((struct-name (intern (concatenate 'string (symbol-name op-name) #.(string :-op)) package)))
     `(defstruct (,struct-name (:include ,struct-type

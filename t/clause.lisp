@@ -1,4 +1,3 @@
-(in-package :cl-user)
 (defpackage t.sxql.clause
   (:use :cl
         :prove

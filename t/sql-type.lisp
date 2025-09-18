@@ -1,4 +1,3 @@
-(in-package :cl-user)
 (defpackage t.sxql.sql-type
   (:use :cl
         :sxql

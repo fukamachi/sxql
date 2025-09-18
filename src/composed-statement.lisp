@@ -1,48 +1,48 @@
-(in-package :cl-user)
-(defpackage sxql.composed-statement
-  (:use :cl
-        :iterate
-        :sxql.syntax)
-  (:import-from :sxql.sql-type
-                :*use-placeholder*
-                :with-table-name
-                :with-yield-binds
-                :yield
-                :sql-symbol
-                :sql-symbol-name
-                :sql-statement-name
-                :sql-splicing-list-elements
-                :statement-clause-statement
-                :expression-clause-expression
-                :expression-list-clause-expressions)
-  (:import-from :sxql.operator
-                :as-op
-                :as-op-right)
-  (:import-from :sxql.clause
-                :fields-clause
-                :from-clause
-                :join-clause
-                :where-clause
-                :group-by-clause
-                :order-by-clause
-                :limit-clause
-                :make-clause
-                :fields-clause-statement)
-  (:import-from :sxql.statement
-                :select-statement
-                :select-statement-table-name
-                :select-statement-clause-order
-                :compute-select-statement-children
-                :sort-clause-types
-                :make-statement)
-  (:import-from :sxql.util
-                :group-by
-                :subdivide)
-  (:import-from :alexandria
-                :compose))
-(in-package :sxql.composed-statement)
+(defpackage #:sxql/composed-statement
+  (:nicknames #:sxql.composed-statement)
+  (:use #:cl
+        #:iterate
+        #:sxql/syntax)
+  (:import-from #:sxql/sql-type
+                #:*use-placeholder*
+                #:with-table-name
+                #:with-yield-binds
+                #:yield
+                #:sql-symbol
+                #:sql-symbol-name
+                #:sql-statement-name
+                #:sql-splicing-list-elements
+                #:statement-clause-statement
+                #:expression-clause-expression
+                #:expression-list-clause-expressions)
+  (:import-from #:sxql/operator
+                #:as-op
+                #:as-op-right)
+  (:import-from #:sxql/clause
+                #:fields-clause
+                #:from-clause
+                #:join-clause
+                #:where-clause
+                #:group-by-clause
+                #:order-by-clause
+                #:limit-clause
+                #:make-clause
+                #:fields-clause-statement)
+  (:import-from #:sxql/statement
+                #:select-statement
+                #:select-statement-table-name
+                #:select-statement-clause-order
+                #:compute-select-statement-children
+                #:sort-clause-types
+                #:make-statement)
+  (:import-from #:sxql/util
+                #:group-by
+                #:subdivide)
+  (:import-from #:alexandria
+                #:compose))
+(in-package #:sxql/composed-statement)
 
-(cl-package-locks:lock-package :sxql.composed-statement)
+(cl-package-locks:lock-package '#:sxql/composed-statement)
 (enable-syntax)
 
 (defparameter *clause-delimiters*

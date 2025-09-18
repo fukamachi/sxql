@@ -1,30 +1,29 @@
-(in-package :cl-user)
-(defpackage sxql
-  (:use :cl
-        :sxql.statement
-        :sxql.composed-statement
-        :sxql.clause
-        :sxql.syntax)
-  (:shadow :primary-key
-           :foreign-key
-           :key)
-  (:import-from :sxql.sql-type
-                :sql-clause-list
-                :yield
-                :make-sql-symbol
-                :make-sql-symbol*
-                :*use-placeholder*
-                :*quote-character*)
-  (:import-from :sxql.compile
-                :sql-compile)
-  (:import-from :sxql.operator
-                :make-op
-                :detect-and-convert
-                :union-op
-                :union-all-op
-                :*sql-symbol-conversion*)
-  (:import-from :trivia
-                :match)
+(defpackage #:sxql
+  (:use #:cl
+        #:sxql/statement
+        #:sxql/composed-statement
+        #:sxql/clause
+        #:sxql/syntax)
+  (:shadow #:primary-key
+           #:foreign-key
+           #:key)
+  (:import-from #:sxql/sql-type
+                #:sql-clause-list
+                #:yield
+                #:make-sql-symbol
+                #:make-sql-symbol*
+                #:*use-placeholder*
+                #:*quote-character*)
+  (:import-from #:sxql/compile
+                #:sql-compile)
+  (:import-from #:sxql/operator
+                #:make-op
+                #:detect-and-convert
+                #:union-op
+                #:union-all-op
+                #:*sql-symbol-conversion*)
+  (:import-from #:trivia
+                #:match)
   (:export :yield
            :sql-compile
            :add-child
@@ -51,9 +50,9 @@
            :explain-statement
            :create-view-statement
            :drop-view-statement))
-(in-package :sxql)
+(in-package #:sxql)
 
-(cl-package-locks:lock-package :sxql)
+(cl-package-locks:lock-package '#:sxql)
 (enable-syntax)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)

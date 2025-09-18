@@ -1,12 +1,12 @@
-(in-package :cl-user)
-(defpackage sxql.util
-  (:use :cl
-        :iterate)
-  (:export :group-by
-           :subdivide))
-(in-package :sxql.util)
+(defpackage #:sxql/util
+  (:nicknames #:sxql.util)
+  (:use #:cl
+        #:iterate)
+  (:export #:group-by
+           #:subdivide))
+(in-package #:sxql/util)
 
-(cl-package-locks:lock-package :sxql.util)
+(cl-package-locks:lock-package '#:sxql/util)
 
 (defun group-by (key sequence &key (test 'eql))
   (let ((hash (make-hash-table :test test))

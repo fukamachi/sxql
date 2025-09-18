@@ -1,12 +1,15 @@
-(defpackage sxql.syntax
-  (:use :cl)
-  (:import-from :cl-annot)
-  (:import-from :named-readtables
-                :defreadtable
-                :in-readtable)
-  (:export :sxql-syntax
-           :enable-syntax))
-(in-package :sxql.syntax)
+(defpackage #:sxql/syntax
+  (:nicknames #:sxql.syntax)
+  (:use #:cl)
+  (:import-from #:cl-annot)
+  (:import-from #:named-readtables
+                #:defreadtable
+                #:in-readtable)
+  (:export #:sxql-syntax
+           #:enable-syntax))
+(in-package #:sxql/syntax)
+
+(cl-package-locks:lock-package '#:sxql/syntax)
 
 (defreadtable sxql-syntax
   (:merge :standard)

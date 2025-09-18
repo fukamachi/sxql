@@ -1,46 +1,46 @@
-(in-package :cl-user)
-(defpackage sxql.statement
-  (:use :cl
-        :annot.class
-        :sxql.sql-type
-        :sxql.syntax
-        :iterate)
-  (:import-from :sxql.sql-type
-                :sql-splicing-list-elements
-                :statement-clause-statement)
-  (:import-from :sxql.operator
-                :*inside-select*
-                :find-constructor
-                :detect-and-convert)
-  (:import-from :sxql.clause
-                :make-fields-clause
-                :column-definition-clause
-                :make-column-definition-clause
-                :*inside-insert-into*
-                :fields-clause
-                :distinct-on-clause
-                :from-clause
-                :from-clause-table-name
-                :join-clause
-                :where-clause
-                :compose-where-clauses
-                :group-by-clause
-                :having-clause
-                :returning-clause
-                :updatability-clause
-                :order-by-clause
-                :limit-clause
-                :offset-clause
-                :make-values-clause)
-  (:import-from :sxql.util
-                :group-by
-                :subdivide)
-  (:import-from :alexandria
-                :compose
-                :when-let))
-(in-package :sxql.statement)
+(defpackage #:sxql/statement
+  (:nicknames #:sxql.statement)
+  (:use #:cl
+        #:annot.class
+        #:sxql/sql-type
+        #:sxql/syntax
+        #:iterate)
+  (:import-from #:sxql/sql-type
+                #:sql-splicing-list-elements
+                #:statement-clause-statement)
+  (:import-from #:sxql/operator
+                #:*inside-select*
+                #:find-constructor
+                #:detect-and-convert)
+  (:import-from #:sxql/clause
+                #:make-fields-clause
+                #:column-definition-clause
+                #:make-column-definition-clause
+                #:*inside-insert-into*
+                #:fields-clause
+                #:distinct-on-clause
+                #:from-clause
+                #:from-clause-table-name
+                #:join-clause
+                #:where-clause
+                #:compose-where-clauses
+                #:group-by-clause
+                #:having-clause
+                #:returning-clause
+                #:updatability-clause
+                #:order-by-clause
+                #:limit-clause
+                #:offset-clause
+                #:make-values-clause)
+  (:import-from #:sxql/util
+                #:group-by
+                #:subdivide)
+  (:import-from #:alexandria
+                #:compose
+                #:when-let))
+(in-package #:sxql/statement)
 
-(cl-package-locks:lock-package :sxql.statement)
+(cl-package-locks:lock-package '#:sxql/statement)
 (enable-syntax)
 
 @export
