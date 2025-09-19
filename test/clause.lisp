@@ -1,338 +1,294 @@
 (defpackage #:sxql/test/clause
   (:nicknames #:t.sxql.clause)
   (:use #:cl
-        #:prove
+        #:rove
         #:sxql/sql-type
         #:sxql/operator
         #:sxql/clause
         #:sxql/compile)
   (:shadowing-import-from #:sxql/test/prepare
-                          #:is-error))
+                          #:is-error
+                          #:is-mv))
 (in-package #:sxql/test/clause)
 
-(plan 60)
+(setup
+  (setf *quote-character* #\`))
 
-(ok (make-clause :where (make-op := :a 10)))
-(is (multiple-value-list
-     (yield (make-clause :where (make-op := :a 10))))
-    (list "WHERE (`a` = ?)" '(10)))
-(is-error (make-clause :where
-                       (make-op := :a 10)
-                       (make-op :!= :b 20))
-          program-error)
+(deftest basic-clause-tests
+  (testing "WHERE clause"
+    (ok (make-clause :where (make-op := :a 10)))
+    (is-mv (make-clause :where (make-op := :a 10))
+           (list "WHERE (`a` = ?)" '(10)))
+    (is-error (make-clause :where
+                           (make-op := :a 10)
+                           (make-op :!= :b 20))
+              program-error))
 
-(ok (make-clause :from (make-sql-symbol "table-name")))
-(ok (make-clause :from (make-op :as :table-name :a)))
-(is (multiple-value-list
-     (yield (make-clause :from (make-sql-symbol "table-name"))))
-    (list "FROM `table-name`" nil))
-(is (multiple-value-list
-     (yield (make-clause :from
-                         (make-op :as :table-name :a))))
-    (list "FROM `table-name` AS `a`" nil))
+  (testing "FROM clause"
+    (ok (make-clause :from (make-sql-symbol "table-name")))
+    (ok (make-clause :from (make-op :as :table-name :a)))
+    (is-mv (make-clause :from (make-sql-symbol "table-name"))
+           (list "FROM `table-name`" nil))
+    (is-mv (make-clause :from
+                        (make-op :as :table-name :a))
+           (list "FROM `table-name` AS `a`" nil))))
 
-(ok (make-clause :order-by (make-sql-symbol "a")))
-(is (multiple-value-list
-     (yield
-      (make-clause :order-by (make-sql-symbol "a"))))
-    (list "ORDER BY `a`" nil)
-    "ORDER BY")
-(is (multiple-value-list
-     (yield
-      (make-clause :order-by
-                   (make-sql-list
-                    (make-sql-symbol "a")
-                    (make-sql-symbol "b")))))
-    (list "ORDER BY (`a`, `b`)" nil))
-(is (multiple-value-list
-     (yield
-      (make-clause :order-by
-                   (make-sql-list
-                    (make-op :desc (make-sql-symbol "a"))
-                    (make-sql-symbol "b")))))
-    (list "ORDER BY (`a` DESC, `b`)" nil))
+(deftest order-by-clause-tests
+  (testing "ORDER BY clause creation and generation"
+    (ok (make-clause :order-by (make-sql-symbol "a")))
+    (is-mv (make-clause :order-by (make-sql-symbol "a"))
+           (list "ORDER BY `a`" nil))
+    (is-mv (make-clause :order-by
+                        (make-sql-list
+                         (make-sql-symbol "a")
+                         (make-sql-symbol "b")))
+           (list "ORDER BY (`a`, `b`)" nil))
+    (is-mv (make-clause :order-by
+                        (make-sql-list
+                         (make-op :desc (make-sql-symbol "a"))
+                         (make-sql-symbol "b")))
+           (list "ORDER BY (`a` DESC, `b`)" nil))))
 
-(ok (make-clause :group-by (make-sql-symbol "a")))
-(ok (make-clause :group-by
-                 (make-sql-list
-                  (make-sql-symbol "a")
-                  (make-sql-symbol "b"))))
-(ok (make-clause :group-by (make-op :+
-                                    (make-sql-symbol "a")
-                                    (make-sql-variable 1))))
-(is (multiple-value-list
-     (yield
-      (make-clause :group-by (make-sql-symbol "a"))))
-    (list "GROUP BY `a`" nil))
-(is (multiple-value-list
-     (yield
-      (make-clause :group-by
-                   (make-sql-list
-                    (make-sql-symbol "a")
-                    (make-sql-symbol "b")))))
-    (list "GROUP BY (`a`, `b`)" nil))
-(is (multiple-value-list
-     (yield
-      (make-clause :group-by
-                   (make-op :+ (make-sql-symbol "a") (make-sql-variable 1)))))
-    (list "GROUP BY (`a` + ?)" '(1)))
+(deftest group-by-clause-tests
+  (testing "GROUP BY clause creation"
+    (ok (make-clause :group-by (make-sql-symbol "a")))
+    (ok (make-clause :group-by
+                     (make-sql-list
+                      (make-sql-symbol "a")
+                      (make-sql-symbol "b"))))
+    (ok (make-clause :group-by (make-op :+
+                                        (make-sql-symbol "a")
+                                        (make-sql-variable 1)))))
 
-(is (multiple-value-list
-     (yield
-      (make-clause :having
-                   (make-op :>= (make-sql-symbol "hoge") (make-sql-variable 88)))))
-    (list "HAVING (`hoge` >= ?)" '(88)))
+  (testing "GROUP BY clause SQL generation"
+    (is-mv (make-clause :group-by (make-sql-symbol "a"))
+           (list "GROUP BY `a`" nil))
+    (is-mv (make-clause :group-by
+                        (make-sql-list
+                         (make-sql-symbol "a")
+                         (make-sql-symbol "b")))
+           (list "GROUP BY (`a`, `b`)" nil))
+    (is-mv (make-clause :group-by
+                        (make-op :+ (make-sql-symbol "a") (make-sql-variable 1)))
+           (list "GROUP BY (`a` + ?)" '(1)))))
 
-(is (multiple-value-list
-     (yield
-      (make-clause :returning (make-sql-symbol "id"))))
-    (list "RETURNING `id`" nil))
-(is (multiple-value-list
-     (yield
-      (make-clause :returning (make-sql-symbol "id") (make-sql-symbol "name"))))
-    (list "RETURNING `id`, `name`" nil))
+(deftest having-returning-clause-tests
+  (testing "HAVING clause"
+    (is-mv (make-clause :having
+                        (make-op :>= (make-sql-symbol "hoge") (make-sql-variable 88)))
+           (list "HAVING (`hoge` >= ?)" '(88))))
 
-(ok (make-clause :updatability :update) "FOR UPDATE")
-(ok (make-clause :updatability :update :of '(:hoge :piyo)) "FOR UPDATE OF")
-(ok (make-clause :updatability :update :of '(:hoge :piyo) :nowait t) "FOR UPDATE OF NOWAIT")
-(ok (make-clause :updatability :update :of '(:hoge :piyo) :skip-locked t) "FOR UPDATE OF SKIP LOCKED")
-(is (multiple-value-list
-     (yield (make-clause :updatability :update)))
-    (list "FOR UPDATE" nil))
-(is (multiple-value-list
-     (yield (make-clause :updatability :share)))
-    (list "FOR SHARE" nil))
-(is (multiple-value-list
-     (yield (make-clause :updatability :update :of '(:hoge :fuga.piyo))))
-    (list "FOR UPDATE OF `hoge`, `fuga`.`piyo`" nil))
-(is (multiple-value-list
-     (yield (make-clause :updatability :update :of '(:hoge :piyo) :nowait t)))
-    (list "FOR UPDATE OF `hoge`, `piyo` NOWAIT" nil))
-(is (multiple-value-list
-     (yield (make-clause :updatability :update :nowait t)))
-    (list "FOR UPDATE NOWAIT" nil))
-(is (multiple-value-list
-     (yield (make-clause :updatability :update :of '(:hoge :piyo) :skip-locked t)))
-    (list "FOR UPDATE OF `hoge`, `piyo` SKIP LOCKED" nil))
-(is (multiple-value-list
-     (yield (make-clause :updatability :update :skip-locked t)))
-    (list "FOR UPDATE SKIP LOCKED" nil))
+  (testing "RETURNING clause"
+    (is-mv (make-clause :returning (make-sql-symbol "id"))
+           (list "RETURNING `id`" nil))
+    (is-mv (make-clause :returning (make-sql-symbol "id") (make-sql-symbol "name"))
+           (list "RETURNING `id`, `name`" nil))))
 
-(ok (make-clause :limit (make-sql-variable 1)) "LIMIT")
-(ok (make-clause :limit (make-sql-variable 0) (make-sql-variable 10)))
-(is (multiple-value-list
-     (yield
-      (make-clause :limit (make-sql-variable 1))))
-    (list "LIMIT 1" nil))
-(is (multiple-value-list
-     (yield
-      (make-clause :limit
-                   (make-sql-variable 0)
-                   (make-sql-variable 10))))
-    (list "LIMIT 0, 10" nil))
-(is-error (make-clause :limit (make-sql-symbol "a")) type-error)
-(is-error (make-clause :limit
-                       (make-sql-variable 1)
-                       (make-sql-variable 2)
-                       (make-sql-variable 2))
-          program-error)
+(deftest updatability-clause-tests
+  (testing "FOR UPDATE clause creation"
+    (ok (make-clause :updatability :update))
+    (ok (make-clause :updatability :update :of '(:hoge :piyo)))
+    (ok (make-clause :updatability :update :of '(:hoge :piyo) :nowait t))
+    (ok (make-clause :updatability :update :of '(:hoge :piyo) :skip-locked t)))
 
-(ok (make-clause :offset (make-sql-variable 1)))
-(is (multiple-value-list
-     (yield
-      (make-clause :offset (make-sql-variable 1000))))
-    (list "OFFSET 1000" nil))
-(is-error (make-clause :offset
-                       (make-sql-variable 1)
-                       (make-sql-variable 2))
-          program-error)
+  (testing "FOR UPDATE clause SQL generation"
+    (is-mv (make-clause :updatability :update)
+           (list "FOR UPDATE" nil))
+    (is-mv (make-clause :updatability :share)
+           (list "FOR SHARE" nil))
+    (is-mv (make-clause :updatability :update :of '(:hoge :fuga.piyo))
+           (list "FOR UPDATE OF `hoge`, `fuga`.`piyo`" nil))
+    (is-mv (make-clause :updatability :update :of '(:hoge :piyo) :nowait t)
+           (list "FOR UPDATE OF `hoge`, `piyo` NOWAIT" nil))
+    (is-mv (make-clause :updatability :update :nowait t)
+           (list "FOR UPDATE NOWAIT" nil))
+    (is-mv (make-clause :updatability :update :of '(:hoge :piyo) :skip-locked t)
+           (list "FOR UPDATE OF `hoge`, `piyo` SKIP LOCKED" nil))
+    (is-mv (make-clause :updatability :update :skip-locked t)
+           (list "FOR UPDATE SKIP LOCKED" nil))))
 
-(ok (make-clause :set= :a 1) "set=")
-(ok (make-clause :set= :a 1 :b 2))
-(is (multiple-value-list
-     (yield (make-clause :set= :a 1 :b 2)))
-    (list "SET `a` = ?, `b` = ?" '(1 2)))
-(ok (make-clause :set= :a nil))
-;(is-error (make-clause :set=) program-error)
-;(is-error (make-clause :set= 'a 1 'b) program-error)
-;(is-error (make-clause :set= '(a 1)) program-error)
+(deftest limit-offset-clause-tests
+  (testing "LIMIT clause"
+    (ok (make-clause :limit (make-sql-variable 1)))
+    (ok (make-clause :limit (make-sql-variable 0) (make-sql-variable 10)))
+    (is-mv (make-clause :limit (make-sql-variable 1))
+           (list "LIMIT 1" nil))
+    (is-mv (make-clause :limit
+                        (make-sql-variable 0)
+                        (make-sql-variable 10))
+           (list "LIMIT 0, 10" nil))
+    (is-error (make-clause :limit (make-sql-symbol "a")) type-error)
+    (is-error (make-clause :limit
+                           (make-sql-variable 1)
+                           (make-sql-variable 2)
+                           (make-sql-variable 2))
+              program-error))
 
-(is (multiple-value-list
-     (yield (make-clause :primary-key '(:id))))
-    (list "PRIMARY KEY (`id`)" nil))
-(is (multiple-value-list
-     (yield (make-clause :primary-key :id)))
-    (list "PRIMARY KEY (`id`)" nil))
-(is (multiple-value-list
-     (yield (make-clause :primary-key "primary_key_is_id"'(:id))))
-    (list "PRIMARY KEY 'primary_key_is_id' (`id`)" nil))
-(is (multiple-value-list
-     (yield (make-clause :unique-key '(:name :country))))
-    (list "UNIQUE (`name`, `country`)" nil))
-(is (multiple-value-list
-     (yield (make-clause :unique-key "name_and_country_index" '(:name :country))))
-    (list "UNIQUE 'name_and_country_index' (`name`, `country`)" nil))
-(is (multiple-value-list
-     (yield (make-clause :key '(:id))))
-    (list "KEY (`id`)" nil))
-(is (multiple-value-list
-     (yield (make-clause :key "id_is_unique" '(:id))))
-    (list "KEY 'id_is_unique' (`id`)" nil))
+  (testing "OFFSET clause"
+    (ok (make-clause :offset (make-sql-variable 1)))
+    (is-mv (make-clause :offset (make-sql-variable 1000))
+           (list "OFFSET 1000" nil))
+    (is-error (make-clause :offset
+                           (make-sql-variable 1)
+                           (make-sql-variable 2))
+              program-error)))
 
-(ok (sxql.clause::make-references-clause
-     (sxql.sql-type:make-sql-symbol "project")
-     (sxql.sql-type:make-sql-list (sxql.sql-type:make-sql-symbol "id"))))
+(deftest set-clause-tests
+  (testing "SET clause creation and generation"
+    (ok (make-clause :set= :a 1))
+    (ok (make-clause :set= :a 1 :b 2))
+    (is-mv (make-clause :set= :a 1 :b 2)
+           (list "SET `a` = ?, `b` = ?" '(1 2)))
+    (ok (make-clause :set= :a nil))))
 
-(is (multiple-value-list
-     (yield (make-clause :foreign-key '(:project_id) :references '(:project :id))))
-    (list "FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))
+(deftest key-clause-tests
+  (testing "PRIMARY KEY clauses"
+    (is-mv (make-clause :primary-key '(:id))
+           (list "PRIMARY KEY (`id`)" nil))
+    (is-mv (make-clause :primary-key :id)
+           (list "PRIMARY KEY (`id`)" nil))
+    (is-mv (make-clause :primary-key "primary_key_is_id"'(:id))
+           (list "PRIMARY KEY 'primary_key_is_id' (`id`)" nil)))
 
-(is (yield (sxql.clause::make-sql-column-type-from-list '(:integer)))
-    "INTEGER")
-(is (yield (sxql.clause::make-sql-column-type-from-list '(:integer 11)))
-    "INTEGER(11)")
-(is (yield (sxql.clause::make-sql-column-type-from-list '(:integer 11 :unsigned)))
-    "INTEGER(11) UNSIGNED")
-(is (yield (sxql.clause::make-sql-column-type-from-list '(:integer nil :unsigned)))
-    "INTEGER UNSIGNED")
+  (testing "UNIQUE KEY clauses"
+    (is-mv (make-clause :unique-key '(:name :country))
+           (list "UNIQUE (`name`, `country`)" nil))
+    (is-mv (make-clause :unique-key "name_and_country_index" '(:name :country))
+           (list "UNIQUE 'name_and_country_index' (`name`, `country`)" nil)))
 
-(is (multiple-value-list
-     (yield (make-clause :add-column :updated_at
-                         :type 'integer
-                         :default 0
-                         :not-null t
-                         :after :created_at)))
-    (list "ADD COLUMN `updated_at` INTEGER NOT NULL DEFAULT ? AFTER `created_at`"
-          '(0)))
+  (testing "KEY clauses"
+    (is-mv (make-clause :key '(:id))
+           (list "KEY (`id`)" nil))
+    (is-mv (make-clause :key "id_is_unique" '(:id))
+           (list "KEY 'id_is_unique' (`id`)" nil))))
 
-(is (multiple-value-list
-     (yield (make-clause :modify-column
-                         :updated_at
-                         :type 'datetime
-                         :not-null t)))
-    (list "MODIFY COLUMN `updated_at` DATETIME NOT NULL" nil))
+(deftest foreign-key-clause-tests
+  (testing "FOREIGN KEY references clause creation"
+    (ok (sxql.clause::make-references-clause
+         (sxql.sql-type:make-sql-symbol "project")
+         (sxql.sql-type:make-sql-list (sxql.sql-type:make-sql-symbol "id")))))
 
-(is (multiple-value-list
-     (yield (make-clause :alter-column :user :type '(:varchar 64))))
-    (list "ALTER COLUMN `user` TYPE VARCHAR(64)" nil))
+  (testing "FOREIGN KEY clause generation"
+    (is-mv (make-clause :foreign-key '(:project_id) :references '(:project :id))
+           (list "FOREIGN KEY (`project_id`) REFERENCES `project` (`id`)" nil))))
 
-(is (multiple-value-list
-     (yield (make-clause :alter-column :id :set-default 1)))
-    (list "ALTER COLUMN `id` SET DEFAULT ?" '(1)))
+(deftest column-type-tests
+  (testing "SQL column type generation from lists"
+    (ok (equal (yield (sxql.clause::make-sql-column-type-from-list '(:integer)))
+               "INTEGER"))
+    (ok (equal (yield (sxql.clause::make-sql-column-type-from-list '(:integer 11)))
+               "INTEGER(11)"))
+    (ok (equal (yield (sxql.clause::make-sql-column-type-from-list '(:integer 11 :unsigned)))
+               "INTEGER(11) UNSIGNED"))
+    (ok (equal (yield (sxql.clause::make-sql-column-type-from-list '(:integer nil :unsigned)))
+               "INTEGER UNSIGNED"))))
 
-(is (multiple-value-list
-     (yield (make-clause :alter-column :id :drop-default t)))
-    (list "ALTER COLUMN `id` DROP DEFAULT" nil))
+(deftest column-modification-clause-tests
+  (testing "ADD COLUMN clause"
+    (is-mv (make-clause :add-column :updated_at
+                        :type 'integer
+                        :default 0
+                        :not-null t
+                        :after :created_at)
+           (list "ADD COLUMN `updated_at` INTEGER NOT NULL DEFAULT ? AFTER `created_at`"
+                 '(0))))
 
-(is (multiple-value-list
-     (yield (make-clause :alter-column :profile :not-null t)))
-    (list "ALTER COLUMN `profile` SET NOT NULL" nil))
+  (testing "MODIFY COLUMN clause"
+    (is-mv (make-clause :modify-column
+                        :updated_at
+                        :type 'datetime
+                        :not-null t)
+           (list "MODIFY COLUMN `updated_at` DATETIME NOT NULL" nil)))
 
-(is (multiple-value-list
-     (yield (make-clause :drop-column
-                         :updated_on)))
-    (list "DROP COLUMN `updated_on`" nil))
+  (testing "ALTER COLUMN clauses"
+    (is-mv (make-clause :alter-column :user :type '(:varchar 64))
+           (list "ALTER COLUMN `user` TYPE VARCHAR(64)" nil))
+    (is-mv (make-clause :alter-column :id :set-default 1)
+           (list "ALTER COLUMN `id` SET DEFAULT ?" '(1)))
+    (is-mv (make-clause :alter-column :id :drop-default t)
+           (list "ALTER COLUMN `id` DROP DEFAULT" nil))
+    (is-mv (make-clause :alter-column :profile :not-null t)
+           (list "ALTER COLUMN `profile` SET NOT NULL" nil)))
 
-(is (multiple-value-list
-     (yield (make-clause :rename-to :users)))
-    (list "RENAME TO `users`" nil))
+  (testing "DROP COLUMN and RENAME TO clauses"
+    (is-mv (make-clause :drop-column
+                        :updated_on)
+           (list "DROP COLUMN `updated_on`" nil))
+    (is-mv (make-clause :rename-to :users)
+           (list "RENAME TO `users`" nil))))
 
-(is (multiple-value-list
-     (yield
-      (sxql.clause::make-column-definition-clause
-       (make-sql-symbol "name")
-       :type (make-op :char (make-sql-variable 64))
-       :not-null t
-       :default (make-sql-variable "No Name"))))
-    '("`name` CHAR(64) NOT NULL DEFAULT ?" ("No Name"))
-    "column-definition")
+(deftest column-definition-clause-tests
+  (testing "column definition with various attributes"
+    (is-mv (sxql.clause::make-column-definition-clause
+            (make-sql-symbol "name")
+            :type (make-op :char (make-sql-variable 64))
+            :not-null t
+            :default (make-sql-variable "No Name"))
+           '("`name` CHAR(64) NOT NULL DEFAULT ?" ("No Name")))
 
-(is (multiple-value-list
-     (yield
-      (sxql.clause::make-column-definition-clause
-       (make-sql-symbol "id")
-       :type (make-sql-keyword "BIGINT")
-       :primary-key t
-       :auto-increment t)))
-    '("`id` BIGINT AUTO_INCREMENT PRIMARY KEY" nil)
-    "column-definition")
+    (is-mv (sxql.clause::make-column-definition-clause
+            (make-sql-symbol "id")
+            :type (make-sql-keyword "BIGINT")
+            :primary-key t
+            :auto-increment t)
+           '("`id` BIGINT AUTO_INCREMENT PRIMARY KEY" nil))
 
-(is (multiple-value-list
-     (yield
-      (sxql.clause::make-column-definition-clause
-       (make-sql-symbol "email")
-       :type (make-sql-keyword "TEXT")
-       :not-null t
-       :unique t)))
-    '("`email` TEXT NOT NULL UNIQUE" nil)
-    "column-definition")
+    (is-mv (sxql.clause::make-column-definition-clause
+            (make-sql-symbol "email")
+            :type (make-sql-keyword "TEXT")
+            :not-null t
+            :unique t)
+           '("`email` TEXT NOT NULL UNIQUE" nil))))
 
-(is (multiple-value-list
-     (yield
-      (make-clause :on-duplicate-key-update :a 1 :b 2)))
-    '("ON DUPLICATE KEY UPDATE `a` = ?, `b` = ?" (1 2))
-    "on-duplicate-key-update")
+(deftest conflict-resolution-clause-tests
+  (testing "ON DUPLICATE KEY UPDATE clause"
+    (is-mv (make-clause :on-duplicate-key-update :a 1 :b 2)
+           '("ON DUPLICATE KEY UPDATE `a` = ?, `b` = ?" (1 2))))
 
-(is (yield (make-clause :on-conflict-do-nothing))
-    "ON CONFLICT DO NOTHING"
-    "on-conflitct-do-nothing no conflict target")
+  (testing "ON CONFLICT DO NOTHING clauses"
+    (ok (equal (yield (make-clause :on-conflict-do-nothing))
+               "ON CONFLICT DO NOTHING"))
+    (ok (equal (yield (make-clause :on-conflict-do-nothing '(:x :y)))
+               "ON CONFLICT (`x`, `y`) DO NOTHING"))
+    (ok (equal (yield (make-clause :on-conflict-do-nothing :pkey))
+               "ON CONFLICT ON CONSTRAINT `pkey` DO NOTHING"))))
 
-(is (yield (make-clause :on-conflict-do-nothing '(:x :y)))
-    "ON CONFLICT (`x`, `y`) DO NOTHING"
-    "on-conflitct-do-nothing column set")
+(deftest on-conflict-do-update-clause-tests
+  (testing "ON CONFLICT DO UPDATE with column sets"
+    (is-mv (make-clause :on-conflict-do-update
+                        '(:x :y)
+                        (make-clause :set= :a 1 :b 2))
+           '("ON CONFLICT (`x`, `y`) DO UPDATE SET `a` = ?, `b` = ?" (1 2)))
 
-(is (yield (make-clause :on-conflict-do-nothing :pkey))
-    "ON CONFLICT ON CONSTRAINT `pkey` DO NOTHING"
-    "on-conflitct-do-nothing index name")
+    (is-mv (make-clause :on-conflict-do-update
+                        :pkey
+                        (make-clause :set= :a 1 :b 2))
+           '("ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ?" (1 2))))
 
-(is (multiple-value-list
-     (yield
-      (make-clause :on-conflict-do-update
-                   '(:x :y)
-                   (make-clause :set= :a 1 :b 2))))
-    '("ON CONFLICT (`x`, `y`) DO UPDATE SET `a` = ?, `b` = ?" (1 2))
-    "on-conflict-do-update column set")
+  (testing "ON CONFLICT DO UPDATE error conditions"
+    (is-error (make-clause :on-conflict-do-update
+                           nil
+                           (make-clause :set= :a 1 :b 2))
+              error))
 
-(is (multiple-value-list
-     (yield
-      (make-clause :on-conflict-do-update
-                   :pkey
-                   (make-clause :set= :a 1 :b 2))))
-    '("ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ?" (1 2))
-    "on-conflict-do-update column set")
+  (testing "ON CONFLICT DO UPDATE with WHERE clause"
+    (is-mv (make-clause :on-conflict-do-update
+                        :pkey
+                        (make-clause :set= :a 1 :b 2)
+                        (make-clause :where (make-op := :x :y)))
+           '("ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ? WHERE (`x` = `y`)" (1 2))))
 
-(is-error (make-clause :on-conflict-do-update
-                       nil
-                       (make-clause :set= :a 1 :b 2))
-          error
-          "on-conflict-do-update no conflict target is error")
+  (testing "ON CONFLICT DO UPDATE in INSERT statement"
+    (is-mv (sxql.statement:make-statement :insert-into
+                                          :table
+                                          (make-clause :set= :a 1 :b 2)
+                                          (make-clause :on-conflict-do-update
+                                                       :pkey
+                                                       (make-clause :set= :a 1 :b 2)))
+           '("INSERT INTO `table` (`a`, `b`) VALUES (?, ?) ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ?" (1 2 1 2)))))
 
-(is (multiple-value-list
-     (yield
-      (make-clause :on-conflict-do-update
-                   :pkey
-                   (make-clause :set= :a 1 :b 2)
-                   (make-clause :where (make-op := :x :y)))))
-    '("ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ? WHERE (`x` = `y`)" (1 2))
-    "on-conflict-do-update with where")
-
-(is (multiple-value-list
-     (yield
-      (sxql.statement:make-statement :insert-into
-                                     :table
-                                     (make-clause :set= :a 1 :b 2)
-                                     (make-clause :on-conflict-do-update
-                                                  :pkey
-                                                  (make-clause :set= :a 1 :b 2)))))
-    '("INSERT INTO `table` (`a`, `b`) VALUES (?, ?) ON CONFLICT ON CONSTRAINT `pkey` DO UPDATE SET `a` = ?, `b` = ?" (1 2 1 2))
-    "on-conflict-do-update inside insert set= correct")
-
-(diag "sql-compile clause")
-
-(ok (sql-compile (make-clause :limit 10)))
-
-(is (multiple-value-list
-     (yield (sql-compile (make-clause :limit 10))))
-    '("LIMIT 10" ()))
-
-(finalize)
+(deftest sql-compile-clause-tests
+  (testing "sql-compile with clauses"
+    (ok (sql-compile (make-clause :limit 10)))
+    (is-mv (sql-compile (make-clause :limit 10))
+           '("LIMIT 10" ()))))

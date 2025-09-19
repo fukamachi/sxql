@@ -2,17 +2,15 @@
   :author "Eitaro Fukamachi"
   :license "BSD 3-Clause"
   :depends-on ("sxql"
-               "prove")
+               "rove")
   :pathname "test"
   :serial t
   :components
   ((:file "prepare")
-   (:test-file "sql-type")
-   (:test-file "operator")
-   (:test-file "clause")
-   (:test-file "statement")
-   (:test-file "composed-statement")
-   (:test-file "sxql"))
-  :defsystem-depends-on ("prove-asdf")
-  :perform (test-op :after (op c)
-                    (funcall (intern (string :run-test-system) :prove) c)))
+   (:file "sql-type")
+   (:file "operator")
+   (:file "clause")
+   (:file "statement")
+   (:file "composed-statement")
+   (:file "sxql"))
+  :perform (test-op (op c) (symbol-call :rove :run c)))

@@ -8,6 +8,8 @@
 (cl-package-locks:lock-package '#:sxql/util)
 
 (defun group-by (key sequence &key (test 'eql))
+  "Group elements of SEQUENCE by KEY function, returning alternating keys and grouped items.
+The TEST function is used for comparing keys (defaults to EQL)."
   (let ((hash (make-hash-table :test test))
         (keys '()))
     (loop for item in sequence

@@ -3,54 +3,63 @@
   (:use #:cl
         #:sxql
         #:sxql/sql-type
-        #:prove)
+        #:rove)
   (:shadowing-import-from #:sxql/test/prepare
-                          #:is-error))
+                          #:is-error
+                          #:is-mv))
 (in-package #:sxql/test/sql-type)
 
-(plan 28)
+(setup
+  (setf *quote-character* #\`))
 
-(setf *quote-character* #\`)
+(deftest sql-variable-tests
+  (testing "sql-variable creation with valid inputs"
+    (ok (make-sql-variable 1))
+    (ok (make-sql-variable "Hello")))
 
-(ok (make-sql-variable 1))
-(ok (make-sql-variable "Hello"))
-(is-error (make-sql-variable 'hello) type-error)
-(is-error (make-sql-variable :hello) type-error)
-(is-error (make-sql-variable nil) type-error)
-(is-error (make-sql-variable '(hello)) type-error)
-(ok (make-sql-expression-list (make-sql-variable 1)))
-(is-error (make-sql-expression-list 1) type-error)
+  (testing "sql-variable creation with invalid inputs"
+    (is-error (make-sql-variable 'hello) type-error)
+    (is-error (make-sql-variable :hello) type-error)
+    (is-error (make-sql-variable nil) type-error)
+    (is-error (make-sql-variable '(hello)) type-error))
 
-(is (multiple-value-list (yield (make-sql-variable 1)))
-    (list "?" '(1)))
+  (testing "sql-variable yield generates correct SQL"
+    (is-mv (make-sql-variable 1) (list "?" '(1)))
+    (is-mv (make-sql-variable "a") (list "?" '("a")))))
 
-(is (multiple-value-list (yield (make-sql-variable "a")))
-    (list "?" '("a")))
+(deftest sql-expression-list-tests
+  (testing "sql-expression-list creation"
+    (ok (make-sql-expression-list (make-sql-variable 1)))
+    (is-error (make-sql-expression-list 1) type-error)))
 
-(ok (make-sql-keyword "NULL"))
-(is-error (make-sql-keyword 1) type-error)
-(is-error (make-sql-keyword 'null) type-error)
-(is-error (make-sql-keyword :null) type-error)
-(is-error (make-sql-keyword nil) type-error)
-(is-error (make-sql-keyword '(null)) type-error)
+(deftest sql-keyword-tests
+  (testing "sql-keyword creation with valid inputs"
+    (ok (make-sql-keyword "NULL")))
 
-(is (multiple-value-list (yield (make-sql-keyword "NULL")))
-    (list "NULL" nil))
+  (testing "sql-keyword creation with invalid inputs"
+    (is-error (make-sql-keyword 1) type-error)
+    (is-error (make-sql-keyword 'null) type-error)
+    (is-error (make-sql-keyword :null) type-error)
+    (is-error (make-sql-keyword nil) type-error)
+    (is-error (make-sql-keyword '(null)) type-error))
 
-(ok (make-sql-symbol "column-name"))
-(ok (make-sql-symbol "table.column-name"))
-(ok (make-sql-symbol "table.*"))
-(is-error (make-sql-symbol 1) type-error)
-(is-error (make-sql-symbol 'null) type-error)
-(is-error (make-sql-symbol :null) type-error)
-(is-error (make-sql-symbol nil) type-error)
-(is-error (make-sql-symbol '(null)) type-error)
+  (testing "sql-keyword yield generates correct SQL"
+    (is-mv (make-sql-keyword "NULL") (list "NULL" nil))))
 
-(is (multiple-value-list (yield (make-sql-symbol "column-name")))
-    (list "`column-name`" nil))
-(is (multiple-value-list (yield (make-sql-symbol "table.column-name")))
-    (list "`table`.`column-name`" nil))
-(is (multiple-value-list (yield (make-sql-symbol "table.*")))
-    (list "`table`.*" nil))
+(deftest sql-symbol-tests
+  (testing "sql-symbol creation with valid inputs"
+    (ok (make-sql-symbol "column-name"))
+    (ok (make-sql-symbol "table.column-name"))
+    (ok (make-sql-symbol "table.*")))
 
-(finalize)
+  (testing "sql-symbol creation with invalid inputs"
+    (is-error (make-sql-symbol 1) type-error)
+    (is-error (make-sql-symbol 'null) type-error)
+    (is-error (make-sql-symbol :null) type-error)
+    (is-error (make-sql-symbol nil) type-error)
+    (is-error (make-sql-symbol '(null)) type-error))
+
+  (testing "sql-symbol yield generates correct SQL with quoting"
+    (is-mv (make-sql-symbol "column-name") (list "`column-name`" nil))
+    (is-mv (make-sql-symbol "table.column-name") (list "`table`.`column-name`" nil))
+    (is-mv (make-sql-symbol "table.*") (list "`table`.*" nil))))
