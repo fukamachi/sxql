@@ -1,8 +1,6 @@
 (defpackage #:sxql/sql-type
   (:nicknames #:sxql.sql-type)
-  (:use #:cl
-        #:trivial-types
-        #:split-sequence)
+  (:use #:cl)
   (:export
    ;; Special variables
    #:*quote-character*
@@ -114,7 +112,7 @@
 
 (defun make-sql-symbol (name)
   (%make-sql-symbol :name name
-                    :tokens (split-sequence #\. name)))
+                    :tokens (uiop:split-string name :separator ".")))
 
 (defun make-sql-symbol* (tokens)
   (let ((tokens (if (listp tokens)
@@ -124,7 +122,7 @@
                       :tokens tokens)))
 
 (defstruct (sql-list (:constructor make-sql-list (&rest elements)))
-  (elements nil :type proper-list))
+  (elements nil :type list))
 
 (defstruct (sql-splicing-list (:include sql-list)
                               (:constructor make-sql-splicing-list (&rest elements))))
@@ -157,7 +155,7 @@
   (every #'sql-clause-p object))
 
 (deftype sql-clause-list ()
-  '(and proper-list
+  '(and list
         (satisfies sql-clause-list-p)))
 
 (deftype sql-expression () '(or sql-atom sql-list sql-op sql-clause null))
@@ -170,7 +168,7 @@
 
 (defstruct (sql-expression-list (:constructor make-sql-expression-list (&rest elements))
                                 (:predicate nil))
-  (elements nil :type (and proper-list
+  (elements nil :type (and list
                          (satisfies sql-expression-list-p))))
 
 (defstruct (sql-splicing-expression-list (:include sql-expression-list)
@@ -213,12 +211,12 @@
 
 (defstruct (infix-list-op (:include sql-op))
   (left nil :type sql-expression)
-  (right nil :type (or proper-list
+  (right nil :type (or list
                        sql-statement)))
 
 (defstruct (conjunctive-op (:include sql-op)
                            (:constructor make-conjunctive-op (name &rest expressions)))
-  (expressions nil :type (and proper-list
+  (expressions nil :type (and list
                             (satisfies sql-statement-list-p))))
 
 (defstruct (function-op (:include conjunctive-op)
@@ -237,7 +235,7 @@
                          sql-statement)))
 
 (defstruct (expression-list-clause (:include sql-clause))
-  (expressions nil :type (and proper-list
+  (expressions nil :type (and list
                             (satisfies sql-expression-list-p))))
 
 (defmethod print-object ((clause sql-clause) stream)
@@ -249,7 +247,7 @@
 ;; Statement
 
 (defstruct (sql-composed-statement (:include sql-statement))
-  (children nil :type proper-list))
+  (children nil :type list))
 
 (defmethod print-object ((clause sql-statement) stream)
   (format stream "#<SXQL-STATEMENT: ~A>"

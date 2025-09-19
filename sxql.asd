@@ -3,9 +3,6 @@
   :author "Eitaro Fukamachi"
   :license "BSD 3-Clause"
   :depends-on ("trivia"
-               "iterate"
-               "trivial-types"
-               "split-sequence"
                "alexandria"
                "cl-package-locks")
   :pathname "src"

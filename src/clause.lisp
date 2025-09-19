@@ -2,9 +2,7 @@
   (:nicknames #:sxql.clause)
   (:use #:cl
         #:sxql/sql-type
-        #:sxql/operator
-        #:trivial-types
-        #:iterate)
+        #:sxql/operator)
   (:import-from #:sxql/sql-type
                 #:sql-symbol-name
                 #:sql-list-elements
@@ -94,8 +92,8 @@
     (make-where-clause
      (apply #'make-op
             :and
-            (iter (for clause in clauses)
-              (collect (expression-clause-expression clause)))))))
+            (loop for clause in clauses
+                  collect (expression-clause-expression clause))))))
 
 (defstruct (values-clause (:include expression-clause (name "VALUES"))
                           (:constructor make-values-clause (&rest elements
@@ -172,7 +170,7 @@
 
 (defstruct (set=-clause (:include sql-clause (name "SET"))
                         (:constructor %make-set=-clause (&rest args)))
-  (args nil :type (and proper-list
+  (args nil :type (and list
                      (satisfies sql-expression-list-p))))
 
 (defun make-set=-clause (&rest args)
@@ -387,7 +385,7 @@
 
 (defstruct (on-duplicate-key-update-clause (:include sql-clause (name "ON DUPLICATE KEY UPDATE"))
                                            (:constructor %make-on-duplicate-key-update-clause (&rest args)))
-  (args nil :type (and proper-list
+  (args nil :type (and list
                      (satisfies sql-expression-list-p))))
 
 (defun make-on-duplicate-key-update-clause (&rest args)

@@ -1,8 +1,7 @@
 (defpackage #:sxql/statement
   (:nicknames #:sxql.statement)
   (:use #:cl
-        #:sxql/sql-type
-        #:iterate)
+        #:sxql/sql-type)
   (:import-from #:sxql/sql-type
                 #:sql-splicing-list-elements
                 #:statement-clause-statement)
@@ -58,7 +57,7 @@
    #:explain-statement
    #:create-view-statement
    #:drop-view-statement
-   ;; Accessors (from @export-accessors on select-statement)
+   ;; Accessors
    #:select-statement-name
    #:select-statement-children))
 (in-package #:sxql/statement)
@@ -88,21 +87,20 @@
 
 (defparameter *clause-priority*
   (let ((hash (make-hash-table :test 'eq)))
-    (iter
-      (for i from 0)
-      (for clause in '(fields-clause
-                       distinct-on-clause
-                       from-clause
-                       join-clause
-                       where-clause
-                       group-by-clause
-                       having-clause
-                       returning-clause
-                       order-by-clause
-                       limit-clause
-                       offset-clause
-                       updatability-clause))
-      (setf (gethash clause hash) i))
+    (loop for i from 0
+          for clause in '(fields-clause
+                          distinct-on-clause
+                          from-clause
+                          join-clause
+                          where-clause
+                          group-by-clause
+                          having-clause
+                          returning-clause
+                          order-by-clause
+                          limit-clause
+                          offset-clause
+                          updatability-clause)
+          do (setf (gethash clause hash) i))
     hash))
 
 (defun sort-clause-types (types)
@@ -133,9 +131,8 @@
                                                                     (clause-order
                                                                      (sort-clause-types
                                                                       (delete-duplicates
-                                                                       (iter (for (type clause) on clauses by #'cddr)
-                                                                         (declare (ignorable type))
-                                                                         (collect (type-of (car clause))))
+                                                                       (loop for (type clause) on clauses by #'cddr
+                                                                             collect (type-of (car clause)))
                                                                        :from-end t
                                                                        :test #'eq))))))
   clause-order
@@ -154,40 +151,39 @@
   (updatability-clause nil))
 
 (defun compute-select-statement-children (select-statement)
-  (iter (for (type . score)
+  (loop for (type . score)
              in (sort
-                 (iter (for type in '(fields-clause
-                                      distinct-on-clause
-                                      from-clause
-                                      join-clause
-                                      where-clause
-                                      group-by-clause
-                                      having-clause
-                                      returning-clause
-                                      order-by-clause
-                                      limit-clause
-                                      offset-clause
-                                      updatability-clause))
-                   (collect (cons type
-                                  (or (position type (select-statement-clause-order select-statement)
-                                                :test #'eq)
-                                      100))))
+                 (loop for type in '(fields-clause
+                                     distinct-on-clause
+                                     from-clause
+                                     join-clause
+                                     where-clause
+                                     group-by-clause
+                                     having-clause
+                                     returning-clause
+                                     order-by-clause
+                                     limit-clause
+                                     offset-clause
+                                     updatability-clause)
+                       collect (cons type
+                                     (or (position type (select-statement-clause-order select-statement)
+                                                   :test #'eq)
+                                         100)))
                  #'<
-                 :key #'cdr))
-    (declare (ignorable score))
-    (appending
-     (let ((clauses (slot-value select-statement type)))
-       (if (and (eq type 'where-clause) clauses)
-           (list (compose-where-clauses clauses))
-           clauses)))))
+                 :key #'cdr)
+        append
+        (let ((clauses (slot-value select-statement type)))
+          (if (and (eq type 'where-clause) clauses)
+              (list (compose-where-clauses clauses))
+              clauses))))
 
 (defmethod add-child ((statement select-statement) child)
   (prog1 (call-next-method)
     (setf (select-statement-clause-order statement)
           (sort-clause-types
            (delete-duplicates
-            (iter (for clause on (select-statement-children statement))
-              (collect (type-of clause)))
+            (loop for clause in (select-statement-children statement)
+                  collect (type-of clause))
             :from-end t
             :test #'eq)))))
 
@@ -291,37 +287,37 @@
   (check-type defaults select-statement)
   (apply #'make-statement :select
          (if defaults
-             (iter (for type in '(fields-clause
-                                  distinct-on-clause
-                                  from-clause
-                                  join-clause
-                                  where-clause
-                                  group-by-clause
-                                  having-clause
-                                  returning-clause
-                                  order-by-clause
-                                  limit-clause
-                                  offset-clause))
-               (appending
-                (if (or (null defaults)
-                        (slot-value statement type))
-                    (if (subtypep type 'multiple-allowed-clause)
-                        (append
-                         (slot-value defaults type)
-                         (slot-value statement type))
-                        (slot-value statement type))
-                    (slot-value defaults type)))))))
+             (loop for type in '(fields-clause
+                                 distinct-on-clause
+                                 from-clause
+                                 join-clause
+                                 where-clause
+                                 group-by-clause
+                                 having-clause
+                                 returning-clause
+                                 order-by-clause
+                                 limit-clause
+                                 offset-clause)
+                   append
+                   (if (or (null defaults)
+                           (slot-value statement type))
+                       (if (subtypep type 'multiple-allowed-clause)
+                           (append
+                            (slot-value defaults type)
+                            (slot-value statement type))
+                           (slot-value statement type))
+                       (slot-value defaults type))))))
 
 (defmethod make-statement ((statement-name (eql :select)) &rest args)
   (apply #'make-select-statement
-         (iter (for (type clauses) on (group-by #'type-of
-                                                (remove-if #'null args) :test 'eq) :by #'cddr)
-           (let ((type-key (intern (symbol-name type) :keyword)))
-             (when (and (cdr clauses)
-                        (not (subtypep type 'multiple-allowed-clause)))
-               (error "Multiple ~S is not allowed." type))
-             (collect type-key)
-             (collect clauses)))))
+         (loop for (type clauses) on (group-by #'type-of
+                                               (remove-if #'null args) :test 'eq) by #'cddr
+               collect (let ((type-key (intern (symbol-name type) :keyword)))
+                         (when (and (cdr clauses)
+                                    (not (subtypep type 'multiple-allowed-clause)))
+                           (error "Multiple ~S is not allowed." type))
+                         type-key)
+               collect clauses)))
 
 (defmethod make-statement ((statement-name (eql :insert-into)) &rest args)
   (destructuring-bind (table-name &rest restargs) args

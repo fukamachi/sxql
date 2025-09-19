@@ -1,7 +1,6 @@
 (defpackage #:sxql/compile
   (:nicknames #:sxql.compile)
   (:use #:cl
-        #:trivial-types
         #:sxql/sql-type)
   (:export
    ;; Functions
@@ -19,7 +18,7 @@
       `(progn
          (defstruct (,compiled-name (:include ,structure-name ,@defstruct-options))
            (sql nil :type string)
-           (bind nil :type proper-list))
+           (bind nil :type list))
 
          (defmethod find-compile-function ((object ,structure-name))
            (function ,(symbolcat :make compiled-name)))

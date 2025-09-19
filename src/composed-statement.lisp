@@ -1,7 +1,6 @@
 (defpackage #:sxql/composed-statement
   (:nicknames #:sxql.composed-statement)
-  (:use #:cl
-        #:iterate)
+  (:use #:cl)
   (:import-from #:sxql/sql-type
                 #:*use-placeholder*
                 #:with-table-name
@@ -123,51 +122,52 @@
                         :key (compose key #'car)))))
     (let* ((has-join-clause-p nil)
            (clause-orders (sort-clause-types
-                           (iter (for stmt in (composed-statement-statements statement))
-                             (appending (select-statement-clause-order stmt)))))
+                           (loop for stmt in (composed-statement-statements statement)
+                                 append (select-statement-clause-order stmt))))
            (grouped-clauses (sort-plist-by-key
                              (group-by #'scoped-clause-type
-                                       (iter (for stmt in (composed-statement-statements statement))
-                                         (appending
-                                          (iter (for child in (compute-select-statement-children stmt))
-                                            (when (typep child 'join-clause)
-                                              (setf has-join-clause-p t))
-                                            (collect (make-scoped-clause child stmt))))))
+                                       (loop for stmt in (composed-statement-statements statement)
+                                             append
+                                             (loop for child in (compute-select-statement-children stmt)
+                                                   when (typep child 'join-clause)
+                                                     do (setf has-join-clause-p t)
+                                                   collect (make-scoped-clause child stmt))))
                              (lambda (a b)
                                (and a b
-                                   (< a b)))
+                                    (< a b)))
                              :key (lambda (type)
                                     (position type clause-orders)))))
       (with-yield-binds
         (format nil "~A ~{~A~^ ~}"
                 (sql-statement-name (car (composed-statement-statements statement)))
-                (iter (for (type scoped-clauses) on grouped-clauses :by #'cddr)
-                  (when (and (eq type 'fields-clause)
-                             (some (lambda (clause)
-                                     (and (null (select-statement-table-name (scoped-clause-statement clause)))
-                                          (some (lambda (field)
-                                                  (string= "*"
-                                                           (typecase field
-                                                             (as-op (sql-symbol-name (as-op-right field)))
-                                                             (sql-symbol (sql-symbol-name field)))))
-                                                (sql-splicing-list-elements
-                                                 (fields-clause-statement (scoped-clause-clause clause))))))
-                                   scoped-clauses))
-                    (setf scoped-clauses (list (make-scoped-clause
-                                                (make-clause :fields :*)
-                                                (make-statement :select)))))
-                  (setf scoped-clauses
-                        (delete-duplicates scoped-clauses
-                                           :key #'scoped-clause-clause
-                                           :test #'equalp
-                                           :from-end t))
-                  (collect
-                      (reduce (if has-join-clause-p
-                                  (lambda (a b)
-                                    (scoped-merging-yield a b :with-table-names t))
-                                  #'scoped-merging-yield)
-                              scoped-clauses
-                              :initial-value nil))))))))
+                (loop for (type original-scoped-clauses) on grouped-clauses by #'cddr
+                      collect
+                      (let ((scoped-clauses original-scoped-clauses))
+                        (when (and (eq type 'fields-clause)
+                                   (some (lambda (clause)
+                                           (and (null (select-statement-table-name (scoped-clause-statement clause)))
+                                                (some (lambda (field)
+                                                        (string= "*"
+                                                                 (typecase field
+                                                                   (as-op (sql-symbol-name (as-op-right field)))
+                                                                   (sql-symbol (sql-symbol-name field)))))
+                                                      (sql-splicing-list-elements
+                                                       (fields-clause-statement (scoped-clause-clause clause))))))
+                                         scoped-clauses))
+                          (setf scoped-clauses (list (make-scoped-clause
+                                                      (make-clause :fields :*)
+                                                      (make-statement :select)))))
+                        (setf scoped-clauses
+                              (delete-duplicates scoped-clauses
+                                                 :key #'scoped-clause-clause
+                                                 :test #'equalp
+                                                 :from-end t))
+                        (reduce (if has-join-clause-p
+                                    (lambda (a b)
+                                      (scoped-merging-yield a b :with-table-names t))
+                                    #'scoped-merging-yield)
+                                scoped-clauses
+                                :initial-value nil))))))))
 
 (defun compose-statements (statement &rest statements)
   (let ((statements (cons statement statements)))
