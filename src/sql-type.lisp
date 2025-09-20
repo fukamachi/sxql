@@ -71,6 +71,8 @@
    #:children
    ;; Functions
    #:sql-expression-list-p
+   #:sql-symbol-p
+   #:sql-symbol-name
    #:yield))
 (in-package #:sxql/sql-type)
 

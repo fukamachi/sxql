@@ -33,6 +33,7 @@
            #:make-sql-symbol
            #:make-sql-symbol*
            #:compose-statements
+           #:expand-op
            #:*use-placeholder*
            #:*quote-character*
            #:*sql-symbol-conversion*

@@ -15,6 +15,9 @@
 (setup
   (setf *quote-character* #\`))
 
+(teardown
+  (setf *quote-character* nil))
+
 (deftest select-statement-tests
   (testing "basic SELECT statement creation"
     (ok (make-statement :select

@@ -12,6 +12,9 @@
 (setup
   (setf *quote-character* #\`))
 
+(teardown
+  (setf *quote-character* nil))
+
 (deftest sql-variable-tests
   (testing "sql-variable creation with valid inputs"
     (ok (make-sql-variable 1))
