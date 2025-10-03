@@ -286,27 +286,27 @@
   (check-type statement select-statement)
   (check-type defaults select-statement)
   (apply #'make-statement :select
-         (if defaults
-             (loop for type in '(fields-clause
-                                 distinct-on-clause
-                                 from-clause
-                                 join-clause
-                                 where-clause
-                                 group-by-clause
-                                 having-clause
-                                 returning-clause
-                                 order-by-clause
-                                 limit-clause
-                                 offset-clause)
-                   append
-                   (if (or (null defaults)
-                           (slot-value statement type))
-                       (if (subtypep type 'multiple-allowed-clause)
-                           (append
-                            (slot-value defaults type)
+         (and defaults
+              (loop for type in '(fields-clause
+                                  distinct-on-clause
+                                  from-clause
+                                  join-clause
+                                  where-clause
+                                  group-by-clause
+                                  having-clause
+                                  returning-clause
+                                  order-by-clause
+                                  limit-clause
+                                  offset-clause)
+                    append
+                    (if (or (null defaults)
                             (slot-value statement type))
-                           (slot-value statement type))
-                       (slot-value defaults type))))))
+                        (if (subtypep type 'multiple-allowed-clause)
+                            (append
+                             (slot-value defaults type)
+                             (slot-value statement type))
+                            (slot-value statement type))
+                        (slot-value defaults type))))))
 
 (defmethod make-statement ((statement-name (eql :select)) &rest args)
   (apply #'make-select-statement
