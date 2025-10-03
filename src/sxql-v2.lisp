@@ -66,121 +66,111 @@
 ;;
 
 (defun add-where-clause (query clause)
-  "Add a WHERE clause to a query state"
+  "Add a WHERE clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (where-clause (typecase clause
+  (let ((where-clause (typecase clause
                         ;; If it's already a WHERE clause, use it
                         (sxql.clause::where-clause clause)
                         ;; Otherwise create a WHERE clause from the expression
                         (otherwise (clause:make-clause :where clause)))))
-    (push where-clause (query-state-where-clauses new-query))
-    new-query))
+    (push where-clause (query-state-where-clauses query))
+    query))
 
 (defun add-order-by-clause (query clause)
-  "Add an ORDER BY clause to a query state"
+  "Add an ORDER BY clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (order-clause (typecase clause
+  (let ((order-clause (typecase clause
                         ;; If it's already an ORDER BY clause, use it
                         (sxql.clause::order-by-clause clause)
                         ;; Otherwise create an ORDER BY clause from the expression
                         (otherwise (clause:make-clause :order-by clause)))))
-    (push order-clause (query-state-order-by-clauses new-query))
-    new-query))
+    (push order-clause (query-state-order-by-clauses query))
+    query))
 
 (defun add-group-by-clause (query clause)
-  "Add a GROUP BY clause to a query state"
+  "Add a GROUP BY clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (group-clause (typecase clause
+  (let ((group-clause (typecase clause
                         (sxql.clause::group-by-clause clause)
                         (otherwise (clause:make-clause :group-by clause)))))
-    (push group-clause (query-state-group-by-clauses new-query))
-    new-query))
+    (push group-clause (query-state-group-by-clauses query))
+    query))
 
 (defun add-having-clause (query clause)
-  "Add a HAVING clause to a query state"
+  "Add a HAVING clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (having-clause (typecase clause
+  (let ((having-clause (typecase clause
                          (sxql.clause::having-clause clause)
                          (otherwise (clause:make-clause :having clause)))))
-    (push having-clause (query-state-having-clauses new-query))
-    new-query))
+    (push having-clause (query-state-having-clauses query))
+    query))
 
 (defun add-join-clause (query clause)
-  "Add a JOIN clause to a query state with automatic column qualification"
+  "Add a JOIN clause to a query state with automatic column qualification (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (join-clause (typecase clause
+  (let ((join-clause (typecase clause
                        (sxql.clause::join-clause clause)
                        (otherwise clause))))  ; Join clauses are more complex, pass through
 
     ;; Add the JOIN clause
-    (push join-clause (query-state-join-clauses new-query))
+    (push join-clause (query-state-join-clauses query))
 
     ;; Auto-qualification when first JOIN is added
-    (when (and (= 1 (length (query-state-join-clauses new-query))) ; First JOIN
-               (query-state-primary-table new-query))              ; Has primary table
+    (when (and (= 1 (length (query-state-join-clauses query))) ; First JOIN
+               (query-state-primary-table query))              ; Has primary table
       ;; Qualify existing clauses with primary table name
-      (qualify-all-clauses new-query
-                           (query-state-primary-table new-query)))
+      (qualify-all-clauses query
+                           (query-state-primary-table query)))
 
-    new-query))
+    query))
 
 (defun add-fields-clause (query clause)
-  "Add a FIELDS clause to a query state"
+  "Add a FIELDS clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (fields-clause (typecase clause
+  (let ((fields-clause (typecase clause
                          (sxql.clause::fields-clause clause)
                          (otherwise (clause:make-clause :fields clause)))))
-    (a:appendf (query-state-fields new-query)
+    (a:appendf (query-state-fields query)
                (type::sql-splicing-list-elements
                 (clause::fields-clause-statement fields-clause)))
-    new-query))
+    query))
 
 (defun add-from-clause (query clause)
-  "Add a FROM clause to a query state"
+  "Add a FROM clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (from-clause (typecase clause
+  (let ((from-clause (typecase clause
                        (sxql.clause::from-clause clause)
                        (otherwise (clause:make-clause :from clause)))))
-    (setf (query-state-primary-table new-query)
+    (setf (query-state-primary-table query)
           (clause:from-clause-table-name from-clause))
-    new-query))
+    query))
 
 (defun add-limit-clause (query clause)
-  "Add a LIMIT clause to a query state"
+  "Add a LIMIT clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (limit-clause (typecase clause
+  (let ((limit-clause (typecase clause
                         (sxql.clause::limit-clause clause)
                         (otherwise (clause:make-clause :limit clause)))))
-    (setf (query-state-limit-clause new-query) limit-clause)
-    new-query))
+    (setf (query-state-limit-clause query) limit-clause)
+    query))
 
 (defun add-offset-clause (query clause)
-  "Add an OFFSET clause to a query state"
+  "Add an OFFSET clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (offset-clause (typecase clause
+  (let ((offset-clause (typecase clause
                          (sxql.clause::offset-clause clause)
                          (otherwise (clause:make-clause :offset clause)))))
-    (setf (query-state-offset-clause new-query) offset-clause)
-    new-query))
+    (setf (query-state-offset-clause query) offset-clause)
+    query))
 
 (defun add-returning-clause (query clause)
-  "Add a RETURNING clause to a query state"
+  "Add a RETURNING clause to a query state (destructive)"
   (check-type query query-state)
-  (let ((new-query (copy-query-state-immutable query))
-        (returning-clause (typecase clause
+  (let ((returning-clause (typecase clause
                             (sxql.clause::returning-clause clause)
                             (otherwise (clause:make-clause :returning clause)))))
-    (setf (query-state-returning-clause new-query) returning-clause)
-    new-query))
+    (setf (query-state-returning-clause query) returning-clause)
+    query))
 
 ;;
 ;; v2 Helper Functions
@@ -550,8 +540,8 @@
   "Smart threading macro that dispatches based on clause types returned by forms.
 
    This macro enables immutable query composition by threading clauses through
-   query-state objects. Each step creates a new query-state, leaving the original
-   unchanged. Supports both v1 select-statements and v2 query-states.
+   query-state objects. Creates a single copy at the beginning, then destructively
+   adds clauses for efficiency. Supports both v1 select-statements and v2 query-states.
 
    Examples:
      ;; With v2 clause
@@ -572,17 +562,18 @@
       value
       (a:with-gensyms (threaded-var)
         `(let* ((,threaded-var ,value)
+                ;; Convert to query-state and copy once at the beginning
                 (,threaded-var
                   (typecase ,threaded-var
-                    (query-state ,threaded-var)
+                    (query-state (copy-query-state-immutable ,threaded-var))
                     (stmt:select-statement (select-statement-to-query-state ,threaded-var))
                     (otherwise (add-clause (make-query-state) ,threaded-var)))))
+           ;; Now destructively add clauses (no more copying)
            ,@(loop for form in forms
-                   collect `(setf ,threaded-var
-                                  (add-clause ,threaded-var
-                                              ,(if (listp form)
-                                                   ;; For list forms, call the function with its arguments (no threading)
-                                                   `(,(car form) ,@(cdr form))
-                                                   ;; For symbol forms, call the function with no arguments
-                                                   `(,form)))))
+                   collect `(add-clause ,threaded-var
+                                        ,(if (listp form)
+                                             ;; For list forms, call the function with its arguments (no threading)
+                                             `(,(car form) ,@(cdr form))
+                                             ;; For symbol forms, call the function with no arguments
+                                             `(,form))))
            ,threaded-var))))
