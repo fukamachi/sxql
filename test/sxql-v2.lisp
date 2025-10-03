@@ -1,7 +1,34 @@
 (defpackage #:sxql/test/v2
   (:use #:cl
-        #:rove
-        #:sxql/v2))
+        #:rove)
+  (:import-from #:sxql/v2
+                #:->
+                #:yield-query
+                #:register-table-columns
+                #:clear-column-mappings
+                #:query-state-p
+                #:query-state-where-clauses
+                #:query-state-order-by-clauses
+                #:query-state-group-by-clauses
+                #:query-state-having-clauses
+                #:query-state-join-clauses
+                #:query-state-limit-clause
+                #:query-state-offset-clause)
+  (:import-from #:sxql
+                #:select
+                #:from
+                #:where
+                #:order-by
+                #:group-by
+                #:having
+                #:limit
+                #:offset
+                #:fields
+                #:returning
+                #:join
+                #:inner-join
+                #:left-join
+                #:right-join))
 (in-package #:sxql/test/v2)
 
 ;;
@@ -160,143 +187,19 @@
           (ok (= 1 (first params)))
           (ok (= 1 (length params)))))))
 
-(deftest v2-select-function-tests
-  (testing "SELECT function basic functionality"
-
-    (testing "Empty SELECT function creates query-state"
-      (let ((query (select)))
-        (ok (query-state-p query))
-        (ok (null (query-state-where-clauses query)))
-        (ok (null (query-state-order-by-clauses query)))))
-
-    (testing "Empty SELECT generates valid SQL"
-      (let* ((query (select))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT *"))
-          (ok (null params)))))
-
-    (testing "SELECT with FROM clause"
-      (let* ((query (select (from :users)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * FROM users"))
-          (ok (null params)))))
-
-    (testing "SELECT with WHERE clause"
-      (let* ((query (select (where (:= :id 123))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * WHERE (id = ?)"))
-          (ok (equal params '(123))))))))
-
-(deftest v2-clause-macros-tests
-  (testing "Individual clause macro functionality"
-
-    (testing "FIELDS clause"
-      (let* ((query (select (fields :name :email :id)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT id, email, name"))
-          (ok (null params)))))
-
-    (testing "ORDER BY clause with single column"
-      (let* ((query (select (order-by :name)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * ORDER BY name"))
-          (ok (null params)))))
-
-    (testing "ORDER BY clause with multiple columns"
-      (let* ((query (select (order-by :name :created_at)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * ORDER BY name, created_at"))
-          (ok (null params)))))
-
-    (testing "GROUP BY clause"
-      (let* ((query (select (group-by :category :status)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * GROUP BY category, status"))
-          (ok (null params)))))
-
-    (testing "HAVING clause"
-      (let* ((query (select (having (:> :count 5))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * HAVING (count > ?)"))
-          (ok (equal params '(5))))))
-
-    (testing "RETURNING clause"
-      (let* ((query (select (returning :id :name)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * RETURNING id, name"))
-          (ok (null params)))))
-
-    (testing "LIMIT clause"
-      (let* ((query (select (limit 10)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * LIMIT 10"))
-          (ok (null params)))))
-
-    (testing "LIMIT clause with offset"
-      (let* ((query (select (limit 10 20)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * LIMIT 10, 20"))
-          (ok (null params)))))
-
-    (testing "OFFSET clause"
-      (let* ((query (select (offset 50)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * OFFSET 50"))
-          (ok (null params)))))
-
-    (testing "JOIN clause with ON condition"
-      (let* ((query (select (join :orders :on (:= :users.id :orders.user_id))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * INNER JOIN orders ON (users.id = orders.user_id)"))
-          (ok (null params)))))
-
-    (testing "INNER JOIN clause"
-      (let* ((query (select (inner-join :posts :on (:= :users.id :posts.author_id))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * INNER JOIN posts ON (users.id = posts.author_id)"))
-          (ok (null params)))))
-
-    (testing "LEFT JOIN clause"
-      (let* ((query (select (left-join :comments :on (:= :posts.id :comments.post_id))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * LEFT JOIN comments ON (posts.id = comments.post_id)"))
-          (ok (null params)))))
-
-    (testing "JOIN with USING clause"
-      (let* ((query (select (join :profiles :using (:user_id))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
-          (ok (equal sql "SELECT * INNER JOIN profiles USING (user_id)"))
-          (ok (null params)))))))
 
 (deftest v2-complex-clause-combinations-tests
   (testing "Complex queries with multiple clause types"
 
     (testing "Complete query with all major clauses"
-      (let* ((query (select (fields :users.name :posts.title)
-                            (from :users)
-                            (inner-join :posts :on (:= :users.id :posts.author_id))
-                            (where (:= :users.active 1))
-                            (group-by :users.id)
-                            (having (:> (:count :posts.id) 5))
-                            (order-by (:desc :users.name))
-                            (limit 20)
-                            (offset 10)))
+      (let* ((query (-> (select (:users.name :posts.title) (from :users))
+                        (inner-join :posts :on (:= :users.id :posts.author_id))
+                        (where (:= :users.active 1))
+                        (group-by :users.id)
+                        (having (:> (:count :posts.id) 5))
+                        (order-by (:desc :users.name))
+                        (limit 20)
+                        (offset 10)))
              (result (yield-query query)))
         (destructuring-bind (sql . params) result
           (ok (equal sql "SELECT posts.title, users.name FROM users INNER JOIN posts ON (users.id = posts.author_id) WHERE (users.active = ?) GROUP BY users.id HAVING (COUNT(posts.id) > ?) ORDER BY users.name DESC LIMIT 20 OFFSET 10"))
@@ -317,7 +220,9 @@
   (testing "Query state immutability and reusable base queries"
 
     (testing "Base query remains unchanged after derivations"
-      (let ((base-query (select (fields :*) (from :users) (where (:= :is_active 1)))))
+      ;; Create base query using -> so we get a query-state
+      (let ((base-query (-> (select (:*) (from :users))
+                            (where (:= :is_active 1)))))
         ;; Record initial state
         (let ((initial-where-count (length (query-state-where-clauses base-query)))
               (initial-order-count (length (query-state-order-by-clauses base-query))))
@@ -344,7 +249,8 @@
               (ok (not (equal recent-sql search-sql))))))))
 
     (testing "All clause types maintain immutability"
-      (let ((base (select (fields :id) (from :users))))
+      ;; Create base query as query-state using ->
+      (let ((base (-> (select (:id) (from :users)))))
         (let ((with-where (-> base (where (:= :id 1))))
               (with-order (-> base (order-by :name)))
               (with-group (-> base (group-by :status)))
@@ -373,9 +279,10 @@
 
     (testing "Real-world usage patterns work correctly"
       ;; This tests the exact pattern mentioned in the user's requirements
-      (let ((active-users (select (fields :*)
-                                  (from :users)
-                                  (where (:= :is_active 1)))))
+      ;; Wrap with -> to ensure we get a query-state
+      (let ((active-users (-> (select (:*)
+                                      (from :users)
+                                      (where (:= :is_active 1))))))
 
         ;; Multiple independent usages of the base query
         (let ((recent-users (-> active-users (where (:< "2025-01-01" :created_at))))
@@ -403,9 +310,9 @@
 
     (testing "Basic auto-qualification with single JOIN"
       ;; Create base query with unqualified columns
-      (let ((base-query (select (fields :*)
-                                (from :users)
-                                (where (:= :is_active 1)))))
+      (let ((base-query (-> (select (:*)
+                                    (from :users)
+                                    (where (:= :is_active 1))))))
 
         ;; Add JOIN - should automatically qualify existing columns
         (let ((joined-query (-> base-query

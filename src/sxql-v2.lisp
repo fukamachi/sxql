@@ -25,21 +25,6 @@
            #:find-column-table
            #:clear-column-mappings
            #:yield-query
-           ;; Clause macros
-           #:fields
-           #:from
-           #:where
-           #:order-by
-           #:group-by
-           #:having
-           #:returning
-           #:join
-           #:inner-join
-           #:left-join
-           #:right-join
-           #:full-join
-           #:limit
-           #:offset
            ;; Threading utilities
            #:->))
 (in-package #:sxql/v2)
@@ -421,86 +406,10 @@
 
 
 ;;
-;; v2 Clause Macros (copied from sxql.lisp)
-;;
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun expand-op (object)
-    (if (and (listp object)
-             (keywordp (car object)))
-        `(op:make-op ,(car object) ,@(mapcar #'expand-op (cdr object)))
-        object))
-
-  (defun expand-expression (expressions)
-    (cond
-      ((not (listp expressions)) expressions)
-      ((and (symbolp (car expressions))
-            (not (keywordp (car expressions))))
-       expressions)
-      (t (mapcar #'expand-op expressions)))))
-
-(defmacro from (&rest statements)
-  `(clause:make-clause :from ,@(mapcar #'expand-op statements)))
-
-(defmacro where (expression)
-  `(clause:make-clause :where
-                ,(if (and (listp expression)
-                          (keywordp (car expression)))
-                     (expand-op expression)
-                     `,expression)))
-
-(defmacro fields (&rest fields)
-  `(clause:make-clause :fields ,@(mapcar #'expand-op fields)))
-
-(defmacro order-by (&rest expressions)
-  `(clause:make-clause :order-by ,@(mapcar #'expand-op expressions)))
-
-(defmacro group-by (&rest expressions)
-  `(apply #'clause:make-clause :group-by (list ,@(mapcar #'expand-op expressions))))
-
-(defmacro having (expression)
-  `(clause:make-clause :having
-                ,(if (and (listp expression)
-                          (keywordp (car expression)))
-                     (expand-op expression)
-                     `,expression)))
-
-(defmacro returning (&rest expressions)
-  `(apply #'clause:make-clause :returning
-          (list ,@(mapcar (lambda (expr)
-                            `,(expand-op expr))
-                          expressions))))
-
-(defun limit (count1 &optional count2)
-  (apply #'clause:make-clause :limit `(,count1 ,@(and count2 (list count2)))))
-
-(defun offset (offset)
-  (clause:make-clause :offset offset))
-
-(defmacro join (table &key (kind :inner) on using)
-  `(clause:make-clause :join ,(expand-op table)
-                :kind ,kind
-                ,@(if on
-                      `(:on ,(expand-op on))
-                      nil)
-                ,@(if using
-                      `(:using (list ,@(mapcar #'expand-op using)))
-                      nil)))
-
-(defmacro inner-join (table &key on using)
-  `(join ,table :kind :inner :on ,on :using ,using))
-
-(defmacro left-join (table &key on using)
-  `(join ,table :kind :left :on ,on :using ,using))
-
-(defmacro right-join (table &key on using)
-  `(join ,table :kind :right :on ,on :using ,using))
-
-(defmacro full-join (table &key on using)
-  `(join ,table :kind :full :on ,on :using ,using))
-
-;;
 ;; v2 Threading Utilities
+;;
+;; Note: v2 does not define its own clause macros. Use sxql:where, sxql:order-by,
+;; sxql:limit, etc. directly with the -> threading macro. They work seamlessly!
 ;;
 
 (defun select-statement-to-query-state (select-stmt)
@@ -558,22 +467,20 @@
        (-> base-query
            (where (:= :department \"engineering\"))
            (limit 10)))"
-  (if (null forms)
-      value
-      (a:with-gensyms (threaded-var)
-        `(let* ((,threaded-var ,value)
-                ;; Convert to query-state and copy once at the beginning
-                (,threaded-var
-                  (typecase ,threaded-var
-                    (query-state (copy-query-state-immutable ,threaded-var))
-                    (stmt:select-statement (select-statement-to-query-state ,threaded-var))
-                    (otherwise (add-clause (make-query-state) ,threaded-var)))))
-           ;; Now destructively add clauses (no more copying)
-           ,@(loop for form in forms
-                   collect `(add-clause ,threaded-var
-                                        ,(if (listp form)
-                                             ;; For list forms, call the function with its arguments (no threading)
-                                             `(,(car form) ,@(cdr form))
-                                             ;; For symbol forms, call the function with no arguments
-                                             `(,form))))
-           ,threaded-var))))
+  (a:with-gensyms (threaded-var)
+    `(let* ((,threaded-var ,value)
+            ;; Convert to query-state and copy once at the beginning
+            (,threaded-var
+              (typecase ,threaded-var
+                (query-state (copy-query-state-immutable ,threaded-var))
+                (stmt:select-statement (select-statement-to-query-state ,threaded-var))
+                (otherwise (add-clause (make-query-state) ,threaded-var)))))
+       ;; Now destructively add clauses (no more copying)
+       ,@(loop for form in forms
+               collect `(add-clause ,threaded-var
+                                    ,(if (listp form)
+                                         ;; For list forms, call the function with its arguments (no threading)
+                                         `(,(car form) ,@(cdr form))
+                                         ;; For symbol forms, call the function with no arguments
+                                         `(,form))))
+       ,threaded-var)))
