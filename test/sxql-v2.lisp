@@ -3,7 +3,6 @@
         #:rove)
   (:import-from #:sxql/v2
                 #:->
-                #:yield-query
                 #:register-table-columns
                 #:clear-column-mappings
                 #:query-state-p
@@ -28,7 +27,8 @@
                 #:join
                 #:inner-join
                 #:left-join
-                #:right-join))
+                #:right-join
+                #:yield))
 (in-package #:sxql/test/v2)
 
 ;;
@@ -37,10 +37,9 @@
 
 (defun assert-sql-equal (expected-sql expected-params query)
   "Helper to test SQL generation with consistent assertion pattern"
-  (let ((result (yield-query query)))
-    (destructuring-bind (sql . params) result
-      (ok (equal sql expected-sql))
-      (ok (equal params expected-params)))))
+  (multiple-value-bind (sql params) (yield query)
+    (ok (equal sql expected-sql))
+    (ok (equal params expected-params))))
 
 (defmacro testing-sql (description expected-sql expected-params query-form)
   "Macro to reduce repetitive SQL testing patterns"
@@ -58,18 +57,16 @@
 
     (testing "Query with ORDER BY clause"
       (let* ((query (-> (from :posts)
-                        (order-by (:desc :created_at))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (order-by (:desc :created_at)))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (equal sql "SELECT * FROM posts ORDER BY created_at DESC"))
           (ok (null params)))))
 
     (testing "Query with both WHERE and ORDER BY"
       (let* ((query (-> (from :blog)
                         (where (:= :user_id 456))
-                        (order-by (:asc :title))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (order-by (:asc :title)))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (equal sql "SELECT * FROM blog WHERE (user_id = ?) ORDER BY title ASC"))
           (ok (equal params '(456))))))))
 
@@ -101,18 +98,16 @@
     (testing "Multiple WHERE clauses"
       (let* ((query (-> (from :posts)
                         (where (:= :user_id 123))
-                        (where (:= :status "published"))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (where (:= :status "published")))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (equal sql "SELECT * FROM posts WHERE ((user_id = ?) AND (status = ?))"))
           (ok (equal params '(123 "published"))))))
 
     (testing "Multiple ORDER BY clauses"
       (let* ((query (-> (from :posts)
                         (order-by (:desc :created_at))
-                        (order-by (:asc :title))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (order-by (:asc :title)))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (equal sql "SELECT * FROM posts ORDER BY created_at DESC, title ASC"))
           (ok (null params)))))
 
@@ -121,9 +116,8 @@
                         (where (:= :customer_id 789))
                         (where (:> :total 100))
                         (order-by (:desc :created_at))
-                        (order-by (:asc :id))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (order-by (:asc :id)))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (equal sql "SELECT * FROM orders WHERE ((customer_id = ?) AND (total > ?)) ORDER BY created_at DESC, id ASC"))
           (ok (equal params '(789 100))))))))
 
@@ -133,26 +127,23 @@
     (testing "Parameterized queries"
       (let* ((query (-> (from :users)
                         (where (:= :email "test@example.com"))
-                        (where (:>= :age 21))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (where (:>= :age 21)))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (equal params '("test@example.com" 21)))
           (ok (equal sql "SELECT * FROM users WHERE ((email = ?) AND (age >= ?))")))))
 
     (testing "Quote character handling"
       (let* ((sxql:*quote-character* #\`)
-             (query (-> (from :user_profiles) (fields :*)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+             (query (-> (from :user_profiles) (fields :*))))
+        (multiple-value-bind (sql params) (yield query)
           ;; Table names should be quoted
           (ok (equal sql "SELECT * FROM `user_profiles`"))
           (ok (null params)))))
 
     (testing "SQL keyword case"
       (let* ((query (-> (from :products)
-                        (where (:= :category "electronics"))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (where (:= :category "electronics")))))
+        (multiple-value-bind (sql params) (yield query)
           ;; SQL keywords should be uppercase
           (ok (equal sql "SELECT * FROM products WHERE (category = ?)"))
           (ok (equal params '("electronics"))))))))
@@ -162,31 +153,27 @@
 
     (testing "Special characters in values"
       (let* ((query (-> (from :comments)
-                        (where (:= :content "It's a \"quoted\" string"))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (where (:= :content "It's a \"quoted\" string")))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (string= "It's a \"quoted\" string" (first params)))
           ;; SQL should use placeholders, not literal strings
           (ok (search "?" sql)))))
 
     (testing "NULL values"
       (let* ((query (-> (from :users)
-                        (where (:= :deleted_at nil))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (where (:= :deleted_at nil)))))
+        (multiple-value-bind (sql params) (yield query)
           ;; NULL values in SxQL are rendered as () and don't generate parameters
           (ok (= 0 (length params)))
           (ok (search "()" sql))))))
 
     (testing "Boolean values"
       (let* ((query (-> (from :features)
-                        (where (:= :enabled 1))))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (where (:= :enabled 1)))))
+        (multiple-value-bind (sql params) (yield query)
           (declare (ignore sql))
           (ok (= 1 (first params)))
           (ok (= 1 (length params)))))))
-
 
 (deftest v2-complex-clause-combinations-tests
   (testing "Complex queries with multiple clause types"
@@ -199,9 +186,8 @@
                         (having (:> (:count :posts.id) 5))
                         (order-by (:desc :users.name))
                         (limit 20)
-                        (offset 10)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (offset 10))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (equal sql "SELECT posts.title, users.name FROM users INNER JOIN posts ON (users.id = posts.author_id) WHERE (users.active = ?) GROUP BY users.id HAVING (COUNT(posts.id) > ?) ORDER BY users.name DESC LIMIT 20 OFFSET 10"))
           (ok (equal params '(1 5))))))
 
@@ -210,9 +196,8 @@
                         (fields :name :price :category)
                         (where (:and (:>= :price 100) (:= :active 1)))
                         (order-by (:desc :price) :name)
-                        (limit 25)))
-             (result (yield-query query)))
-        (destructuring-bind (sql . params) result
+                        (limit 25))))
+        (multiple-value-bind (sql params) (yield query)
           (ok (equal sql "SELECT category, price, name FROM products WHERE ((price >= ?) AND (active = ?)) ORDER BY price DESC, name LIMIT 25"))
           (ok (equal params '(100 1))))))))
 
@@ -242,8 +227,8 @@
             (ok (= 1 (length (query-state-order-by-clauses ordered-users))))
 
             ;; Verify they generate different SQL
-            (let ((recent-sql (car (yield-query recent-users)))
-                  (search-sql (car (yield-query search-users))))
+            (let ((recent-sql (yield recent-users))
+                  (search-sql (yield search-users)))
               (ok (search "created_at" recent-sql))
               (ok (search "LIKE" search-sql))
               (ok (not (equal recent-sql search-sql))))))))
@@ -296,9 +281,9 @@
           (ok (= 2 (length (query-state-where-clauses search-users))))
 
           ;; SQL generation should work for all
-          (let ((base-sql (car (yield-query active-users)))
-                (recent-sql (car (yield-query recent-users)))
-                (search-sql (car (yield-query search-users))))
+          (let ((base-sql (yield active-users))
+                (recent-sql (yield recent-users))
+                (search-sql (yield search-users)))
             (ok (search "is_active" base-sql))
             (ok (search "is_active" recent-sql))
             (ok (search "created_at" recent-sql))
@@ -319,8 +304,8 @@
                                 (inner-join :blogs :on (:= :blogs.user_id :users.id)))))
 
           ;; Generate SQL for both queries
-          (let ((base-sql (car (yield-query base-query)))
-                (joined-sql (car (yield-query joined-query))))
+          (let ((base-sql (yield base-query))
+                (joined-sql (yield joined-query)))
 
             ;; Base query should have unqualified column
             (ok (equal base-sql "SELECT * FROM users WHERE (is_active = ?)"))
@@ -336,7 +321,7 @@
         (let ((joined-query (-> base-query
                                 (left-join :posts :on (:= :posts.author_id :users.id)))))
 
-          (let ((joined-sql (car (yield-query joined-query))))
+          (let ((joined-sql (yield joined-query)))
             ;; Both WHERE conditions should be qualified
             (ok (search "users.is_active" joined-sql))
             (ok (search "users.age" joined-sql))
@@ -351,7 +336,7 @@
         (let ((joined-query (-> base-query
                                 (right-join :profiles :on (:= :profiles.user_id :users.id)))))
 
-          (let ((joined-sql (car (yield-query joined-query))))
+          (let ((joined-sql (yield joined-query)))
             ;; WHERE and ORDER BY should be qualified
             (ok (search "users.is_active" joined-sql))
             (ok (search "users.created_at" joined-sql))
@@ -368,7 +353,7 @@
         (let ((joined-query (-> base-query
                                 (inner-join :departments :on (:= :departments.id :users.dept_id)))))
 
-          (let ((joined-sql (car (yield-query joined-query))))
+          (let ((joined-sql (yield joined-query)))
             ;; All clauses should be qualified
             (ok (equal joined-sql "SELECT * FROM users INNER JOIN departments ON (departments.id = users.dept_id) WHERE (users.is_active = ?) GROUP BY department HAVING (users.salary > ?)"))))))
 
@@ -381,7 +366,7 @@
         (let ((joined-query (-> base-query
                                 (inner-join :orders :on (:= :orders.user_id :users.id)))))
 
-          (let ((joined-sql (car (yield-query joined-query))))
+          (let ((joined-sql (yield joined-query)))
             ;; Pre-qualified should stay qualified, unqualified should be qualified
             (ok (equal joined-sql "SELECT * FROM users INNER JOIN orders ON (orders.user_id = users.id) WHERE ((users.is_active = ?) AND (users.status = ?))"))))))
 
@@ -398,7 +383,7 @@
           (let ((second-join (-> first-join
                                  (left-join :comments :on (:= :comments.post_id :posts.id)))))
 
-            (let ((final-sql (car (yield-query second-join))))
+            (let ((final-sql (yield second-join)))
               ;; Should have qualified columns and both JOINs
               (ok (equal final-sql
                          "SELECT * FROM users INNER JOIN posts ON (posts.author_id = users.id) LEFT JOIN comments ON (comments.post_id = posts.id) WHERE (users.is_active = ?)")))))))
@@ -414,7 +399,7 @@
                                     (inner-join :blogs :on (:= :blogs.user_id :users.id))
                                     (where (:like :blogs.name "%My Blog%")))))
 
-          (let ((result-sql (car (yield-query users-with-blogs))))
+          (let ((result-sql (yield users-with-blogs)))
             (ok (equal result-sql
                        "SELECT * FROM users INNER JOIN blogs ON (blogs.user_id = users.id) WHERE ((users.is_active = ?) AND (blogs.name LIKE ?))"))))))
 
@@ -427,6 +412,6 @@
         (let ((joined-query (-> base-query
                                 (inner-join :memberships :on (:= :memberships.user_id :users.id)))))
 
-          (let ((joined-sql (car (yield-query joined-query))))
+          (let ((joined-sql (yield joined-query)))
             (ok (equal joined-sql
                        "SELECT * FROM users INNER JOIN memberships ON (memberships.user_id = users.id) WHERE ((users.is_active = ?) AND ((users.age > ?) OR (users.score < ?)))"))))))))

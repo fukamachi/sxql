@@ -19,12 +19,12 @@
            #:query-state-fields
            #:query-state-limit-clause
            #:query-state-offset-clause
+           #:query-state-to-select-statement
            ;; Global column mapping
            #:*column-table-mapping*
            #:register-table-columns
            #:find-column-table
            #:clear-column-mappings
-           #:yield-query
            ;; Threading utilities
            #:->))
 (in-package #:sxql/v2)
@@ -404,6 +404,11 @@
           (type:yield select-stmt))
       (cons sql params))))
 
+;; Add method to sxql:yield so users can use it for both v1 and v2 queries
+(defmethod type:yield ((query query-state))
+  "Allow sxql:yield to work with query-state objects"
+  (let ((result (yield-query query)))
+    (values (car result) (cdr result))))
 
 ;;
 ;; v2 Threading Utilities

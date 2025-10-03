@@ -22,6 +22,10 @@
                 #:*sql-symbol-conversion*)
   (:import-from #:sxql/composed-statement
                 #:composed-statement)
+  (:import-from #:sxql/v2
+                #:->
+                #:query-state
+                #:add-clause)
   (:import-from #:trivia
                 #:match)
   (:export #:yield
@@ -105,6 +109,11 @@
            #:add-primary-key
            #:drop-primary-key
            #:drop-constraint
+
+           ;; v2 query composition
+           #:->
+           #:query-state
+           #:add-clause
 
            ;; Conflict resolution
            #:on-duplicate-key-update

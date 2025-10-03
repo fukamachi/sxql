@@ -15,6 +15,6 @@
    (:file "composed-statement" :depends-on ("sql-type" "operator" "clause" "statement" "util"))
    (:file "compile" :depends-on ("sql-type"))
    (:file "sxql-v2" :depends-on ("sql-type" "clause" "statement"))
-   (:file "sxql" :depends-on ("statement" "clause" "operator" "compile" "composed-statement")))
+   (:file "sxql" :depends-on ("sxql-v2" "statement" "clause" "operator" "compile" "composed-statement")))
   :description "A SQL generator"
   :in-order-to ((test-op (test-op "sxql-test"))))
