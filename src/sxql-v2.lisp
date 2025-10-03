@@ -25,8 +25,6 @@
            #:find-column-table
            #:clear-column-mappings
            #:yield-query
-           ;; Query builder
-           #:select
            ;; Clause macros
            #:fields
            #:from
@@ -433,30 +431,6 @@
 
 
 ;;
-;; v2 Query Builder
-;;
-
-(defun select (&rest clauses)
-  "Create a query-state with initial clauses.
-
-   This is the main entry point for building queries. You can pass any
-   combination of clauses (FROM, WHERE, ORDER BY, etc.) as arguments.
-
-   Examples:
-     (select)  ; Empty query: SELECT *
-     (select (from :users))  ; Simple query: SELECT * FROM users
-     (select (from :users) (where (:= :id 123)))  ; With WHERE clause
-
-   The returned query-state is immutable - use the -> threading macro
-   to build upon it:
-     (-> (select (from :users))
-         (where (:= :active 1))
-         (order-by :name))"
-  (let ((query (make-query-state)))
-    (dolist (clause clauses query)
-      (setf query (add-clause query clause)))))
-
-;;
 ;; v2 Clause Macros (copied from sxql.lisp)
 ;;
 
@@ -539,6 +513,15 @@
 ;; v2 Threading Utilities
 ;;
 
+(defun select-statement-to-query-state (select-stmt)
+  "Convert a select-statement to a query-state for v2 composition"
+  (check-type select-stmt stmt:select-statement)
+  (let ((query (make-query-state)))
+    ;; Extract clauses from select-statement using the exported function
+    (dolist (clause (stmt:compute-select-statement-children select-stmt))
+      (setf query (add-clause query clause)))
+    query))
+
 (defgeneric add-clause (query clause)
   (:method ((query query-state) clause)
     (etypecase clause
@@ -568,10 +551,16 @@
 
    This macro enables immutable query composition by threading clauses through
    query-state objects. Each step creates a new query-state, leaving the original
-   unchanged.
+   unchanged. Supports both v1 select-statements and v2 query-states.
 
    Examples:
+     ;; With v2 clause
      (-> (from :users)
+         (where (:= :active 1))
+         (order-by :name))
+
+     ;; With v1 select-statement (backward compatible)
+     (-> (select (:id :name) (from :users))
          (where (:= :active 1))
          (order-by :name))
 
@@ -586,6 +575,7 @@
                 (,threaded-var
                   (typecase ,threaded-var
                     (query-state ,threaded-var)
+                    (stmt:select-statement (select-statement-to-query-state ,threaded-var))
                     (otherwise (add-clause (make-query-state) ,threaded-var)))))
            ,@(loop for form in forms
                    collect `(setf ,threaded-var
