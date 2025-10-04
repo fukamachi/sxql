@@ -13,6 +13,9 @@
 (setup
   (setf *quote-character* #\`))
 
+(teardown
+  (setf *quote-character* nil))
+
 (deftest operator-creation-tests
   (testing "unary operator creation"
     (ok (make-unary-op "NOT" (make-sql-variable 1)))

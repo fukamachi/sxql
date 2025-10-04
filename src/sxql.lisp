@@ -1,7 +1,6 @@
 (defpackage #:sxql
   (:use #:cl
         #:sxql/statement
-        #:sxql/composed-statement
         #:sxql/clause)
   (:shadow #:primary-key
            #:foreign-key
@@ -21,6 +20,12 @@
                 #:union-op
                 #:union-all-op
                 #:*sql-symbol-conversion*)
+  (:import-from #:sxql/composed-statement
+                #:composed-statement)
+  (:import-from #:sxql/composer
+                #:->
+                #:query-state
+                #:add-clause)
   (:import-from #:trivia
                 #:match)
   (:export #:yield
@@ -32,7 +37,7 @@
            #:make-op
            #:make-sql-symbol
            #:make-sql-symbol*
-           #:compose-statements
+           #:expand-op
            #:*use-placeholder*
            #:*quote-character*
            #:*sql-symbol-conversion*
@@ -104,6 +109,11 @@
            #:add-primary-key
            #:drop-primary-key
            #:drop-constraint
+
+           ;; v2 query composition
+           #:->
+           #:query-state
+           #:add-clause
 
            ;; Conflict resolution
            #:on-duplicate-key-update

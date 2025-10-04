@@ -447,8 +447,8 @@
                   'sql-symbol)
               (yield (on-conflict-do-update-clause-conflict-target clause))
               (yield (on-conflict-do-update-clause-update-set clause))
-              (if (on-conflict-do-update-clause-where-condition clause)
-                  (yield (on-conflict-do-update-clause-where-condition clause)))))))
+              (and (on-conflict-do-update-clause-where-condition clause)
+                   (yield (on-conflict-do-update-clause-where-condition clause)))))))
 
 (defun find-make-clause (clause-name &optional (package *package*))
   (find-constructor clause-name #.(string :-clause)

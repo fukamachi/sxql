@@ -13,6 +13,9 @@
 (setup
   (setf *quote-character* #\`))
 
+(teardown
+  (setf *quote-character* nil))
+
 (deftest select-statement-dsl-tests
   (testing "basic SELECT fields"
     (is-mv (select ((:+ 1 1)))

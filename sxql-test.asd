@@ -12,5 +12,7 @@
    (:file "clause")
    (:file "statement")
    (:file "composed-statement")
-   (:file "sxql"))
+   (:file "sxql")
+   (:file "composer")
+   (:file "composer-multi"))
   :perform (test-op (op c) (symbol-call :rove :run c)))

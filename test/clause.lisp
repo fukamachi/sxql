@@ -14,6 +14,9 @@
 (setup
   (setf *quote-character* #\`))
 
+(teardown
+  (setf *quote-character* nil))
+
 (deftest basic-clause-tests
   (testing "WHERE clause"
     (ok (make-clause :where (make-op := :a 10)))

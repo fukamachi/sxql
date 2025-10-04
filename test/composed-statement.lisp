@@ -8,6 +8,12 @@
                           #:is-mv))
 (in-package #:sxql/test/composed-statement)
 
+(setup
+  (setf sxql:*quote-character* #\`))
+
+(teardown
+  (setf sxql:*quote-character* nil))
+
 (deftest compose-statements-basic-test
   (testing "basic statement composition"
     (is-mv (compose-statements (select ((:+ 1 2))))
