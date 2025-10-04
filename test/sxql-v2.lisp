@@ -5,14 +5,14 @@
                 #:->
                 #:register-table-columns
                 #:clear-column-mappings
-                #:query-state-p
-                #:query-state-where-clauses
-                #:query-state-order-by-clauses
-                #:query-state-group-by-clauses
-                #:query-state-having-clauses
-                #:query-state-join-clauses
-                #:query-state-limit-clause
-                #:query-state-offset-clause)
+                #:select-query-state-p
+                #:select-query-state-where-clauses
+                #:select-query-state-order-by-clauses
+                #:select-query-state-group-by-clauses
+                #:select-query-state-having-clauses
+                #:select-query-state-join-clauses
+                #:select-query-state-limit-clause
+                #:select-query-state-offset-clause)
   (:import-from #:sxql
                 #:select
                 #:from
@@ -77,20 +77,20 @@
       (let* ((step1 (from :users))
              (step2 (-> step1 (where (:= :active 1))))
              (step3 (-> step2 (order-by (:desc :created_at)))))
-        (ok (query-state-p step2))
-        (ok (query-state-p step3))
+        (ok (select-query-state-p step2))
+        (ok (select-query-state-p step3))
         ;; Step 2 should have where clauses but not order-by
-        (ok (= 1 (length (query-state-where-clauses step2))))
-        (ok (null (query-state-order-by-clauses step2)))
+        (ok (= 1 (length (select-query-state-where-clauses step2))))
+        (ok (null (select-query-state-order-by-clauses step2)))
         ;; Step 3 should have both
-        (ok (= 1 (length (query-state-where-clauses step3))))
-        (ok (= 1 (length (query-state-order-by-clauses step3))))))
+        (ok (= 1 (length (select-query-state-where-clauses step3))))
+        (ok (= 1 (length (select-query-state-order-by-clauses step3))))))
 
     (testing "Immutability of query states"
       (let* ((original (from :users))
              (with-where (-> original (where (:= :id 123)))))
         ;; New query should have the where clause
-        (ok (= 1 (length (query-state-where-clauses with-where))))))))
+        (ok (= 1 (length (select-query-state-where-clauses with-where))))))))
 
 (deftest v2-clause-composition-tests
   (testing "Multiple clause handling and composition"
@@ -209,8 +209,8 @@
       (let ((base-query (-> (select (:*) (from :users))
                             (where (:= :is_active 1)))))
         ;; Record initial state
-        (let ((initial-where-count (length (query-state-where-clauses base-query)))
-              (initial-order-count (length (query-state-order-by-clauses base-query))))
+        (let ((initial-where-count (length (select-query-state-where-clauses base-query)))
+              (initial-order-count (length (select-query-state-order-by-clauses base-query))))
 
           ;; Create multiple derivations
           (let ((recent-users (-> base-query (where (:< "2025-01-01" :created_at))))
@@ -218,13 +218,13 @@
                 (ordered-users (-> base-query (order-by :created_at))))
 
             ;; Verify base query unchanged
-            (ok (= initial-where-count (length (query-state-where-clauses base-query))))
-            (ok (= initial-order-count (length (query-state-order-by-clauses base-query))))
+            (ok (= initial-where-count (length (select-query-state-where-clauses base-query))))
+            (ok (= initial-order-count (length (select-query-state-order-by-clauses base-query))))
 
             ;; Verify derivations work correctly
-            (ok (= 2 (length (query-state-where-clauses recent-users))))
-            (ok (= 2 (length (query-state-where-clauses search-users))))
-            (ok (= 1 (length (query-state-order-by-clauses ordered-users))))
+            (ok (= 2 (length (select-query-state-where-clauses recent-users))))
+            (ok (= 2 (length (select-query-state-where-clauses search-users))))
+            (ok (= 1 (length (select-query-state-order-by-clauses ordered-users))))
 
             ;; Verify they generate different SQL
             (let ((recent-sql (yield recent-users))
@@ -245,22 +245,22 @@
               (with-offset (-> base (offset 20))))
 
           ;; Base query should remain empty for all clause types
-          (ok (= 0 (length (query-state-where-clauses base))))
-          (ok (= 0 (length (query-state-order-by-clauses base))))
-          (ok (= 0 (length (query-state-group-by-clauses base))))
-          (ok (= 0 (length (query-state-having-clauses base))))
-          (ok (= 0 (length (query-state-join-clauses base))))
-          (ok (null (query-state-limit-clause base)))
-          (ok (null (query-state-offset-clause base)))
+          (ok (= 0 (length (select-query-state-where-clauses base))))
+          (ok (= 0 (length (select-query-state-order-by-clauses base))))
+          (ok (= 0 (length (select-query-state-group-by-clauses base))))
+          (ok (= 0 (length (select-query-state-having-clauses base))))
+          (ok (= 0 (length (select-query-state-join-clauses base))))
+          (ok (null (select-query-state-limit-clause base)))
+          (ok (null (select-query-state-offset-clause base)))
 
           ;; Each derivation should have exactly one clause of its type
-          (ok (= 1 (length (query-state-where-clauses with-where))))
-          (ok (= 1 (length (query-state-order-by-clauses with-order))))
-          (ok (= 1 (length (query-state-group-by-clauses with-group))))
-          (ok (= 1 (length (query-state-having-clauses with-having))))
-          (ok (= 1 (length (query-state-join-clauses with-join))))
-          (ok (not (null (query-state-limit-clause with-limit))))
-          (ok (not (null (query-state-offset-clause with-offset)))))))
+          (ok (= 1 (length (select-query-state-where-clauses with-where))))
+          (ok (= 1 (length (select-query-state-order-by-clauses with-order))))
+          (ok (= 1 (length (select-query-state-group-by-clauses with-group))))
+          (ok (= 1 (length (select-query-state-having-clauses with-having))))
+          (ok (= 1 (length (select-query-state-join-clauses with-join))))
+          (ok (not (null (select-query-state-limit-clause with-limit))))
+          (ok (not (null (select-query-state-offset-clause with-offset)))))))
 
     (testing "Real-world usage patterns work correctly"
       ;; This tests the exact pattern mentioned in the user's requirements
@@ -274,11 +274,11 @@
               (search-users (-> active-users (where (:like :name "%foo%")))))
 
           ;; Base query should be reusable
-          (ok (= 1 (length (query-state-where-clauses active-users))))
+          (ok (= 1 (length (select-query-state-where-clauses active-users))))
 
           ;; Each usage should work independently
-          (ok (= 2 (length (query-state-where-clauses recent-users))))
-          (ok (= 2 (length (query-state-where-clauses search-users))))
+          (ok (= 2 (length (select-query-state-where-clauses recent-users))))
+          (ok (= 2 (length (select-query-state-where-clauses search-users))))
 
           ;; SQL generation should work for all
           (let ((base-sql (yield active-users))
