@@ -9,7 +9,7 @@ SxQL Query Composer introduces an immutable, composable query builder that allow
 - **Immutable query composition**: Each operation returns a new query state
 - **Thread-first macro (`->`)**: Clean, readable query construction
 - **Multi-statement support**: Works with SELECT, INSERT, UPDATE, and DELETE
-- **Backward compatible**: Seamlessly interoperates with v1 API
+- **Backward compatible**: Seamlessly interoperates with traditional SxQL API
 - **Type-safe**: Separate query-state types for each statement kind
 
 ## Quick Start
@@ -203,23 +203,23 @@ Container for DELETE queries.
 
 ## Backward Compatibility
 
-Composer is fully backward compatible with v1. You can use v1 statements as the starting point for composer composition:
+Composer is fully backward compatible with traditional SxQL syntax. You can use traditional statements as the starting point for composer composition:
 
 ```common-lisp
-;; Start with a v1 statement
-(defvar *v1-query*
+;; Start with a traditional statement
+(defvar *traditional-query*
   (select (:id :name)
     (from :users)
     (where (:= :active 1))))
 
 ;; Extend it with composer
-(-> *v1-query*
+(-> *traditional-query*
     (where (:like :name "%Alice%"))
     (order-by :created_at)
     (limit 10))
 
-;; The v1 query remains unchanged
-(yield *v1-query*)
+;; The original query remains unchanged
+(yield *traditional-query*)
 ;=> "SELECT id, name FROM users WHERE (active = ?)" (1)
 ```
 
@@ -343,12 +343,12 @@ Or use `sql-compile` to get a compiled object:
     (returning :id :created_at))
 ```
 
-## Migration Guide from v1
+## Migration Guide
 
-### Before (v1)
+### Before (traditional syntax)
 
 ```common-lisp
-;; Building queries conditionally in v1 is verbose
+;; Building queries conditionally with traditional syntax is verbose
 (defun find-products (category min-price max-price)
   (let ((clauses (list (from :products))))
 
@@ -383,14 +383,14 @@ Or use `sql-compile` to get a compiled object:
     query))
 ```
 
-Or even more concisely:
+Or using `when` for inline conditional composition:
 
 ```common-lisp
 (defun find-products (category min-price max-price)
-  (cond-> (-> (from :products))
-    category (-> (where (:= :category category)))
-    min-price (-> (where (:>= :price min-price)))
-    max-price (-> (where (:<= :price max-price)))))
+  (-> (from :products)
+      (when category (where (:= :category category)))
+      (when min-price (where (:>= :price min-price)))
+      (when max-price (where (:<= :price max-price)))))
 ```
 
 ## API Reference
@@ -495,12 +495,12 @@ Let-bind intermediate states for clarity:
       (limit 100)))
 ```
 
-### 3. Combine with v1 for One-Off Queries
+### 3. Combine with Traditional Syntax for One-Off Queries
 
-For simple, non-dynamic queries, v1 syntax is often more concise:
+For simple, non-dynamic queries, traditional syntax is often more concise:
 
 ```common-lisp
-;; Simple query - v1 is fine
+;; Simple query - traditional syntax is fine
 (select (:id :name)
   (from :users)
   (where (:= :id 123)))
@@ -522,7 +522,7 @@ For simple, non-dynamic queries, v1 syntax is often more concise:
 
 ## See Also
 
-- [Main README](README.markdown) - v1 API documentation
+- [Main README](README.markdown) - Traditional API documentation
 - [Source: src/composer.lisp](src/composer.lisp) - Implementation details
 - [Tests: test/composer.lisp](test/composer.lisp) - SELECT examples
 - [Tests: test/composer-multi.lisp](test/composer-multi.lisp) - INSERT/UPDATE/DELETE examples
