@@ -2,7 +2,21 @@
 
 [![Build Status](https://travis-ci.org/fukamachi/sxql.svg?branch=master)](https://travis-ci.org/fukamachi/sxql)
 
-## Usage
+## Query Composer (NEW!)
+
+SxQL now includes a query composer with immutable composition and a threading macro for building queries incrementally:
+
+```common-lisp
+(-> (from :users)
+    (where (:= :active 1))
+    (where (:> :age 18))
+    (order-by :name)
+    (limit 10))
+```
+
+**[📖 See the full composer documentation](COMPOSER.md)** for details on immutable query composition, multi-statement support, and more.
+
+## Usage (v1 API)
 
 ```common-lisp
 (select (:id :name :sex)

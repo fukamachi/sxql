@@ -1,4 +1,4 @@
-(defpackage #:sxql/v2
+(defpackage #:sxql/composer
   (:use #:cl)
   (:local-nicknames
    (#:a #:alexandria)
@@ -6,7 +6,7 @@
    (#:clause #:sxql/clause)
    (#:op #:sxql/operator)
    (#:stmt #:sxql/statement))
-  (:export ;; v2 Core API
+  (:export ;; Composer Core API
            #:add-clause
            ;; Base type
            #:query-state-base
@@ -62,10 +62,10 @@
            #:clear-column-mappings
            ;; Threading utilities
            #:->))
-(in-package #:sxql/v2)
+(in-package #:sxql/composer)
 
 ;;
-;; v2 Core Object System
+;; Composer Core Object System
 ;;
 
 (defstruct query-state-base
@@ -585,6 +585,10 @@
     (when (query-state-base-primary-table query)
       (push (type:make-sql-symbol (query-state-base-primary-table query)) clauses))
 
+    ;; Add columns list
+    (when (insert-query-state-columns query)
+      (push (apply #'type:make-sql-list (insert-query-state-columns query)) clauses))
+
     ;; Add VALUES clauses
     (dolist (values-clause (reverse (insert-query-state-values-list query)))
       (push values-clause clauses))
@@ -809,7 +813,19 @@
        (add-on-duplicate-key-update-clause query clause))
       ((or sxql.clause::on-conflict-do-nothing-clause
            sxql.clause::on-conflict-do-update-clause)
-       (add-on-conflict-clause query clause)))))
+       (add-on-conflict-clause query clause))
+      ;; Handle SQL-LIST for INSERT columns
+      (type:sql-list
+       (etypecase query
+         (insert-query-state
+          (setf (insert-query-state-columns query) (type:sql-list-elements clause))
+          query)))
+      ;; Handle raw SQL-VARIABLE for INSERT single values (legacy)
+      (type:sql-variable
+       (etypecase query
+         (insert-query-state
+          (push clause (insert-query-state-values-list query))
+          query))))))
 
 (defmacro -> (value &rest forms)
   "Smart threading macro that dispatches based on clause types returned by forms.

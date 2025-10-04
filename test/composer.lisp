@@ -1,7 +1,7 @@
-(defpackage #:sxql/test/v2
+(defpackage #:sxql/test/composer
   (:use #:cl
         #:rove)
-  (:import-from #:sxql/v2
+  (:import-from #:sxql/composer
                 #:->
                 #:register-table-columns
                 #:clear-column-mappings
@@ -29,7 +29,7 @@
                 #:left-join
                 #:right-join
                 #:yield))
-(in-package #:sxql/test/v2)
+(in-package #:sxql/test/composer)
 
 ;;
 ;; Test Helpers

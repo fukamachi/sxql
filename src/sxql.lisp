@@ -22,7 +22,7 @@
                 #:*sql-symbol-conversion*)
   (:import-from #:sxql/composed-statement
                 #:composed-statement)
-  (:import-from #:sxql/v2
+  (:import-from #:sxql/composer
                 #:->
                 #:query-state
                 #:add-clause)
