@@ -240,25 +240,16 @@ When you add multiple WHERE clauses, they are automatically combined with AND:
 
 ## Dynamic Query Building
 
-Composer makes it easy to build queries dynamically based on conditions:
+The `->` macro skips forms that evaluate to NIL, enabling clean conditional composition:
 
 ```common-lisp
 (defun find-users (&key active role min-age search)
-  (let ((query (-> (from :users))))
-
-    (when active
-      (setf query (-> query (where (:= :active 1)))))
-
-    (when role
-      (setf query (-> query (where (:= :role role)))))
-
-    (when min-age
-      (setf query (-> query (where (:>= :age min-age)))))
-
-    (when search
-      (setf query (-> query (where (:like :name (format nil "%~A%" search))))))
-
-    (-> query (order-by :name))))
+  (-> (from :users)
+      (when active (where (:= :active 1)))
+      (when role (where (:= :role role)))
+      (when min-age (where (:>= :age min-age)))
+      (when search (where (:like :name (format nil "%~A%" search))))
+      (order-by :name)))
 
 ;; Usage
 (find-users :active t :role "admin" :min-age 18)
@@ -268,6 +259,10 @@ Composer makes it easy to build queries dynamically based on conditions:
 (find-users :search "Alice")
 ;=> SELECT * FROM users WHERE (name LIKE ?) ORDER BY name
 ;   ("%Alice%")
+
+(find-users)  ; No filters
+;=> SELECT * FROM users ORDER BY name
+;   NIL
 ```
 
 ## Converting to SQL

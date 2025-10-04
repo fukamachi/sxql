@@ -415,3 +415,81 @@
           (let ((joined-sql (yield joined-query)))
             (ok (equal joined-sql
                        "SELECT * FROM users INNER JOIN memberships ON (memberships.user_id = users.id) WHERE ((users.is_active = ?) AND ((users.age > ?) OR (users.score < ?)))"))))))))
+
+(deftest composer-conditional-composition-tests
+  (testing "Conditional composition with NIL forms"
+
+    (testing "when forms returning NIL are skipped"
+      (let ((include-filter nil)
+            (include-order t))
+        (let ((q (-> (from :users)
+                     (when include-filter (where (:= :active 1)))
+                     (when include-order (order-by :name)))))
+          (multiple-value-bind (sql params) (yield q)
+            ;; Should have ORDER BY but no WHERE
+            (ok (search "ORDER BY" sql))
+            (ok (not (search "WHERE" sql)))
+            (ok (null params))))))
+
+    (testing "Multiple conditional clauses"
+      (let ((filter-active t)
+            (filter-role nil)
+            (sort-by-name t)
+            (include-limit nil))
+        (let ((q (-> (from :users)
+                     (when filter-active (where (:= :active 1)))
+                     (when filter-role (where (:= :role "admin")))
+                     (when sort-by-name (order-by :name))
+                     (when include-limit (limit 10)))))
+          (multiple-value-bind (sql params) (yield q)
+            ;; Should have WHERE for active and ORDER BY, but no role filter or LIMIT
+            (ok (search "WHERE" sql))
+            (ok (search "active" sql))
+            (ok (not (search "role" sql)))
+            (ok (search "ORDER BY" sql))
+            (ok (not (search "LIMIT" sql)))
+            (ok (equal params '(1)))))))
+
+    (testing "Dynamic query building with conditionals"
+      (defun build-query (&key active role min-age)
+        (-> (from :users)
+            (when active (where (:= :active 1)))
+            (when role (where (:= :role role)))
+            (when min-age (where (:>= :age min-age)))
+            (order-by :name)))
+
+      (testing "All conditions present"
+        (let ((q (build-query :active t :role "admin" :min-age 18)))
+          (multiple-value-bind (sql params) (yield q)
+            (ok (search "active" sql))
+            (ok (search "role" sql))
+            (ok (search "age" sql))
+            (ok (equal params '(1 "admin" 18))))))
+
+      (testing "Some conditions NIL"
+        (let ((q (build-query :active t :min-age 21)))
+          (multiple-value-bind (sql params) (yield q)
+            (ok (search "active" sql))
+            (ok (not (search "role" sql)))
+            (ok (search "age" sql))
+            (ok (equal params '(1 21))))))
+
+      (testing "All conditions NIL"
+        (let ((q (build-query)))
+          (multiple-value-bind (sql params) (yield q)
+            (ok (not (search "WHERE" sql)))
+            (ok (search "ORDER BY" sql))
+            (ok (null params))))))
+
+    (testing "Mixing regular and conditional clauses"
+      (let ((include-extra-filter nil))
+        (let ((q (-> (from :users)
+                     (where (:= :active 1))  ; Always included
+                     (when include-extra-filter (where (:= :verified 1)))
+                     (order-by :created_at))))  ; Always included
+          (multiple-value-bind (sql params) (yield q)
+            (ok (search "WHERE" sql))
+            (ok (search "active" sql))
+            (ok (not (search "verified" sql)))
+            (ok (search "ORDER BY" sql))
+            (ok (equal params '(1)))))))))

@@ -832,10 +832,15 @@
 
    This macro enables immutable query composition by threading clauses through
    query-state objects. Creates a single copy at the beginning, then destructively
-   adds clauses for efficiency. Supports both v1 select-statements and v2 query-states.
+   adds clauses for efficiency. Supports both v1 select-statements and composer query-states.
+
+   Forms that evaluate to NIL are skipped, enabling conditional composition:
+     (-> (from :users)
+         (when active-only (where (:= :active 1)))
+         (when sort-by-name (order-by :name)))
 
    Examples:
-     ;; With v2 clause
+     ;; With composer clause
      (-> (from :users)
          (where (:= :active 1))
          (order-by :name))
@@ -845,11 +850,11 @@
          (where (:= :active 1))
          (order-by :name))
 
-     (let ((base-query (select (from :users))))
-       (-> base-query
-           (where (:= :department \"engineering\"))
-           (limit 10)))"
-  (a:with-gensyms (threaded-var)
+     ;; Conditional composition
+     (-> (from :users)
+         (when include-inactive (where (:= :active 0)))
+         (when sort-by-date (order-by :created_at)))"
+  (a:with-gensyms (threaded-var clause-var)
     `(let* ((,threaded-var ,value)
             ;; Convert to query-state and copy once at the beginning
             (,threaded-var
@@ -860,12 +865,13 @@
                 (stmt:update-statement (update-statement-to-query-state ,threaded-var))
                 (stmt:delete-from-statement (delete-statement-to-query-state ,threaded-var))
                 (otherwise (add-clause (make-select-query-state) ,threaded-var)))))
-       ;; Now destructively add clauses (no more copying)
+       ;; Now destructively add clauses (no more copying), skipping NILs
        ,@(loop for form in forms
-               collect `(add-clause ,threaded-var
-                                    ,(if (listp form)
-                                         ;; For list forms, call the function with its arguments (no threading)
-                                         `(,(car form) ,@(cdr form))
-                                         ;; For symbol forms, call the function with no arguments
-                                         `(,form))))
+               collect `(let ((,clause-var ,(if (listp form)
+                                                ;; For list forms, call the function with its arguments (no threading)
+                                                `(,(car form) ,@(cdr form))
+                                                ;; For symbol forms, call the function with no arguments
+                                                `(,form))))
+                          (when ,clause-var
+                            (add-clause ,threaded-var ,clause-var))))
        ,threaded-var)))
