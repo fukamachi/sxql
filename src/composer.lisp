@@ -247,16 +247,29 @@
     (setf (query-state-base-returning-clause query) returning-clause)
     query))
 
+(defun merge-set=-clauses (existing-clause new-clause)
+  "Merge two SET= clauses into a single clause with combined arguments.
+   If either argument is nil, returns the other."
+  (cond
+    ((null existing-clause) new-clause)
+    ((null new-clause) existing-clause)
+    (t (let ((combined-args (append (clause::set=-clause-args existing-clause)
+                                    (clause::set=-clause-args new-clause))))
+         (apply #'clause::make-set=-clause combined-args)))))
+
 (defun add-set=-clause (query clause)
-  "Add a SET= clause to UPDATE or INSERT query state (destructive)"
-  (let ((set-clause (typecase clause
-                      (sxql.clause::set=-clause clause)
-                      (otherwise clause))))
+  "Add a SET= clause to UPDATE or INSERT query state (destructive).
+   Multiple SET= clauses are combined into a single clause."
+  (let ((new-set-clause (typecase clause
+                          (sxql.clause::set=-clause clause)
+                          (otherwise clause))))
     (etypecase query
       (update-query-state
-       (setf (update-query-state-set-clause query) set-clause))
+       (setf (update-query-state-set-clause query)
+             (merge-set=-clauses (update-query-state-set-clause query) new-set-clause)))
       (insert-query-state
-       (setf (insert-query-state-set-clause query) set-clause)))
+       (setf (insert-query-state-set-clause query)
+             (merge-set=-clauses (insert-query-state-set-clause query) new-set-clause))))
     query))
 
 (defun add-values-clause (query clause)

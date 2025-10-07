@@ -75,7 +75,27 @@
         (multiple-value-bind (sql params) (yield q)
           (ok (search "ORDER BY" sql))
           (ok (search "LIMIT" sql))
-          (ok (equal params '(100 50))))))))
+          (ok (equal params '(100 50))))))
+
+    (testing "UPDATE with multiple SET= clauses (issue #88)"
+      (let ((q (-> (update :t)
+                   (set= :a 1)
+                   (set= :b 2))))
+        (multiple-value-bind (sql params) (yield q)
+          (ok (search "SET" sql))
+          (ok (search "a = ?" sql))
+          (ok (search "b = ?" sql))
+          (ok (equal params '(1 2))))))
+
+    (testing "UPDATE with multiple SET= clauses using nested -> (issue #88)"
+      (let ((q (-> (-> (update :t)
+                       (set= :a 1))
+                   (set= :b 1))))
+        (multiple-value-bind (sql params) (yield q)
+          (ok (search "SET" sql))
+          (ok (search "a = ?" sql))
+          (ok (search "b = ?" sql))
+          (ok (equal params '(1 1))))))))
 
 (deftest v2-delete-basic-tests
   (testing "Basic DELETE statement composition"
