@@ -73,6 +73,11 @@
   (primary-table nil :type (or null string))
   (returning-clause nil))
 
+(defmethod print-object ((query query-state-base) stream)
+  (format stream "#<QUERY-STATE: ~A>"
+          (let ((type:*use-placeholder* nil))
+            (type:yield query))))
+
 (defstruct (select-query-state (:include query-state-base))
   "Container for SELECT query clauses"
   (fields nil :type list)
