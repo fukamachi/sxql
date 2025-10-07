@@ -48,7 +48,7 @@ The `->` (thread-first) macro is the primary interface for building queries in c
 
 ```common-lisp
 ;; Start with a statement
-(-> (select :id :name)
+(-> (select (:id :name))
     (from :users)
     (where (:= :active 1)))
 
@@ -132,7 +132,7 @@ Container for SELECT queries.
 
 **Example:**
 ```common-lisp
-(-> (select :id :name :email)
+(-> (select (:id :name :email))
     (from :users)
     (where (:= :active 1))
     (order-by :created_at)
@@ -297,7 +297,7 @@ Or use `sql-compile` to get a compiled object:
 ### Complex SELECT
 
 ```common-lisp
-(-> (select :u.id :u.name :u.email (:as :p.title :profile_title))
+(-> (select (:u.id :u.name :u.email (:as :p.title :profile_title)))
     (from (:as :users :u))
     (left-join (:as :profiles :p) :on (:= :u.id :p.user_id))
     (where (:and (:= :u.active 1)
