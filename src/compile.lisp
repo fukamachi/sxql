@@ -4,7 +4,9 @@
         #:sxql/sql-type)
   (:export
    ;; Functions
-   #:sql-compile))
+   #:sql-compile)
+  (:import-from #:sxql/composer
+                #:select-query-state))
 (in-package #:sxql/compile)
 
 (cl-package-locks:lock-package '#:sxql/compile)
