@@ -36,6 +36,7 @@
 (define-compile-struct sql-op (name ""))
 (define-compile-struct sql-clause)
 (define-compile-struct sql-statement)
+(define-compile-struct sxql/composer:select-query-state)
 
 (defun sql-compile (object)
   (multiple-value-bind (sql bind) (yield object)
