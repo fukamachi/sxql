@@ -4,7 +4,9 @@
         #:sxql/sql-type)
   (:export
    ;; Functions
-   #:sql-compile))
+   #:sql-compile)
+  (:import-from #:sxql/composer
+                #:select-query-state))
 (in-package #:sxql/compile)
 
 (cl-package-locks:lock-package '#:sxql/compile)
@@ -36,6 +38,7 @@
 (define-compile-struct sql-op (name ""))
 (define-compile-struct sql-clause)
 (define-compile-struct sql-statement)
+(define-compile-struct sxql/composer:select-query-state)
 
 (defun sql-compile (object)
   (multiple-value-bind (sql bind) (yield object)
