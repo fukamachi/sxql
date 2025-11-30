@@ -493,3 +493,39 @@
             (ok (not (search "verified" sql)))
             (ok (search "ORDER BY" sql))
             (ok (equal params '(1)))))))))
+
+(deftest composer-table-alias-tests
+  (testing "FROM clause table aliases (GitHub issue #92)"
+
+    (testing "Simple table alias in composed query"
+      (let ((q (-> (select :*)
+                   (from (:as :a_very_long_name :a))
+                   (where (:= :a.id 1)))))
+        (multiple-value-bind (sql params) (yield q)
+          (ok (equal sql "SELECT * FROM a_very_long_name AS a WHERE (a.id = ?)"))
+          (ok (equal params '(1))))))
+
+    (testing "Table alias with multiple clauses"
+      (let ((q (-> (select :*)
+                   (from (:as :users :u))
+                   (where (:= :u.active 1))
+                   (order-by :u.name))))
+        (multiple-value-bind (sql params) (yield q)
+          (ok (equal sql "SELECT * FROM users AS u WHERE (u.active = ?) ORDER BY u.name"))
+          (ok (equal params '(1))))))
+
+    (testing "Table alias with JOIN"
+      (let ((q (-> (select :*)
+                   (from (:as :users :u))
+                   (left-join (:as :posts :p) :on (:= :u.id :p.author_id))
+                   (where (:= :u.active 1)))))
+        (multiple-value-bind (sql params) (yield q)
+          (ok (equal sql "SELECT * FROM users AS u LEFT JOIN posts AS p ON (u.id = p.author_id) WHERE (u.active = ?)"))
+          (ok (equal params '(1))))))
+
+    (testing "Starting from select statement with alias"
+      (let ((q (-> (select :* (from (:as :products :p)))
+                   (where (:> :p.price 100)))))
+        (multiple-value-bind (sql params) (yield q)
+          (ok (equal sql "SELECT * FROM products AS p WHERE (p.price > ?)"))
+          (ok (equal params '(100))))))))

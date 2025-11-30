@@ -71,6 +71,7 @@
 (defstruct query-state-base
   "Base container for all query types"
   (primary-table nil :type (or null string))
+  (from-clause nil)
   (returning-clause nil))
 
 (defmethod print-object ((query query-state-base) stream)
@@ -216,6 +217,7 @@
   (let ((from-clause (typecase clause
                        (sxql.clause::from-clause clause)
                        (otherwise (clause:make-clause :from clause)))))
+    (setf (query-state-base-from-clause query) from-clause)
     (setf (query-state-base-primary-table query)
           (clause:from-clause-table-name from-clause))
     query))
@@ -311,6 +313,7 @@
     (select-query-state
      (make-select-query-state
       :primary-table (query-state-base-primary-table query)
+      :from-clause (query-state-base-from-clause query)
       :returning-clause (query-state-base-returning-clause query)
       :fields (copy-list (select-query-state-fields query))
       :where-clauses (copy-list (select-query-state-where-clauses query))
@@ -323,6 +326,7 @@
     (insert-query-state
      (make-insert-query-state
       :primary-table (query-state-base-primary-table query)
+      :from-clause (query-state-base-from-clause query)
       :returning-clause (query-state-base-returning-clause query)
       :columns (copy-list (insert-query-state-columns query))
       :values-list (copy-list (insert-query-state-values-list query))
@@ -333,6 +337,7 @@
     (update-query-state
      (make-update-query-state
       :primary-table (query-state-base-primary-table query)
+      :from-clause (query-state-base-from-clause query)
       :returning-clause (query-state-base-returning-clause query)
       :set-clause (update-query-state-set-clause query)
       :where-clauses (copy-list (update-query-state-where-clauses query))
@@ -342,6 +347,7 @@
     (delete-query-state
      (make-delete-query-state
       :primary-table (query-state-base-primary-table query)
+      :from-clause (query-state-base-from-clause query)
       :returning-clause (query-state-base-returning-clause query)
       :where-clauses (copy-list (delete-query-state-where-clauses query))
       :order-by-clauses (copy-list (delete-query-state-order-by-clauses query))
@@ -523,14 +529,9 @@
               clauses)
         (push (clause:make-clause :fields :*) clauses))
 
-    ;; Add FROM clause
-    (when (query-state-base-primary-table query)
-      (let ((table-name (query-state-base-primary-table query)))
-        (push (clause:make-clause :from
-                                  (if (symbolp table-name)
-                                      (type:make-sql-symbol (string-downcase table-name))
-                                      (type:make-sql-symbol table-name)))
-              clauses)))
+    ;; Add FROM clause - use stored clause if available, otherwise reconstruct from primary-table
+    (when (query-state-base-from-clause query)
+      (push (query-state-base-from-clause query) clauses))
 
     ;; Add WHERE clauses - combine multiple WHERE clauses with AND
     (when (select-query-state-where-clauses query)
