@@ -320,7 +320,7 @@
             (cond
               ((eq (alter-column-clause-not-null clause) :unspecified) "")
               ((alter-column-clause-not-null clause) " SET NOT NULL")
-              (T " DROP NOT NULL")))))
+              (t " DROP NOT NULL")))))
 
 (defstruct (change-column-clause (:include column-modifier-clause (name "CHANGE COLUMN"))
                                  (:constructor make-change-column-clause (old-column-name column-definition

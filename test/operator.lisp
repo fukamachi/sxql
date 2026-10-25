@@ -321,19 +321,19 @@
     (is-mv (make-op :=
                     :id
                     (select :id (from :users)))
-           (list "(`id` = (SELECT `id` FROM `users`))" NIL))
+           (list "(`id` = (SELECT `id` FROM `users`))" nil))
 
     (is-mv (make-op :!=
                     :id
                     (select :id (from :users)))
-           (list "(`id` != (SELECT `id` FROM `users`))" NIL))
+           (list "(`id` != (SELECT `id` FROM `users`))" nil))
 
     (is-mv (make-op :in
                     :id
                     (select :id (from :users)))
-           (list "(`id` IN (SELECT `id` FROM `users`))" NIL))
+           (list "(`id` IN (SELECT `id` FROM `users`))" nil))
 
     (is-mv (make-op :not-in
                     :id
                     (select :id (from :users)))
-           (list "(`id` NOT IN (SELECT `id` FROM `users`))" NIL))))
+           (list "(`id` NOT IN (SELECT `id` FROM `users`))" nil))))

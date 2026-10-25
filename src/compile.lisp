@@ -15,7 +15,8 @@
 
 (defmacro define-compile-struct (structure-name &rest defstruct-options)
   (flet ((symbolcat (&rest symbols)
-           (intern (format nil "~{~A~^-~}" symbols) #.*package*)))
+           ;; STRING, not ~A of the symbol: *PRINT-CASE* must not change the name.
+           (intern (format nil "~{~A~^-~}" (mapcar #'string symbols)) #.*package*)))
     (let ((compiled-name (symbolcat structure-name :compiled)))
       `(progn
          (defstruct (,compiled-name (:include ,structure-name ,@defstruct-options))
